@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KiCad Frontpanel Generator</title>
+</head>
+<body>
+	<input type="file" id="kicad_file_upload" accept=".kicad_pcb"><br>
+	<input type="button" id="download_pcb" value="Get kicad_pcb"/>
+	<h2>Config:</h2>
+	<pre id="config" style="white-space:pre-line;"></pre>
+	<h2>FP PCB:</h2>
+	<pre id="txt"></pre>
+	<script src="s_expression.js"></script>
+	<script src="fp_template.js"></script>
+	<script src="fp_generator.js"></script>
+</body>
+</html>
