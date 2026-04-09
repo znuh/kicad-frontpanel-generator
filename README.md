@@ -2,6 +2,9 @@
 
 KiCad Frontpanel Generator creates matching front panels for KiCad PCBs automatically. The PCB designer defines cut-outs and labels in unused layers of footprints and in the PCB. The Front Panel Generator then uses the shapes from these layers to generate a suitable cover plate.
 
+## Why a web app instead of a KiCad Plugin?
+When I made the initial prototype in 2025, the old plugin API was ~~dying~~ deprecated and the new API still struggling to be born. Creating a derivative of a PCB without replacing/overwriting the original PCB was not possible. I already had a KiCad PCB parser in JS from [another project](https://github.com/znuh/kicad-chm36), so I decided to build upon this. Also, this should make SVG output (laser-cut frontpanels!) easier.
+
 ## Status
 **Warning:** This is work in progress. At the moment this is my initial prototype. There is no proper UI or documentation yet.  
 You have to read the source if you want to try it out at this stage.
