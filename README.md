@@ -1,5 +1,14 @@
-# kicad-frontpanel-generator
-Frontpanel Generator for KiCad PCBs - WIP
+# KiCad Frontpanel Generator
+
+KiCad Frontpanel Generator creates matching front panels for KiCad PCBs automatically. The PCB designer defines cut-outs and labels in unused layers of footprints and in the PCB. The Front Panel Generator then uses the shapes from these layers to generate a suitable cover plate.
+
+## Status
+**Warning:** This is work in progress. At the moment this is my initial prototype. There is no proper UI or documentation yet.  
+You have to read the source if you want to try it out at this stage.
+
+## Example
+![result_small](https://github.com/user-attachments/assets/cb5003e6-36cb-4a9b-92ae-091030bf9ce7)
+
 
 ## Funding
 
