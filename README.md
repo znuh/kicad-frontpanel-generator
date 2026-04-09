@@ -1,2 +1,2 @@
 # kicad-frontpanel-generator
-Frontpanel Generator for KiCad PCBs
+Frontpanel Generator for KiCad PCBs - WIP
