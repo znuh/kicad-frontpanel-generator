@@ -32,7 +32,19 @@
         <h3>1) Load KiCad PCB File</h3>
       </div>
       <div class="card-body">
-        <input type="file" id="kicad_file_upload" accept=".kicad_pcb"><br>
+
+		<!-- Drag & Drop Note -->
+        <div id="drop_note" class="text-center">
+          <span class="fs-1 d-block">📂</span>
+          <span class="fs-5 fw-semibold d-block text-secondary">Drag & drop your <code>.kicad_pcb</code> anywhere to (re)load the input file.</span>
+          <span class="text-muted small">or click to browse your computer</span>
+        </div>
+
+		<!-- File input button -->
+        <div class="input-group input-group-lg mt-3">
+			<label for="kicad_file_upload" class="input-group-text">Input board file:</label>
+			<input class="form-control form-control-lg" id="kicad_file_upload" type="file" accept=".kicad_pcb">
+		</div>
       </div>
     </div> <!-- card -->
 
