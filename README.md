@@ -12,6 +12,10 @@ You have to read the source if you want to try it out at this stage.
 ## Example
 ![result_small](https://github.com/user-attachments/assets/cb5003e6-36cb-4a9b-92ae-091030bf9ce7)
 
+## Trying it
+1) Load *enc-hid.kicad_pcb* from the examples directory in the FP generator
+2) Save the resulting KiCad PCB
+3) Load the saved file in KiCad / pcbnew
 
 ## Funding
 
