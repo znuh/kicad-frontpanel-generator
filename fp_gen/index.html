@@ -1,13 +1,28 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="auto">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KiCad Frontpanel Generator</title>
   <link rel="stylesheet" href="bootstrap-5.3.8/bootstrap.min.css">
+  <!-- TBD: <script src="js/theme_init.js"></script> -->
 </head>
 <body>
 
+  <!-- Dark/light theme switcher -->
+  <div class="position-fixed top-0 end-0 m-3 z-3">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme">
+      <span class="theme-icon-active">🌓</span>
+      <span class="ms-2">Theme</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme">
+      <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light">☀️ Light</button></li>
+      <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark">🌙 Dark</button></li>
+      <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto">💻 System (Default)</button></li>
+    </ul>
+  </div>
+
+  <!-- Root container -->
   <div class="container my-5">
 
     <div class="card mx-auto">
