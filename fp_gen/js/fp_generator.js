@@ -183,11 +183,3 @@ function fileReader(e, loader) {
 	reader.onload = evt => loader(evt.target.result, file.name);
 	reader.readAsText(file);
 }
-
-document.addEventListener("DOMContentLoaded", function() {
-	document.getElementById('config').textContent = JSON.stringify(config, null, 1);
-	/* clear value on click to allow reloading the same file */
-	document.getElementById('kicad_file_upload').addEventListener('click', e => e.target.value="");
-	document.getElementById('kicad_file_upload').addEventListener('change', e => fileReader(e,KicadLoader), false);
-	document.getElementById('download_pcb').addEventListener('click', pcb_download);
-});
