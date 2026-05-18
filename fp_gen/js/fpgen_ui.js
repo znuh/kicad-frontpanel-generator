@@ -32,6 +32,20 @@ function ui_theme_setup() {
 	});
 }
 
+function ui_dropzone_setup(finput) {
+	/* Do not open kicad files directly in browser */
+	window.addEventListener('dragover', (e) => e.preventDefault());
+	window.addEventListener('drop', (e) => e.preventDefault());
+
+	window.addEventListener('drop', (e) => {
+		e.preventDefault();
+		const files = e.dataTransfer.files;
+		if(files.length !== 1) return;
+		finput.files = files;
+        finput.dispatchEvent(new Event('change'));
+	});
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 	document.getElementById('config').textContent = JSON.stringify(config, null, 1);
 
@@ -43,6 +57,9 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* add click to drop note */
 	document.getElementById('drop_note').addEventListener('click', () => { file_upload.click(); });
 
+	ui_dropzone_setup(file_upload);
+
+	/* Dowload FP */
 	document.getElementById('download_pcb').addEventListener('click', pcb_download);
 
 	/* setup theme switching */
