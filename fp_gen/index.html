@@ -24,18 +24,34 @@
 
   <!-- Root container -->
   <div class="container my-5">
+    <h1>KiCad Frontpanel Generator</h1>
 
-    <div class="card mx-auto">
+    <!-- File Input -->
+    <div class="card mx-auto mt-3">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h3>Frontpanel Generator</h3>
+        <h3>1) Load KiCad PCB File</h3>
       </div>
-
       <div class="card-body">
         <input type="file" id="kicad_file_upload" accept=".kicad_pcb"><br>
-        <input type="button" id="download_pcb" value="Get kicad_pcb"/>
-        <h4 class="my-3">Config:</h4>
+      </div>
+    </div> <!-- card -->
+
+    <!-- Config -->
+    <div class="card mx-auto mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>2) Configuration</h3>
+      </div>
+      <div class="card-body">
         <pre id="config" style="white-space: pre;"></pre>
-        <h4>FP PCB:</h4>
+      </div>
+    </div> <!-- card -->
+
+    <div class="card mx-auto mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>3) Frontpanel Output</h3>
+      </div>
+      <div class="card-body">
+        <input type="button" id="download_pcb" value="Get kicad_pcb"/>
         <pre id="txt"></pre>
       </div>
     </div> <!-- card -->
