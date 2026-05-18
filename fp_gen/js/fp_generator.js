@@ -185,7 +185,7 @@ function fileReader(e, loader) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-	document.getElementById('config').textContent = JSON.stringify(config, null, 0);
+	document.getElementById('config').textContent = JSON.stringify(config, null, 1);
 	/* clear value on click to allow reloading the same file */
 	document.getElementById('kicad_file_upload').addEventListener('click', e => e.target.value="");
 	document.getElementById('kicad_file_upload').addEventListener('change', e => fileReader(e,KicadLoader), false);
