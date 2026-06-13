@@ -47,7 +47,7 @@ function ui_dropzone_setup(finput) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-	document.getElementById('config').textContent = JSON.stringify(config, null, 1);
+	//document.getElementById('config').textContent = JSON.stringify(config, null, 1);
 
 	/* clear value on click to allow reloading the same file */
 	const file_upload = document.getElementById('kicad_file_upload');
