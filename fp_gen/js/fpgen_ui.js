@@ -60,7 +60,9 @@ document.addEventListener("DOMContentLoaded", function() {
 	ui_dropzone_setup(file_upload);
 
 	/* Dowload FP */
-	document.getElementById('download_pcb').addEventListener('click', pcb_download);
+	const dl_btn = document.getElementById('download_pcb');
+	dl_btn.disabled = true;
+	dl_btn.addEventListener('click', pcb_download);
 
 	/* setup theme switching */
 	ui_theme_setup();

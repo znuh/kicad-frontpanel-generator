@@ -173,7 +173,13 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	};
 	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb, config.layer_map) };
 	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
-	document.getElementById('txt').textContent = frontpanel.kicad_pcb;
+	//document.getElementById('txt').textContent = frontpanel.kicad_pcb;
+	const have_data = frontpanel.kicad_pcb != null;
+	document.getElementById('download_pcb').disabled = !have_data;
+	if(have_data)
+		document.getElementById('no_input').classList.replace("d-block", "d-none");
+	else
+		document.getElementById('no_input').classList.replace("d-none", "d-block");
 }
 
 function fileReader(e, loader) {
