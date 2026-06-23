@@ -74,19 +74,19 @@
 			  <th scope="row"><div class="rounded" style="width: 20px; height: 20px;" data-role="layer_in_color"></div></th>
 			  <td data-role="layer_in_name"></td>
 			  <td class="fs-4">&#10132;</td>
-			  <td><select class="form-select" aria-label="Output Layers" data-role="layers_out"></select></td>
+			  <td><select class="form-select" aria-label="Output Layers" data-role="layers_out" data-config="layer_map"></select></td>
 			</tr>
 		</template>
 
 		<div class="input-group" style="max-width: 450px;">
 		  <div class="input-group-text">
-			<input class="form-check-input mt-0" id="cb_keep_3d" type="checkbox" value="" aria-label="Checkbox for following text input">
+			<input class="form-check-input mt-0" id="cb_keep_3d" type="checkbox" value="" aria-label="Checkbox for following text input" data-config="keep_3d_models">
 			<label class="form-check-label ms-2" for="cb_keep_3d">Keep 3D Models</label>
 		  </div>
 		  <div class="input-group-text">
 			<label for="z_ofs" class="form-text-label">Z-axis offset:</label>
 		  </div>
-		  <input type="text" class="form-control" aria-label="z_ofs" id="z_ofs" value="-8.0">
+		  <input type="text" class="form-control" aria-label="z_ofs" id="z_ofs" value="-8.0" data-config="z_ofs">
 		  <div class="input-group-text">
 			<label class="form-text-label">mm</label>
 		  </div>

@@ -1,6 +1,8 @@
+/* Copyright (c) 2026 Benedikt Heinz <zn000h AT gmail.com>
+ * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
+ */
 
 /* Initial-UI TODOs:
- * - update config when user makes changes in UI
  * - add z_ofs validity check
  */
 
@@ -70,6 +72,7 @@ function mk_kc_layermap_table() {
 	};
 
 	function mk_output_layers(sel_node, input_layer) {
+		sel_node.dataset.input_layer = input_layer;
 		output_layers.forEach(ols_entry => {
 			const opt = document.createElement("option");
 			opt.value = ols_entry;
@@ -104,8 +107,25 @@ function mk_kc_layermap_table() {
 	});
 }
 
+function update_config() {
+	const role_funcs = {
+		layer_map		: n => {
+			const input_layer   = n.dataset.input_layer;
+			const output_layers = ((n.value === 'Unassigned') ? [] : n.value.split(' + '));
+			config.layer_map[input_layer] = output_layers;
+		},
+		keep_3d_models	: n => { config.keep_3d_models = n.checked; },
+		z_ofs			: n => { config.models_offset_adjust[2] = parseFloat(n.value); },
+	};
+
+	document.querySelectorAll('[data-config]').forEach( n => {
+		const cfg_id = n.dataset.config;
+		role_funcs[cfg_id](n);
+	});
+	//console.log("config:", config);
+}
+
 document.addEventListener("DOMContentLoaded", function() {
-	//document.getElementById('config').textContent = JSON.stringify(config, null, 1);
 
 	/* clear value on click to allow reloading the same file */
 	const file_upload = document.getElementById('kicad_file_upload');
@@ -120,17 +140,19 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* Dowload FP */
 	const dl_btn = document.getElementById('download_pcb');
 	dl_btn.disabled = true;
-	dl_btn.addEventListener('click', pcb_download);
+	dl_btn.addEventListener('click', () => {
+		update_config();
+		make_frontpanel();
+		pcb_download();
+	});
 
 	/* setup theme switching */
 	ui_theme_setup();
 
+	/* make KiCad Layer mapping table */
 	mk_kc_layermap_table();
 
-	const keep_3d_models_cb = document.getElementById('cb_keep_3d');
-	keep_3d_models_cb.checked = config.keep_3d_models;
-
-	const z_ofs_entry = document.getElementById('z_ofs');
-	z_ofs_entry.value = config.models_offset_adjust[2];
-
+	/* apply default settings from config */
+	document.getElementById('cb_keep_3d').checked = config.keep_3d_models;
+	document.getElementById('z_ofs').value = config.models_offset_adjust[2];
 });

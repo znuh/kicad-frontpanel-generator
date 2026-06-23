@@ -64,7 +64,8 @@ async function pcb_download() {
 }
 
 /* convert original PCB to frontpanel PCB (+ SVG) */
-function pcb_to_fp(pcb, layer_map) {
+function pcb_to_fp(pcb) {
+	const layer_map = config.layer_map;
 
 	/* determines if a frontpanel layer (from the layer_map)
 	 * is used somewhere in the element - does a recursive search */
@@ -166,15 +167,17 @@ function pcb_to_fp(pcb, layer_map) {
 	return pcb.reduce(conv_element, fp_pcb);		/* populate empty PCB with frontpanel elements */
 }
 
+function make_frontpanel() {
+	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb) };
+	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
+}
+
 function KicadLoader(str, fname, server_path, mod_time) {
 	source_pcb = {
 		fname 		: fname,
 		pcb			: parse_sexpression(str),
 	};
-	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb, config.layer_map) };
-	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
-	//document.getElementById('txt').textContent = frontpanel.kicad_pcb;
-	const have_data = frontpanel.kicad_pcb != null;
+	const have_data = source_pcb.pcb != null;
 	document.getElementById('download_pcb').disabled = !have_data;
 	if(have_data)
 		document.getElementById('no_input').classList.replace("d-block", "d-none");
