@@ -53,6 +53,35 @@ function ui_dropzone_setup(finput) {
 	});
 }
 
+function mk_kc_layermap_table() {
+	const tbody = document.getElementById('tb_layermap');
+	const tr_template = document.getElementById('tr_layermap').content.firstElementChild;
+
+	/* data translation / mapping functions */
+	const role_transl = {
+		layer_in_color	: (n, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
+		layer_in_name	: (n, lname) => {n.textContent = lname; },
+		layers_out		: (n, lname) => {}, // TBD
+	};
+
+	function process_roles(node, lname) {
+		const roleNodes = node.querySelectorAll('[data-role]');
+		roleNodes.forEach(node => {
+			const role = node.dataset.role;
+			if(role_transl[role])
+				role_transl[role](node, lname);
+			else
+				console.log("process_roles / missing role mapping:", role);
+		});
+	}
+
+	Object.keys(config.layer_map).forEach(l => {
+		const tr = tr_template.cloneNode(true);
+		process_roles(tr, l);
+		tbody.appendChild(tr);
+	});
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 	//document.getElementById('config').textContent = JSON.stringify(config, null, 1);
 
@@ -73,4 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	/* setup theme switching */
 	ui_theme_setup();
+
+	mk_kc_layermap_table();
 });
