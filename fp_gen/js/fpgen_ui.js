@@ -2,10 +2,6 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
-/* Initial-UI TODOs:
- * - add z_ofs validity check
- */
-
 function ui_theme_setup() {
 
 	function apply_theme() {
@@ -115,7 +111,7 @@ function update_config() {
 			config.layer_map[input_layer] = output_layers;
 		},
 		keep_3d_models	: n => { config.keep_3d_models = n.checked; },
-		z_ofs			: n => { config.models_offset_adjust[2] = parseFloat(n.value); },
+		z_ofs			: n => { config.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
 	};
 
 	document.querySelectorAll('[data-config]').forEach( n => {
@@ -152,7 +148,13 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* make KiCad Layer mapping table */
 	mk_kc_layermap_table();
 
-	/* apply default settings from config */
+	/* apply default settings from config & sanitize z_ofs input */
 	document.getElementById('cb_keep_3d').checked = config.keep_3d_models;
-	document.getElementById('z_ofs').value = config.models_offset_adjust[2];
+	const zofs_input = document.getElementById('z_ofs');
+	zofs_input.value = config.models_offset_adjust[2];
+	zofs_input.addEventListener('input', (e) => {
+		const val = e.target.value;
+		e.target.value = val.replace(/[^0-9.-]/g, '');
+	});
+
 });
