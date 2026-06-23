@@ -69,7 +69,7 @@ function mk_kc_layermap_table() {
 			const opt = document.createElement("option");
 			opt.value = ols_entry;
 			opt.text = ols_entry;
-			opt.selected = config.layer_map[input_layer].join(' + ') == ols_entry;
+			opt.selected = config.layer_map[input_layer].join(' + ') === ols_entry;
 			sel_node.add(opt);
 		});
 	}
