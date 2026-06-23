@@ -1,4 +1,9 @@
 
+/* Initial-UI TODOs:
+ * - update config when user makes changes in UI
+ * - add z_ofs validity check
+ */
+
 function ui_theme_setup() {
 
 	function apply_theme() {
