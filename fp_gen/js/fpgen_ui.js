@@ -1,11 +1,4 @@
 
-const kicad_layer_colors = {
-	'User.1' : '#c2c2c2',
-	'User.2' : '#5994dc',
-	'User.3' : '#b4dbd2',
-	'User.4' : '#d8c852',
-};
-
 function ui_theme_setup() {
 
 	function apply_theme() {
@@ -57,11 +50,35 @@ function mk_kc_layermap_table() {
 	const tbody = document.getElementById('tb_layermap');
 	const tr_template = document.getElementById('tr_layermap').content.firstElementChild;
 
+	const output_layers = [
+		'Unassigned',
+		'Edge.Cuts',
+		'F.SilkS', 'F.Cu', 'F.Mask', 'F.Cu + F.Mask',
+		'B.SilkS', 'B.Cu', 'B.Mask', 'B.Cu + B.Mask',
+	];
+
+	const kicad_layer_colors = {
+		'User.1' : '#c2c2c2',
+		'User.2' : '#5994dc',
+		'User.3' : '#b4dbd2',
+		'User.4' : '#d8c852',
+	};
+
+	function mk_output_layers(sel_node, input_layer) {
+		output_layers.forEach(ols_entry => {
+			const opt = document.createElement("option");
+			opt.value = ols_entry;
+			opt.text = ols_entry;
+			opt.selected = config.layer_map[input_layer].join(' + ') == ols_entry;
+			sel_node.add(opt);
+		});
+	}
+
 	/* data translation / mapping functions */
 	const role_transl = {
 		layer_in_color	: (n, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
 		layer_in_name	: (n, lname) => {n.textContent = lname; },
-		layers_out		: (n, lname) => {}, // TBD
+		layers_out		: (n, lname) => {mk_output_layers(n, lname); },
 	};
 
 	function process_roles(node, lname) {
@@ -104,4 +121,11 @@ document.addEventListener("DOMContentLoaded", function() {
 	ui_theme_setup();
 
 	mk_kc_layermap_table();
+
+	const keep_3d_models_cb = document.getElementById('cb_keep_3d');
+	keep_3d_models_cb.checked = config.keep_3d_models;
+
+	const z_ofs_entry = document.getElementById('z_ofs');
+	z_ofs_entry.value = config.models_offset_adjust[2];
+
 });
