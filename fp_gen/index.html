@@ -1,18 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="auto">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KiCad Frontpanel Generator</title>
+  <link rel="stylesheet" href="bootstrap-5.3.8/bootstrap.min.css">
+  <script src="js/theme_init.js"></script>
 </head>
 <body>
-	<input type="file" id="kicad_file_upload" accept=".kicad_pcb"><br>
-	<input type="button" id="download_pcb" value="Get kicad_pcb"/>
-	<h2>Config:</h2>
-	<pre id="config" style="white-space:pre-line;"></pre>
-	<h2>FP PCB:</h2>
-	<pre id="txt"></pre>
-	<script src="s_expression.js"></script>
-	<script src="fp_template.js"></script>
-	<script src="fp_generator.js"></script>
+
+  <!-- Dark/light theme switcher -->
+  <div class="position-fixed top-0 end-0 m-3 z-3">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme">
+      <span class="theme-icon-active">🌓</span>
+      <span class="ms-2">Theme</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme">
+      <li><button type="button" class="dropdown-item d-flex align-items-center" data-bstheme="light">☀️ Light</button></li>
+      <li><button type="button" class="dropdown-item d-flex align-items-center" data-bstheme="dark">🌙 Dark</button></li>
+      <li><button type="button" class="dropdown-item d-flex align-items-center" data-bstheme="auto">💻 System (Default)</button></li>
+    </ul>
+  </div>
+
+  <!-- Root container -->
+  <div class="container my-2">
+    <h1>KiCad Frontpanel Generator</h1>
+
+    <!-- File Input -->
+    <div class="card mx-auto mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>1) Load KiCad PCB File</h3>
+      </div>
+      <div class="card-body">
+
+		<!-- Drag & Drop Note -->
+        <div id="drop_note" class="text-center">
+          <span class="fs-1 d-block">📂</span>
+          <span class="fs-5 fw-semibold d-block">Drag & drop your <code>.kicad_pcb</code> anywhere to (re)load the input file.</span>
+          <span class="text-muted small">or click to browse your computer</span>
+        </div>
+
+		<!-- File input button -->
+        <div class="input-group input-group-lg mt-3">
+			<label for="kicad_file_upload" class="input-group-text">Input board file:</label>
+			<input class="form-control form-control-lg" id="kicad_file_upload" type="file" accept=".kicad_pcb">
+		</div>
+      </div>
+    </div> <!-- card -->
+
+    <!-- Config -->
+    <div class="card mx-auto mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>2) Configuration</h3>
+      </div>
+      <div class="card-body">
+
+		<table class="table w-auto caption-top text-nowrap">
+		  <caption class="text-center fs-4 fw-semibold text-body">KiCad Layer Mapping</caption>
+		  <thead>
+			<tr>
+			  <th scope="col"></th>
+			  <th scope="col">Input</th>
+			  <th scope="col"></th>
+			  <th scope="col">Output</th>
+			</tr>
+		  </thead>
+		  <tbody class="align-middle" id="tb_layermap">
+		  </tbody>
+		</table>
+
+		<template id="tr_layermap">
+			<tr>
+			  <th scope="row"><div class="rounded" style="width: 20px; height: 20px;" data-role="layer_in_color"></div></th>
+			  <td data-role="layer_in_name"></td>
+			  <td class="fs-4">&#10132;</td>
+			  <td><select class="form-select" aria-label="Output Layers" data-role="layers_out" data-config="layer_map"></select></td>
+			</tr>
+		</template>
+
+		<div class="input-group" style="max-width: 450px;">
+		  <div class="input-group-text">
+			<input class="form-check-input mt-0" id="cb_keep_3d" type="checkbox" value="" aria-label="Checkbox for following text input" data-config="keep_3d_models">
+			<label class="form-check-label ms-2" for="cb_keep_3d">Keep 3D Models</label>
+		  </div>
+		  <div class="input-group-text">
+			<label for="z_ofs" class="form-text-label">Z-axis offset:</label>
+		  </div>
+		  <input type="text" inputmode="numeric" class="form-control" aria-label="z_ofs" id="z_ofs" value="-8.0" data-config="z_ofs">
+		  <div class="input-group-text">
+			<label class="form-text-label">mm</label>
+		  </div>
+		</div>
+
+      </div> <!-- card body -->
+    </div> <!-- card -->
+
+    <!-- Output -->
+    <div class="card mx-auto mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>3) Frontpanel Output</h3>
+      </div>
+      <div class="card-body">
+        <button type="button" class="btn btn-primary btn-lg" id="download_pcb" disabled>Get Frontpanel PCB</button>
+        <span class="mt-2 ms-2 fs-6 fw-semibold d-block" id="no_input">No input file loaded yet.</span>
+        <pre id="txt" hidden></pre>
+      </div>
+    </div> <!-- card -->
+
+  </div> <!-- root container -->
+
+	<!-- scripts -->
+	<script src="bootstrap-5.3.8/bootstrap.bundle.min.js"></script>
+	<script src="js/s_expression.js"></script>
+	<script src="js/fp_template.js"></script>
+	<script src="js/fp_generator.js"></script>
+	<script src="js/fpgen_ui.js"></script>
 </body>
 </html>
