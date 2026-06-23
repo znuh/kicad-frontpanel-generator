@@ -65,37 +65,28 @@
 			  <th scope="col">Output</th>
 			</tr>
 		  </thead>
-		  <tbody class="align-middle">
+		  <tbody class="align-middle" id="tb_layermap">
+		  </tbody>
+		</table>
+
+		<template id="tr_layermap">
 			<tr>
-			  <th scope="row"><div class="rounded" style="width: 20px; height: 20px; background-color: #74992e;"></div></th>
-			  <td>User.1</td>
+			  <th scope="row"><div class="rounded" style="width: 20px; height: 20px;" data-role="layer_in_color"></div></th>
+			  <td data-role="layer_in_name"></td>
 			  <td class="fs-4">&#10132;</td>
 			  <td>
-
-				<select class="form-select" aria-label="Output Layers">
+				<select class="form-select" aria-label="Output Layers" data-role="layers_out">
+					<!--
 				  <option value="" selected>Unassigned</option>
 				  <option value="1">Edge.Cuts</option>
 				  <option value="2">F.Cu</option>
 				  <option value="2">F.Cu + F.Mask</option>
 				  <option value="3">F.SilkS</option>
+				  -->
 				</select>
-
 			  </td>
 			</tr>
-			<tr>
-			  <th scope="row"></th>
-			  <td>User.2</td>
-			  <td class="fs-4">&#10132;</td>
-			  <td>Bar</td>
-			</tr>
-			<tr>
-			  <th scope="row"></th>
-			  <td>User.3</td>
-			  <td class="fs-4">&#10132;</td>
-			  <td>Blah</td>
-			</tr>
-		  </tbody>
-		</table>
+		</template>
 
 		<div class="input-group" style="max-width: 450px;">
 		  <div class="input-group-text">
