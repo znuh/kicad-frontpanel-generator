@@ -6,14 +6,15 @@ KiCad Frontpanel Generator creates matching front panels for KiCad PCBs automati
 When I made the initial prototype in 2025, the old plugin API was ~~dying~~ deprecated and the new API still struggling to be born. Creating a derivative of a PCB without replacing/overwriting the original PCB was not possible. I already had a KiCad PCB parser in JS from [another project](https://github.com/znuh/kicad-chm36), so I decided to build upon this. Also, this should make SVG output (laser-cut frontpanels!) easier.
 
 ## Status
-**Warning:** This is work in progress. At the moment this is my initial prototype. There is no proper UI or documentation yet.  
-You have to read the source if you want to try it out at this stage.
+**Warning:** This is work in progress. The main branch has a basic, working UI. There is no visualisation/preview or SVG output yet.  
+**KiCad v10 Note:** Output is KiCad v9 atm. Loading a v10 input file *should* work. The generator will give you a v9 output file which you can load in v10 as well. KiCad v10 output will come soon.
 
 ## Example
 ![result_small](https://github.com/user-attachments/assets/cb5003e6-36cb-4a9b-92ae-091030bf9ce7)
 
 ## Trying it
-1) Load *enc-hid.kicad_pcb* from the examples directory in the FP generator
+You can see/try it here without cloning the repo: [znu.nz/fpgen](https://znu.nz/fpgen/)
+1) Load *enc-hid_kicad-v9.kicad_pcb* from the examples directory in the FP generator
 2) Save the resulting KiCad PCB
 3) Load the saved file in KiCad / pcbnew
 
