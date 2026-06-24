@@ -121,6 +121,34 @@ function update_config() {
 	//console.log("config:", config);
 }
 
+function KicadLoader(str, fname, server_path, mod_time) {
+	let have_data = false;
+	try {
+		source_pcb = {
+			fname 		: fname,
+			pcb			: parse_sexpression(str),
+		};
+		have_data = source_pcb.pcb?.[0] === 'kicad_pcb';
+	} catch(e) {}
+
+	document.getElementById('download_pcb').disabled = !have_data;
+	if(have_data)
+		document.getElementById('no_input').classList.replace("d-block", "d-none");
+	else {
+		document.getElementById('no_input').classList.replace("d-none", "d-block");
+		const modalElement = document.getElementById('error-modal');
+		bootstrap.Modal.getOrCreateInstance(modalElement).show();
+	}
+}
+
+function fileReader(e, loader) {
+	const file = e.target.files[0];
+	if (!file) return;
+	let reader = new FileReader();
+	reader.onload = evt => loader(evt.target.result, file.name);
+	reader.readAsText(file);
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 
 	/* clear value on click to allow reloading the same file */

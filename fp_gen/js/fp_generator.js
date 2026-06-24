@@ -1,4 +1,4 @@
-/* Copyright (c) 2025 Benedikt Heinz <zn000h AT gmail.com>
+/* Copyright (c) 2025, 2026 Benedikt Heinz <zn000h AT gmail.com>
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 let source_pcb = null;
@@ -170,25 +170,4 @@ function pcb_to_fp(pcb) {
 function make_frontpanel() {
 	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb) };
 	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
-}
-
-function KicadLoader(str, fname, server_path, mod_time) {
-	source_pcb = {
-		fname 		: fname,
-		pcb			: parse_sexpression(str),
-	};
-	const have_data = source_pcb.pcb != null;
-	document.getElementById('download_pcb').disabled = !have_data;
-	if(have_data)
-		document.getElementById('no_input').classList.replace("d-block", "d-none");
-	else
-		document.getElementById('no_input').classList.replace("d-none", "d-block");
-}
-
-function fileReader(e, loader) {
-	const file = e.target.files[0];
-	if (!file) return;
-	let reader = new FileReader();
-	reader.onload = evt => loader(evt.target.result, file.name);
-	reader.readAsText(file);
 }

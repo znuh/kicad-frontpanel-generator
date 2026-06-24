@@ -25,7 +25,7 @@
   <!-- Root container -->
   <div class="container my-2">
     <h1>KiCad Frontpanel Generator</h1>
-    Version: 2026-06-23; Source: <a href="https://github.com/znuh/kicad-frontpanel-generator">Git Repository</a>
+    Version: 2026-06-24; Source: <a href="https://github.com/znuh/kicad-frontpanel-generator">Git Repository</a>
 
     <!-- File Input -->
     <div class="card mx-auto mt-3">
@@ -109,6 +109,24 @@
     </div> <!-- card -->
 
   </div> <!-- root container -->
+
+	<!-- error message modal -->
+	<div class="modal" tabindex="-1" id="error-modal">
+	  <div class="modal-dialog">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title">Loading input file failed</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body">
+			<p id="error-modal-text"><b>Could not load input file.</b><br>Make sure you are using a <code>.kicad_pcb</code> file for a recent KiCad version.</p>
+		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
 
 	<!-- scripts -->
 	<script src="bootstrap-5.3.8/bootstrap.bundle.min.js"></script>
