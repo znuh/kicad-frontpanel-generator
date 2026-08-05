@@ -122,7 +122,12 @@ function update_config() {
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
+	const supported_kicad_versions = {"9.0" : true, "10.0" : true};
+	let version_info = "No file loaded yet.";
+	let output_info = "No input file loaded yet.";
+	let version_unsupported = false;
 	let have_data = false;
+
 	try {
 		source_pcb = {
 			fname 		: fname,
@@ -132,13 +137,30 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	} catch(e) {}
 
 	document.getElementById('download_pcb').disabled = !have_data;
-	if(have_data)
-		document.getElementById('no_input').classList.replace("d-block", "d-none");
+	if(have_data) {
+		/* get & check input file KiCad version */
+		const kicad_ver = source_pcb.pcb.find(e => e[0] === "generator_version")?.[1];
+		source_pcb.kicad_ver = kicad_ver ? JSON.parse(kicad_ver) : undefined;
+		version_info = source_pcb.kicad_ver ?? "UNKNOWN";
+		version_unsupported = supported_kicad_versions[source_pcb.kicad_ver] !== true;
+
+		/* Use KiCad 10 output for any version >= 10.0
+		 * If source_pcb.kicad_ver is undefined, the input file is probably <9.0
+		 * parseFloat will return NaN then and NaN >= 10.0 is false, so 9.0 output will be used.
+		 */
+		config.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
+		output_info = "Output KiCad version: " + config.output_kicad_version;
+	}
 	else {
-		document.getElementById('no_input').classList.replace("d-none", "d-block");
 		const modalElement = document.getElementById('error-modal');
 		bootstrap.Modal.getOrCreateInstance(modalElement).show();
 	}
+
+	document.getElementById('kicad_version_info').textContent = version_info;
+	document.querySelectorAll('[data-role="version_warning"]').forEach(
+		n => n.hidden = version_unsupported === false);
+
+	document.getElementById('kicad_output_info').textContent = output_info;
 }
 
 function fileReader(e, loader) {
