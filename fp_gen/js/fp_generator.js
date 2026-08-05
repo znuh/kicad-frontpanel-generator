@@ -163,7 +163,12 @@ function pcb_to_fp(pcb) {
 		return res;
 	}
 
-	let fp_pcb = structuredClone(fp_template);		/* make a copy of empty PCB template */
+	/* Use KiCad 10 output for any version >= 10.0
+	 * If source_pcb.kicad_ver is undefined, the input file is probably <9.0
+	 * parseFloat will return NaN then and NaN >= 10.0 is false, so 9.0 output will be used.
+	 */
+	const fp_template = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? fp_template_kicad10 : fp_template_kicad9;
+	const fp_pcb = structuredClone(fp_template);	/* make a copy of empty PCB template */
 	return pcb.reduce(conv_element, fp_pcb);		/* populate empty PCB with frontpanel elements */
 }
 
