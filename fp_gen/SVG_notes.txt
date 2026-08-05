@@ -1,0 +1,88 @@
+
+KiCad elements to map (fp_/gr_):
+* line
+	(gr_line
+		(start 140 56)
+		(end 140 184)
+		(stroke
+			(width 0.1)
+			(type default) / (type solid)
+		)
+		(layer "Cmts.User")
+	)
+
+* arc
+	(gr_arc
+		(start 55 38)
+		(mid 55.87868 35.87868)
+		(end 58 35)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+	)
+
+* circle
+	(gr_circle
+		(center 141.4 181.4)
+		(end 144.9 181.4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill yes)
+		(layer "B.Mask")
+	)
+
+	NOTE: Cutout in Edge.Cuts example:
+	(fp_circle
+			(center 3.25 2.25)
+			(end 6.45 2.25)
+			(stroke
+				(width 0.1)
+				(type solid)
+			)
+			(fill no)
+			(layer "User.1")
+		)
+
+* text
+	(gr_text "enc-hid v1\nznu 2025"
+		(at 143.6 89.6 0)
+		(layer "B.SilkS")
+		(uuid "f5ccb663-f2b9-4f9e-bfc8-b84bcb36b295")
+		(effects
+			(font
+				(size 3 3)
+				(thickness 0.5)
+				(bold yes)
+			)
+			(justify left bottom mirror)
+		)
+	)
+
+* rect
+	(fp_rect
+		(start 0.65 1.25)
+		(end 2.05 3.75)
+		(stroke
+			(width 0.15)
+			(type default)
+		)
+		(fill yes)
+		(layer "User.2")
+	)
+
+* poly
+	(fp_poly
+		(pts
+			(xy -1.3 -1.51) (xy -1.54 -1.84) (xy -1.06 -1.84) (xy -1.3 -1.51)
+		)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.SilkS")
+	)
