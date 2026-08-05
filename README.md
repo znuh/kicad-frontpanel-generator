@@ -7,14 +7,14 @@ When I made the initial prototype in 2025, the old plugin API was ~~dying~~ depr
 
 ## Status
 **Warning:** This is work in progress. The main branch has a basic, working UI. There is no visualisation/preview or SVG output yet.  
-**KiCad v10 Note:** Output is KiCad v9 atm. Loading a v10 input file *should* work. The generator will give you a v9 output file which you can load in v10 as well. KiCad v10 output will come soon.
+**Supported KiCad versions: 9, 10**. Older versions *might* work, but the output will be a potentially faulty KiCad 9 PCB file.
 
 ## Example
 ![result_small](https://github.com/user-attachments/assets/cb5003e6-36cb-4a9b-92ae-091030bf9ce7)
 
 ## Trying it
 You can see/try it here without cloning the repo: [znu.nz/fpgen](https://znu.nz/fpgen/)
-1) Load *enc-hid_kicad-v9.kicad_pcb* from the examples directory in the FP generator
+1) Load *enc-hid_kicad-v10.kicad_pcb* from the examples directory in the FP generator
 2) Save the resulting KiCad PCB
 3) Load the saved file in KiCad / pcbnew
 
