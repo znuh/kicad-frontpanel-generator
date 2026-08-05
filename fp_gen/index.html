@@ -25,7 +25,7 @@
   <!-- Root container -->
   <div class="container my-2">
     <h1>KiCad Frontpanel Generator</h1>
-    Version: 2026-06-24; Source: <a href="https://github.com/znuh/kicad-frontpanel-generator">Git Repository</a>
+    Version: WIP; Source: <a href="https://github.com/znuh/kicad-frontpanel-generator">Git Repository</a>
 
     <!-- File Input -->
     <div class="card mx-auto mt-3">
@@ -48,9 +48,10 @@
 		</div>
 
 		<div class="mt-2">
-		<span class="ms-3"><b>KiCad Version:</b></span>
+		<span class="ms-3"><b>KiCad version:</b></span>
 		<span id="kicad_version_info">No file loaded yet.</span>
 		</div>
+		<span class="ms-3 text-warning-emphasis" data-role="version_warning" hidden><b>⚠️ Unknown / unsupported KiCad version!</b></span>
       </div>
     </div> <!-- card -->
 
@@ -109,6 +110,7 @@
       <div class="card-body">
         <button type="button" class="btn btn-primary btn-lg" id="download_pcb" disabled>Get Frontpanel PCB</button>
         <span class="mt-2 ms-2 fs-6 fw-semibold d-block" id="no_input">No input file loaded yet.</span>
+        <div class="mt-2 text-warning-emphasis" data-role="version_warning" hidden><b>⚠️ KiCad version of input file is unknown / unsupported. Expect errors.</b></div>
         <pre id="txt" hidden></pre>
       </div>
     </div> <!-- card -->

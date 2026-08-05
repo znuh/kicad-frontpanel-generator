@@ -138,19 +138,22 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	document.getElementById('download_pcb').disabled = !have_data;
 	if(have_data) {
 		document.getElementById('no_input').classList.replace("d-block", "d-none");
+
+		/* get & check input file KiCad version */
 		const kicad_ver = source_pcb.pcb.find(e => e[0] === "generator_version")?.[1];
 		source_pcb.kicad_ver = kicad_ver ? JSON.parse(kicad_ver) : undefined;
 		version_info = source_pcb.kicad_ver ?? "UNKNOWN";
 		version_unsupported = supported_kicad_versions[source_pcb.kicad_ver] !== true;
-		console.log(version_unsupported);
-		// TBD: show warnings for unsupported versions, show output file version
 	}
 	else {
 		document.getElementById('no_input').classList.replace("d-none", "d-block");
 		const modalElement = document.getElementById('error-modal');
 		bootstrap.Modal.getOrCreateInstance(modalElement).show();
 	}
+
 	document.getElementById('kicad_version_info').textContent = version_info;
+	document.querySelectorAll('[data-role="version_warning"]').forEach(
+		n => n.hidden = version_unsupported === false);
 }
 
 function fileReader(e, loader) {
