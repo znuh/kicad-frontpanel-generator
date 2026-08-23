@@ -5,16 +5,23 @@ let source_pcb = null;
 let frontpanel = null;
 
 const config = {
-	keep_3d_models 			: true,
-	models_offset_adjust	: [0, 0, -8],
-	layer_map : {
-		'User.1'	:	["Edge.Cuts"],
-		//'User.2'	:	["B.SilkS"],
-		'User.2'	:	["B.Mask"],
-		'User.3'	:	["F.SilkS"],
-		'User.4'	:	["F.Cu", "F.Mask"],
-		//'F.CrtYd'	:	["B.CrtYd"],
+
+	kicad_output : {
+		keep_3d_models 			: true,
+		models_offset_adjust	: [0, 0, -8],
+		layer_map : {
+			'User.1'	:	["Edge.Cuts"],
+			//'User.2'	:	["B.SilkS"],
+			'User.2'	:	["B.Mask"],
+			'User.3'	:	["F.SilkS"],
+			'User.4'	:	["F.Cu", "F.Mask"],
+			//'F.CrtYd'	:	["B.CrtYd"],
+		},
 	},
+
+	svg_output : {
+		// TBD
+	}
 };
 
 function encode_sexpression(item, ind) {
@@ -65,7 +72,7 @@ async function pcb_download() {
 
 /* convert original PCB to frontpanel PCB (+ SVG) */
 function pcb_to_fp(pcb) {
-	const layer_map = config.layer_map;
+	const layer_map = config.kicad_output.layer_map;
 
 	/* determines if a frontpanel layer (from the layer_map)
 	 * is used somewhere in the element - does a recursive search */
@@ -136,12 +143,14 @@ function pcb_to_fp(pcb) {
 				res.push(...gr_conv(se));
 
 			/* deal with 3D model */
-			else if ((se[0] == "model") && config.keep_3d_models) {
-				let model = structuredClone(se);
-				let ofs = find_token(model, "offset", "xyz");
-				for(let j=0; j<3; j++)
-					ofs[j+1] += config.models_offset_adjust[j];
-				res.push(model);
+			else if (se[0] == "model") {
+				if (config.kicad_output.keep_3d_models) {
+					let model = structuredClone(se);
+					let ofs = find_token(model, "offset", "xyz");
+					for(let j=0; j<3; j++)
+						ofs[j+1] += config.kicad_output.models_offset_adjust[j];
+					res.push(model);
+				}
 			}
 
 			/* copy non-ignored sub-elements */
@@ -163,7 +172,7 @@ function pcb_to_fp(pcb) {
 		return res;
 	}
 
-	const fp_template = (config.output_kicad_version < 10.0) ? fp_template_kicad9 : fp_template_kicad10;
+	const fp_template = (config.kicad_output.output_kicad_version < 10.0) ? fp_template_kicad9 : fp_template_kicad10;
 	const fp_pcb = structuredClone(fp_template);	/* make a copy of empty PCB template */
 	return pcb.reduce(conv_element, fp_pcb);		/* populate empty PCB with frontpanel elements */
 }

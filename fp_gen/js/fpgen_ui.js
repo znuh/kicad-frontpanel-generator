@@ -73,7 +73,7 @@ function mk_kc_layermap_table() {
 			const opt = document.createElement("option");
 			opt.value = ols_entry;
 			opt.text = ols_entry;
-			opt.selected = config.layer_map[input_layer].join(' + ') === ols_entry;
+			opt.selected = config.kicad_output.layer_map[input_layer].join(' + ') === ols_entry;
 			sel_node.add(opt);
 		});
 	}
@@ -96,7 +96,7 @@ function mk_kc_layermap_table() {
 		});
 	}
 
-	Object.keys(config.layer_map).forEach(l => {
+	Object.keys(config.kicad_output.layer_map).forEach(l => {
 		const tr = tr_template.cloneNode(true);
 		process_roles(tr, l);
 		tbody.appendChild(tr);
@@ -108,10 +108,10 @@ function update_config() {
 		layer_map		: n => {
 			const input_layer   = n.dataset.input_layer;
 			const output_layers = ((n.value === 'Unassigned') ? [] : n.value.split(' + '));
-			config.layer_map[input_layer] = output_layers;
+			config.kicad_output.layer_map[input_layer] = output_layers;
 		},
-		keep_3d_models	: n => { config.keep_3d_models = n.checked; },
-		z_ofs			: n => { config.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
+		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
+		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
 	};
 
 	document.querySelectorAll('[data-config]').forEach( n => {
@@ -148,8 +148,8 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		 * If source_pcb.kicad_ver is undefined, the input file is probably <9.0
 		 * parseFloat will return NaN then and NaN >= 10.0 is false, so 9.0 output will be used.
 		 */
-		config.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
-		output_info = "Output KiCad version: " + config.output_kicad_version;
+		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
+		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
 	}
 	else {
 		const modalElement = document.getElementById('error-modal');
@@ -199,9 +199,9 @@ document.addEventListener("DOMContentLoaded", function() {
 	mk_kc_layermap_table();
 
 	/* apply default settings from config & sanitize z_ofs input */
-	document.getElementById('cb_keep_3d').checked = config.keep_3d_models;
+	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models;
 	const zofs_input = document.getElementById('z_ofs');
-	zofs_input.value = config.models_offset_adjust[2];
+	zofs_input.value = config.kicad_output.models_offset_adjust[2];
 	zofs_input.addEventListener('input', (e) => {
 		const val = e.target.value;
 		e.target.value = val.replace(/[^0-9.-]/g, '');
