@@ -70,9 +70,14 @@ async function pcb_download() {
 	}
 }
 
-/* convert original PCB to frontpanel PCB (+ SVG) */
-function pcb_to_fp(pcb) {
-	const layer_map = config.kicad_output.layer_map;
+/* Convert original PCB to frontpanel
+ *
+ * pcb: source PCB (parsed KiCad file)
+ * gen: generator */
+function pcb_to_fp(input_pcb, gen) {
+	/* read + cache a few things from generator */
+	const layer_map    = gen.layer_map;
+	const output_kicad = gen.output_fmt === "kicad_pcb";
 
 	/* determines if a frontpanel layer (from the layer_map)
 	 * is used somewhere in the element - does a recursive search */
@@ -120,7 +125,6 @@ function pcb_to_fp(pcb) {
 			layer_tok[1] = '"' + dst_layer + '"';
 			res.push(clone);
 		}
-
 		return res;
 	}
 
@@ -161,23 +165,24 @@ function pcb_to_fp(pcb) {
 	}
 
 	/* convert elements to frontpanel-elements */
-	function conv_element(res, elem) {
+	function conv_element(elem) {
 		const is_gr = elem[0].startsWith("gr_");
 		const is_footprint = (elem[0] == "footprint");
 		/* ignore/drop unneeded elements (only keep footprints and gr_* elements) */
 		if ((is_footprint || is_gr) && test_fp_layer(elem)) {
 			const new_elements = is_gr ? gr_conv(elem) : footprint_conv(elem);
-			res.push(...new_elements);
+			gen.add_elements(new_elements);
 		}
-		return res;
 	}
 
-	const fp_template = (config.kicad_output.output_kicad_version < 10.0) ? fp_template_kicad9 : fp_template_kicad10;
-	const fp_pcb = structuredClone(fp_template);	/* make a copy of empty PCB template */
-	return pcb.reduce(conv_element, fp_pcb);		/* populate empty PCB with frontpanel elements */
+	input_pcb.forEach(conv_element);	/* convert all elements */
+	return gen.finalize();
 }
 
 function make_frontpanel() {
-	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb) };
+	const fp_template = (config.kicad_output.output_kicad_version < 10.0) ? 
+		fp_template_kicad9 : fp_template_kicad10;
+	const gen_kicad = new KicadFP(config.kicad_output, fp_template);
+	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb, gen_kicad) };
 	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
 }
