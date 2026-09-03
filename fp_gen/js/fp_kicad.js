@@ -12,6 +12,11 @@ let Kicad_FP = function() {
 		this.layer_map  = layer_map;
 		this.output_fmt = 'kicad_pcb';
 
+		/* footprint tokens we do not want to copy to the frontpanel */
+		const footprint_ignore = {
+			descr : true, tags : true, property : true, pad : true
+		};
+
 		/* convert a graphics element for frontpanel
 		 * (can be either gr_* or fp_*) */
 		function gr_conv(src) {
@@ -38,11 +43,6 @@ let Kicad_FP = function() {
 
 		/* Convert & add a footprint */
 		this.add_footprint = function(src) {
-
-			/* footprint tokens we do not want to copy to the frontpanel */
-			const footprint_ignore = {
-				descr : true, tags : true, property : true, pad : true
-			}
 
 			const new_name = src[1].replace(/\w+?:/,'frontpanel:');		/* replace library name with 'frontpanel' */
 			let res = ["footprint", new_name];							/* create footprint token */

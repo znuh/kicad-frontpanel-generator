@@ -41,9 +41,9 @@ let SVG_FP = function() {
 		}
 
 		this.finalize = function() {
+			/*
 			const bbox = rootg.getBBox();
 			const padding = 16;
-			/*
 			svg.setAttribute(
 				"viewBox",
 				`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
