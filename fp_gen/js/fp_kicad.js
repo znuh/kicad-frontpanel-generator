@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
-let KicadFP = function() {
+let Kicad_FP = function() {
 
     let constructor = function create(cfg, fp_template) {
 		const fp_pcb   = structuredClone(fp_template);	/* make a copy of empty PCB template */

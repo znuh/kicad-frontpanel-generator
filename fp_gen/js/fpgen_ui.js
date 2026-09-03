@@ -121,6 +121,13 @@ function update_config() {
 	//console.log("config:", config);
 }
 
+function SVG_Test() {
+	const display = document.getElementById('svg_display');
+	const gen_SVG = new SVG_FP(config.SVG_output);
+	const svg = pcb_to_fp(source_pcb.pcb, gen_SVG);
+	display.replaceChildren(svg);
+}
+
 function KicadLoader(str, fname, server_path, mod_time) {
 	const supported_kicad_versions = {"9.0" : true, "10.0" : true};
 	let version_info = "No file loaded yet.";
@@ -150,6 +157,8 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		 */
 		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
 		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
+
+		SVG_Test();
 	}
 	else {
 		const modalElement = document.getElementById('error-modal');

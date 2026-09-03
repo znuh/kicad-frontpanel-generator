@@ -130,7 +130,7 @@ function pcb_to_fp(input_pcb, gen) {
 function make_frontpanel() {
 	const fp_template = (config.kicad_output.output_kicad_version < 10.0) ? 
 		fp_template_kicad9 : fp_template_kicad10;
-	const gen_kicad = new KicadFP(config.kicad_output, fp_template);
+	const gen_kicad = new Kicad_FP(config.kicad_output, fp_template);
 	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb, gen_kicad) };
 	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
 }
