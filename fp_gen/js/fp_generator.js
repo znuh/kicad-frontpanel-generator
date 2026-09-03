@@ -70,6 +70,25 @@ async function pcb_download() {
 	}
 }
 
+/* look up a token by following a given path from elem
+ * e.g. find_token(model, "offset", "xyz") */
+function find_token(elem, ...path) {
+	for (const tok of path) {
+		let found = false;
+		for (i=1; i<elem.length; i++) {
+			const ce = elem[i];
+			if (Array.isArray(ce) && (ce[0] == tok)) {
+				elem = ce;
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			return null;
+	}
+	return elem;
+}
+
 /* Convert original PCB to frontpanel
  *
  * pcb: source PCB (parsed KiCad file)
@@ -79,8 +98,8 @@ function pcb_to_fp(input_pcb, gen) {
 	const layer_map    = gen.layer_map;
 	const output_kicad = gen.output_fmt === "kicad_pcb";
 
-	/* determines if a frontpanel layer (from the layer_map)
-	 * is used somewhere in the element - does a recursive search */
+	/* determines if a frontpanel layer from layer_map is used
+	 * somewhere in the element - does a recursive search */
 	function test_fp_layer(elem) {
 		if(!Array.isArray(elem))
 			return false;
@@ -90,88 +109,17 @@ function pcb_to_fp(input_pcb, gen) {
 			return elem.some((e) => test_fp_layer(e));
 	}
 
-	/* look up a token by following a given path from elem
-	 * e.g. find_token(model, "offset", "xyz") */
-	function find_token(elem, ...path) {
-		for (const tok of path) {
-			let found = false;
-			for (i=1; i<elem.length; i++) {
-				const ce = elem[i];
-				if (Array.isArray(ce) && (ce[0] == tok)) {
-					elem = ce;
-					found = true;
-					break;
-				}
-			}
-			if (!found)
-				return null;
-		}
-		return elem;
-	}
-
-	/* convert a graphics element for frontpanel
-	 * (can be either gr_* or fp_*) */
-	function gr_conv(src) {
-		let src_layer_tok = find_token(src, "layer");
-		let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
-		let dst_layers = layer_map[src_layer] ?? [];
-		let res = [];
-
-		/* copy & replace layer - create as many copies as target layers
-		 * (one input element can create multiple output elements (e.g. gr_text/etc. in Cu+Mask)) */
-		for (dst_layer of dst_layers) {
-			let clone = structuredClone(src);
-			let layer_tok = find_token(clone, "layer");
-			layer_tok[1] = '"' + dst_layer + '"';
-			res.push(clone);
-		}
-		return res;
-	}
-
-	/* footprint tokens we do not want to copy to the frontpanel */
-	const footprint_ignore = {
-		descr : true, tags : true, property : true, pad : true
-	}
-
-	/* convert footprint for frontpanel */
-	function footprint_conv(src) {
-		const new_name = src[1].replace(/\w+?:/,'frontpanel:');		/* replace library name with 'frontpanel' */
-		let res = ["footprint", new_name];							/* create footprint token */
-
-		/* walk through remaining elements */
-		for (let i=2; i<src.length; i++) {
-			const se = src[i];
-
-			/* pass graphic elements on to gr_conv */
-			if (se[0].startsWith("fp_"))
-				res.push(...gr_conv(se));
-
-			/* deal with 3D model */
-			else if (se[0] == "model") {
-				if (config.kicad_output.keep_3d_models) {
-					let model = structuredClone(se);
-					let ofs = find_token(model, "offset", "xyz");
-					for(let j=0; j<3; j++)
-						ofs[j+1] += config.kicad_output.models_offset_adjust[j];
-					res.push(model);
-				}
-			}
-
-			/* copy non-ignored sub-elements */
-			else if (!footprint_ignore[se[0]])
-				res.push(structuredClone(se));
-		}
-		return [res];
-	}
-
 	/* convert elements to frontpanel-elements */
 	function conv_element(elem) {
 		const is_gr = elem[0].startsWith("gr_");
 		const is_footprint = (elem[0] == "footprint");
+
 		/* ignore/drop unneeded elements (only keep footprints and gr_* elements) */
 		if ((is_footprint || is_gr) && test_fp_layer(elem)) {
-			const new_elements = is_gr ? gr_conv(elem) : footprint_conv(elem);
-			gen.add_elements(new_elements);
+			if (is_footprint)
+				gen.add_footprint(elem);
+			else
+				gen.add_gr(elem);
 		}
 	}
 
