@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 let source_pcb = null;
-let frontpanel = null;
+let frontpanel = {};
 
 const config = {
 
@@ -43,31 +43,6 @@ function encode_sexpression(item, ind) {
 	if(sub_arrays)
 		buf += "\n" + indent;
 	return buf + ")";
-}
-
-async function pcb_download() {
-	const fname  = source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel.kicad_pcb");
-	const blobby = new Blob([frontpanel.kicad_pcb], {type: "text/plain"});
-
-	if (window.showSaveFilePicker != null) {
-		const fileHandle = await window.showSaveFilePicker({
-			startIn: 'desktop',
-			suggestedName: fname,
-			types: [{
-				description: 'KiCad PCB file',
-				accept: { 'text/plain': ['.kicadpcb'] },
-			}],
-		});
-		const fileStream = await fileHandle.createWritable();
-		await fileStream.write(blobby);
-		await fileStream.close();
-	} else { // window.showSaveFilePicker not available
-		const    a = document.createElement("a");
-		a.href     = window.URL.createObjectURL(blobby);
-		a.download = fname;
-		a.click();
-		URL.revokeObjectURL(a.href);
-	}
 }
 
 /* look up a token by following a given path from elem
@@ -127,10 +102,10 @@ function pcb_to_fp(input_pcb, gen) {
 	return gen.finalize();
 }
 
-function make_frontpanel() {
+function make_PCB_frontpanel() {
 	const fp_template = (config.kicad_output.output_kicad_version < 10.0) ? 
 		fp_template_kicad9 : fp_template_kicad10;
 	const gen_kicad = new Kicad_FP(config.kicad_output, fp_template);
-	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb, gen_kicad) };
-	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
+	const generated = pcb_to_fp(source_pcb.pcb, gen_kicad);
+	return encode_sexpression(generated);
 }

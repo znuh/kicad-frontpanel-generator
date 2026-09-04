@@ -2,6 +2,8 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
 let SVG_FP = function() {
 
     let constructor = function create(cfg) {
@@ -17,18 +19,21 @@ let SVG_FP = function() {
 		this.layer_map  = layer_map;
 		this.output_fmt = 'SVG';
 
-		const SVG_NS = "http://www.w3.org/2000/svg";
-		const svg = document.createElementNS(SVG_NS, "svg");
 		const rootg = document.createElementNS(SVG_NS, "g");
-		svg.appendChild(rootg);
+
+		function test(target, x, y) {
+			const circle = document.createElementNS(SVG_NS, "circle");
+			circle.setAttribute("cx", x);
+			circle.setAttribute("cy", y);
+			circle.setAttribute("r", "20");
+			circle.setAttribute("fill", "pink")
+			target.appendChild(circle);
+		}
 
 		/* TEST */
-		const circle = document.createElementNS(SVG_NS, "circle");
-		circle.setAttribute("cx", "50");
-		circle.setAttribute("cy", "50");
-		circle.setAttribute("r", "20");
-		circle.setAttribute("fill", "pink")
-		rootg.appendChild(circle);
+		test(rootg, 20, 20);
+		test(rootg, -100, -100);
+		test(rootg, 100, 100);
 
 		/* Convert & add a gr_ element */
 		this.add_gr = function(src) {
@@ -41,15 +46,7 @@ let SVG_FP = function() {
 		}
 
 		this.finalize = function() {
-			/*
-			const bbox = rootg.getBBox();
-			const padding = 16;
-			svg.setAttribute(
-				"viewBox",
-				`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
-			);
-			*/
-			return svg;
+			return rootg;
 		}
 
 	}; /* constructor */

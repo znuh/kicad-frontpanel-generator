@@ -122,10 +122,21 @@ function update_config() {
 }
 
 function SVG_Test() {
-	const display = document.getElementById('svg_display');
 	const gen_SVG = new SVG_FP(config.SVG_output);
-	const svg = pcb_to_fp(source_pcb.pcb, gen_SVG);
-	display.replaceChildren(svg);
+	const rootg = pcb_to_fp(source_pcb.pcb, gen_SVG);
+
+	const svg = document.createElementNS(SVG_NS, "svg");
+	svg.appendChild(rootg);
+	//console.log(svg.getBBox());
+/*
+	const bbox = rootg.getBBox();
+	const padding = 16;
+	const viewbox = `${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`;
+	console.log(rootg, viewbox, bbox);
+
+	svg.setAttribute("viewBox", viewbox);
+	*/
+	document.getElementById('svg_display').replaceChildren(svg);
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
@@ -134,6 +145,8 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	let output_info = "No input file loaded yet.";
 	let version_unsupported = false;
 	let have_data = false;
+
+	frontpanel = {}; // clear existing data
 
 	try {
 		source_pcb = {
@@ -180,6 +193,31 @@ function fileReader(e, loader) {
 	reader.readAsText(file);
 }
 
+async function pcb_download(kicad_pcb) {
+	const fname  = source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel.kicad_pcb");
+	const blobby = new Blob([kicad_pcb], {type: "text/plain"});
+
+	if (window.showSaveFilePicker != null) {
+		const fileHandle = await window.showSaveFilePicker({
+			startIn: 'desktop',
+			suggestedName: fname,
+			types: [{
+				description: 'KiCad PCB file',
+				accept: { 'text/plain': ['.kicadpcb'] },
+			}],
+		});
+		const fileStream = await fileHandle.createWritable();
+		await fileStream.write(blobby);
+		await fileStream.close();
+	} else { // window.showSaveFilePicker not available
+		const    a = document.createElement("a");
+		a.href     = window.URL.createObjectURL(blobby);
+		a.download = fname;
+		a.click();
+		URL.revokeObjectURL(a.href);
+	}
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 
 	/* clear value on click to allow reloading the same file */
@@ -192,13 +230,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	ui_dropzone_setup(file_upload);
 
-	/* Dowload FP */
-	const dl_btn = document.getElementById('download_pcb');
-	dl_btn.disabled = true;
-	dl_btn.addEventListener('click', () => {
+	/* Dowload PCB FP */
+	const pcb_dl_btn = document.getElementById('download_pcb');
+	pcb_dl_btn.disabled = true;
+	pcb_dl_btn.addEventListener('click', () => {
 		update_config();
-		make_frontpanel();
-		pcb_download();
+		const kicad_pcb = make_PCB_frontpanel();
+		pcb_download(kicad_pcb);
+	});
+
+	/* Dowload SVG FP */
+	const svg_dl_btn = document.getElementById('download_SVG');
+	svg_dl_btn.addEventListener('click', () => {
+		svg_download();
 	});
 
 	/* setup theme switching */
