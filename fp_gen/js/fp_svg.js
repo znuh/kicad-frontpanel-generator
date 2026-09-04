@@ -86,8 +86,10 @@ let SVG_FP = function() {
 
 			/* fill? */
 			const fill = find_token(src, "fill");
-			if (fill != null && fill[1] === "yes")
+			if (fill != null && fill[1] === "yes") {
 				elem.setAttribute("fill", color);
+				elem.setAttribute("fill-opacity", "0.5"); // TBD: only for PCB preview?
+			}
 
 			dst.appendChild(elem);
 		}
