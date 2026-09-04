@@ -27,14 +27,47 @@ let SVG_FP = function() {
 		test(svg, -100, -100);
 		test(svg, 100, 100);
 
-		/* Convert & add a gr_ element */
-		this.add_gr = function(src) {
-			console.log("add_gr");
+		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
+		 * and add the new element to dst. */
+		function gr_conv(dst, src) {
+			let src_layer_tok = find_token(src, "layer");
+			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
+			let color = layer_map[src_layer];
+
+			if (color === undefined)
+				return;
+
+			// TBD
+			console.log(src[0], color);
+			//dst.appendChild(ne);
 		}
+
+		/* Convert & add a gr_ element */
+		this.add_gr = (src) => gr_conv(svg, src);
 
 		/* Convert & add a footprint */
 		this.add_footprint = function(src) {
-			console.log("add_fp");
+			const fpg = document.createElementNS(SVG_NS, "g");
+			const pos = find_token(src, "at");
+//			console.log(pos);
+			let transform="";
+			if (pos[3]) // TODO: verify rotate
+				transform = `rotate(${pos[3]}) `;
+			transform += `translate(${pos[1]} ${pos[2]})`;
+			fpg.setAttribute("transform", transform);
+
+			/* walk through remaining elements */
+			for (let i=2; i<src.length; i++) {
+				const se = src[i];
+
+				/* pass graphic elements on to gr_conv */
+				if (se[0].startsWith("fp_"))
+					gr_conv(fpg, se);
+
+				//else console.log("fp element", se[0]);
+			}
+
+			svg.appendChild(fpg); // add converted footprint
 		}
 
 		this.finalize = function() {
