@@ -56,6 +56,17 @@ let SVG_FP = function() {
 				return ne;
 			},
 
+			arc : (se) => {
+				const ne = mk_elem("path");
+				const start = find_token(se, "start");
+				const mid   = find_token(se, "mid");
+				const end   = find_token(se, "end");
+				// TBD
+				//ne.setAttribute("d",
+					//`M ${start[1]},${start[2]} A ${r},${r} 0 0,1 ${end[1]},${end[2]}`);
+				ne.setAttribute("fill", "none"); // default: no fill
+				//return ne;
+			},
 		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
