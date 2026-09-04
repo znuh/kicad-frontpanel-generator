@@ -125,6 +125,8 @@ function SVG_Test() {
 	const gen_SVG = new SVG_FP(config.SVG_output);
 	const rootg = pcb_to_fp(source_pcb.pcb, gen_SVG);
 
+	frontpanel.SVG_rootg = rootg;
+
 	const svg = document.createElementNS(SVG_NS, "svg");
 	svg.appendChild(rootg);
 	//console.log(svg.getBBox());
@@ -193,17 +195,19 @@ function fileReader(e, loader) {
 	reader.readAsText(file);
 }
 
-async function pcb_download(kicad_pcb) {
-	const fname  = source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel.kicad_pcb");
-	const blobby = new Blob([kicad_pcb], {type: "text/plain"});
+async function fp_download(fp, parms) {
+	const fname  = source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel"+parms.ext);
+	const blobby = new Blob([fp], {type: parms.type});
 
 	if (window.showSaveFilePicker != null) {
 		const fileHandle = await window.showSaveFilePicker({
 			startIn: 'desktop',
 			suggestedName: fname,
 			types: [{
-				description: 'KiCad PCB file',
-				accept: { 'text/plain': ['.kicadpcb'] },
+				description: parms.desc,
+				/* '_' in extension isn't allowed, so we cannot pass ".kicad_pcb" here.
+				 * Using emtpy extensions array instead and relying on suggestedName. */
+				accept: { [parms.type]: [] },
 			}],
 		});
 		const fileStream = await fileHandle.createWritable();
@@ -216,6 +220,28 @@ async function pcb_download(kicad_pcb) {
 		a.click();
 		URL.revokeObjectURL(a.href);
 	}
+}
+
+async function SVG_download(rootg) {
+	const svg = document.createElementNS(SVG_NS, "svg");
+	svg.appendChild(rootg);
+
+	if (!svg.getAttribute('xmlns'))
+		svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+	if (!svg.getAttribute('xmlns:xlink'))
+		svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+	const serializer = new XMLSerializer();
+	let svg_str = serializer.serializeToString(svg);
+	if (!svg_str.startsWith('<?xml'))
+		svg_str = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + svg_str;
+
+	fp_download(svg_str, {
+		ext 	: ".svg",
+		type	: "image/svg+xml",
+		desc	: "SVG Vector Graphic",
+	});
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -236,13 +262,17 @@ document.addEventListener("DOMContentLoaded", function() {
 	pcb_dl_btn.addEventListener('click', () => {
 		update_config();
 		const kicad_pcb = make_PCB_frontpanel();
-		pcb_download(kicad_pcb);
+		fp_download(kicad_pcb, {
+			ext 	: ".kicad_pcb",
+			type	: "text/plain",
+			desc	: "KiCad PCB file",
+		});
 	});
 
 	/* Dowload SVG FP */
 	const svg_dl_btn = document.getElementById('download_SVG');
 	svg_dl_btn.addEventListener('click', () => {
-		svg_download();
+		SVG_download(frontpanel.SVG_rootg);
 	});
 
 	/* setup theme switching */
