@@ -26,6 +26,14 @@ let SVG_FP = function() {
 			return ne;
 		}
 
+		function arc_radius(x1,y1,x2,y2,x3,y3) {
+			/* Find circumcenter first (https://en.wikipedia.org/wiki/Circumcircle#Cartesian_coordinates_2) */
+			const d = 2 * (x1 * (y2-y3) + x2 * (y3-y1) + x3 * (y1-y2));
+			const cx = ((x1**2 + y1**2) * (y2-y3) + (x2**2 + y2**2) * (y3-y1) + (x3**2 + y3**2) * (y1-y2)) / d;
+			const cy = ((x1**2 + y1**2) * (x3-x2) + (x2**2 + y2**2) * (x1-x3) + (x3**2 + y3**2) * (x2-x1)) / d;
+			return Math.hypot(x1-cx, y1-cy); // distance from start to center (Pythagoras)
+		}
+
 		const gr_map = {
 
 			line : (se) => mk_elem("line", se, {
@@ -61,11 +69,12 @@ let SVG_FP = function() {
 				const start = find_token(se, "start");
 				const mid   = find_token(se, "mid");
 				const end   = find_token(se, "end");
-				// TBD
-				//ne.setAttribute("d",
-					//`M ${start[1]},${start[2]} A ${r},${r} 0 0,1 ${end[1]},${end[2]}`);
+				const r		= arc_radius(start[1], start[2], mid[1], mid[2], end[1], end[2]);
+				// TODO: arcs > 180° ?? large-arc-flag sweep-flag ??
+				ne.setAttribute("d",
+					`M ${start[1]},${start[2]} A ${r},${r} 0 0,1 ${end[1]},${end[2]}`);
 				ne.setAttribute("fill", "none"); // default: no fill
-				//return ne;
+				return ne;
 			},
 		};
 
