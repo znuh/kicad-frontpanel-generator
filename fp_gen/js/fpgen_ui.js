@@ -60,13 +60,6 @@ function mk_kc_layermap_table() {
 		'B.SilkS', 'B.Cu', 'B.Mask', 'B.Cu + B.Mask',
 	];
 
-	const kicad_layer_colors = {
-		'User.1' : '#c2c2c2',
-		'User.2' : '#5994dc',
-		'User.3' : '#b4dbd2',
-		'User.4' : '#d8c852',
-	};
-
 	function mk_output_layers(sel_node, input_layer) {
 		sel_node.dataset.input_layer = input_layer;
 		output_layers.forEach(ols_entry => {

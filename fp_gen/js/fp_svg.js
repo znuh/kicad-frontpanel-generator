@@ -2,19 +2,11 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-
 let SVG_FP = function() {
 
     let constructor = function create(cfg) {
 
-		/* test */
-		const layer_map = {
-			'User.1'	:	"blue",
-			'User.2'	:	"red",
-			'User.3'	:	"green",
-			'User.4'	:	"black",
-		};
+		const layer_map = kicad_layer_colors; // TEST
 
 		this.layer_map  = layer_map;
 		this.output_fmt = 'SVG';
