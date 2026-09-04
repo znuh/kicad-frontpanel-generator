@@ -44,6 +44,16 @@ let SVG_FP = function() {
 				return ne;
 			},
 
+			circle : (se) => {
+				const ne = mk_elem("circle");
+				const center = find_token(se, "center");
+				const end    = find_token(se, "end");
+				ne.setAttribute("cx", center[1]);
+				ne.setAttribute("cy", center[2]);
+				ne.setAttribute("r", end[1]-center[1]);
+				return ne;
+			},
+
 		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
