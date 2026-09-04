@@ -41,6 +41,7 @@ let SVG_FP = function() {
 				ne.setAttribute("y", start[2]);
 				ne.setAttribute("width",  end[1]-start[1]);
 				ne.setAttribute("height", end[2]-start[2]);
+				ne.setAttribute("fill", "none"); // default: no fill
 				return ne;
 			},
 
@@ -51,6 +52,7 @@ let SVG_FP = function() {
 				ne.setAttribute("cx", center[1]);
 				ne.setAttribute("cy", center[2]);
 				ne.setAttribute("r", end[1]-center[1]);
+				ne.setAttribute("fill", "none"); // default: no fill
 				return ne;
 			},
 
