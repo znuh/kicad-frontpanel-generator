@@ -13,19 +13,18 @@ let SVG_FP = function() {
 
 		const svg = document.createElementNS(SVG_NS, "svg");
 
-		function test(target, x, y) {
-			const circle = document.createElementNS(SVG_NS, "circle");
-			circle.setAttribute("cx", x);
-			circle.setAttribute("cy", y);
-			circle.setAttribute("r", "20");
-			circle.setAttribute("fill", "pink")
-			target.appendChild(circle);
-		}
-
-		/* TEST */
-		test(svg, 20, 20);
-		test(svg, -100, -100);
-		test(svg, 100, 100);
+		const gr_map = {
+			line : (se) => {
+				const ne = document.createElementNS(SVG_NS, "line");
+				const start = find_token(se, "start");
+				const end   = find_token(se, "end");
+				ne.setAttribute("x1", start[1]);
+				ne.setAttribute("y1", start[2]);
+				ne.setAttribute("x2", end[1]);
+				ne.setAttribute("y2", end[2]);
+				return ne;
+			},
+		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
 		 * and add the new element to dst. */
@@ -34,12 +33,28 @@ let SVG_FP = function() {
 			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
 			let color = layer_map[src_layer];
 
-			if (color === undefined)
+			if (color == undefined)
 				return;
 
-			// TBD
-			console.log(src[0], color);
-			//dst.appendChild(ne);
+			const gr   = src[0].substring(3);
+			const conv = gr_map[gr];
+
+			//console.log(gr, color, conv);
+			if(!conv)
+				return;
+
+			const elem = conv(src);
+			if(!elem) {
+				console.log("no elem!", gr, color, conv);
+				return;
+			}
+
+			elem.setAttribute("stroke", color);
+			elem.setAttribute("stroke-width", find_token(src, "stroke", "width")[1]);
+
+			// TODO: fill
+
+			dst.appendChild(elem);
 		}
 
 		/* Convert & add a gr_ element */
@@ -48,12 +63,12 @@ let SVG_FP = function() {
 		/* Convert & add a footprint */
 		this.add_footprint = function(src) {
 			const fpg = document.createElementNS(SVG_NS, "g");
+
 			const pos = find_token(src, "at");
-//			console.log(pos);
-			let transform="";
+
+			let transform = `translate(${pos[1]} ${pos[2]})`;
 			if (pos[3]) // TODO: verify rotate
-				transform = `rotate(${pos[3]}) `;
-			transform += `translate(${pos[1]} ${pos[2]})`;
+				transform += ` rotate(${-pos[3]}) `;
 			fpg.setAttribute("transform", transform);
 
 			/* walk through remaining elements */

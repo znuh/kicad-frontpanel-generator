@@ -123,7 +123,7 @@ function SVG_Test() {
 	document.getElementById('svg_display').replaceChildren(svg);
 
 	const bbox = svg.getBBox();
-	const padding = 16;
+	const padding = 5;
 	svg.setAttribute(
 		"viewBox",
 		`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
