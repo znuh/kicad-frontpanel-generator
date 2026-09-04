@@ -13,17 +13,37 @@ let SVG_FP = function() {
 
 		const svg = document.createElementNS(SVG_NS, "svg");
 
+		/* make SVG element and assign attributes from source element based on att_map */
+		function mk_elem(name, se, att_map = {}) {
+			const ne = document.createElementNS(SVG_NS, name);
+			/* walk through list of tokens in att_map */
+			for (const [token, dst_list] of Object.entries(att_map)) {
+				const vals = find_token(se, token);
+				/* assign all attributes given for this token in att_map */
+				for (const [idx, dst_attr] of Object.entries(dst_list))
+					ne.setAttribute(dst_attr, vals[parseInt(idx)+1]);
+			}
+			return ne;
+		}
+
 		const gr_map = {
-			line : (se) => {
-				const ne = document.createElementNS(SVG_NS, "line");
+
+			line : (se) => mk_elem("line", se, {
+				"start" : ["x1", "y1"],
+				"end"	: ["x2", "y2"],
+			}),
+
+			rect : (se) => {
+				const ne = mk_elem("rect");
 				const start = find_token(se, "start");
 				const end   = find_token(se, "end");
-				ne.setAttribute("x1", start[1]);
-				ne.setAttribute("y1", start[2]);
-				ne.setAttribute("x2", end[1]);
-				ne.setAttribute("y2", end[2]);
+				ne.setAttribute("x", start[1]);
+				ne.setAttribute("y", start[2]);
+				ne.setAttribute("width",  end[1]-start[1]);
+				ne.setAttribute("height", end[2]-start[2]);
 				return ne;
 			},
+
 		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
@@ -39,9 +59,10 @@ let SVG_FP = function() {
 			const gr   = src[0].substring(3);
 			const conv = gr_map[gr];
 
-			//console.log(gr, color, conv);
-			if(!conv)
+			if(!conv) {
+				console.log("no conv!", gr, color, conv);
 				return;
+			}
 
 			const elem = conv(src);
 			if(!elem) {
@@ -49,10 +70,14 @@ let SVG_FP = function() {
 				return;
 			}
 
+			/* stroke style */
 			elem.setAttribute("stroke", color);
 			elem.setAttribute("stroke-width", find_token(src, "stroke", "width")[1]);
 
-			// TODO: fill
+			/* fill? */
+			const fill = find_token(src, "fill");
+			if (fill != null && fill[1] === "yes")
+				elem.setAttribute("fill", color);
 
 			dst.appendChild(elem);
 		}
