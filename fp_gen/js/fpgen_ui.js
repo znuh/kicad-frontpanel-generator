@@ -123,22 +123,18 @@ function update_config() {
 
 function SVG_Test() {
 	const gen_SVG = new SVG_FP(config.SVG_output);
-	const rootg = pcb_to_fp(source_pcb.pcb, gen_SVG);
+	const svg = pcb_to_fp(source_pcb.pcb, gen_SVG);
 
-	frontpanel.SVG_rootg = rootg;
+	frontpanel.SVG = svg;
 
-	const svg = document.createElementNS(SVG_NS, "svg");
-	svg.appendChild(rootg);
-	//console.log(svg.getBBox());
-/*
-	const bbox = rootg.getBBox();
-	const padding = 16;
-	const viewbox = `${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`;
-	console.log(rootg, viewbox, bbox);
-
-	svg.setAttribute("viewBox", viewbox);
-	*/
 	document.getElementById('svg_display').replaceChildren(svg);
+
+	const bbox = svg.getBBox();
+	const padding = 16;
+	svg.setAttribute(
+		"viewBox",
+		`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
+	);
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
@@ -222,10 +218,7 @@ async function fp_download(fp, parms) {
 	}
 }
 
-async function SVG_download(rootg) {
-	const svg = document.createElementNS(SVG_NS, "svg");
-	svg.appendChild(rootg);
-
+async function SVG_download(svg) {
 	if (!svg.getAttribute('xmlns'))
 		svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
@@ -272,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* Dowload SVG FP */
 	const svg_dl_btn = document.getElementById('download_SVG');
 	svg_dl_btn.addEventListener('click', () => {
-		SVG_download(frontpanel.SVG_rootg);
+		SVG_download(frontpanel.SVG);
 	});
 
 	/* setup theme switching */

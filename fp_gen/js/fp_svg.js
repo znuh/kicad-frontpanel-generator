@@ -19,7 +19,7 @@ let SVG_FP = function() {
 		this.layer_map  = layer_map;
 		this.output_fmt = 'SVG';
 
-		const rootg = document.createElementNS(SVG_NS, "g");
+		const svg = document.createElementNS(SVG_NS, "svg");
 
 		function test(target, x, y) {
 			const circle = document.createElementNS(SVG_NS, "circle");
@@ -31,9 +31,9 @@ let SVG_FP = function() {
 		}
 
 		/* TEST */
-		test(rootg, 20, 20);
-		test(rootg, -100, -100);
-		test(rootg, 100, 100);
+		test(svg, 20, 20);
+		test(svg, -100, -100);
+		test(svg, 100, 100);
 
 		/* Convert & add a gr_ element */
 		this.add_gr = function(src) {
@@ -46,7 +46,7 @@ let SVG_FP = function() {
 		}
 
 		this.finalize = function() {
-			return rootg;
+			return svg;
 		}
 
 	}; /* constructor */
