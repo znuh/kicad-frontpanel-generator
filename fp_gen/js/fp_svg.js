@@ -22,6 +22,18 @@ let SVG_FP = function() {
 		}
 
 		function arc_params(x1,y1,x2,y2,x3,y3) {
+			/* Note: The math formulae for deriving the necessary SVG arc parameters (radius & large_arc_flag) from the
+			 * KiCad params (mid point instead of radius & large_arc_flag) were figured out with the help of Gemini Flash 3.6 Extended.
+			 *
+			 * This function wasn't generated directly by Gemini, but (parts of) the math formulae were produced by Gemini in Python
+			 * and then manually examined/modified and adapted for use in JavaScript by a hooman who isn't a geometry nerd %-)
+			 * Testing with all sorts of arcs (see tests/test_arc.kicad_pcb) was done to make sure the parameter conversion is robust.
+			 *
+			 * Prompt was:
+			 *   I have the following KiCad arc definition: (start 55 38) (mid 55.8 35.8) (end 58 35).
+			 *   How do I get the radius and determine if the arc is >180° for the large_arc_flag of SVG arcs?
+			 */
+
 			/* Find circumcenter first (https://en.wikipedia.org/wiki/Circumcircle#Cartesian_coordinates_2) */
 			const d = 2 * (x1 * (y2-y3) + x2 * (y3-y1) + x3 * (y1-y2));
 			const cx = ((x1**2 + y1**2) * (y2-y3) + (x2**2 + y2**2) * (y3-y1) + (x3**2 + y3**2) * (y1-y2)) / d;
@@ -30,8 +42,19 @@ let SVG_FP = function() {
 			/* Radius: Distance from start to center (Pythagoras) */
 			const r = Math.hypot(x1-cx, y1-cy);
 
-			const large_arc = 0; // TBD
-			const sweep_dir = 1; // TBD: always 1?
+			/* Cross products needed to determine >180° arcs */
+			const v_ac_x = x3-x1, v_ac_y = y3-y1;
+			const cp_mid    = v_ac_x * (y2-y1) - v_ac_y * (x2-x1);
+			const cp_center = v_ac_x * (cy-y1) - v_ac_y * (cx-x1);
+
+			/* Large arc if >180° */
+			const large_arc = ((cp_mid * cp_center) > 0) ? 1 : 0;
+
+			/* Sweep direction can be determined based on normalized angular difference of mid_ vs. start_angle according to Gemini.
+			 * However, KiCad always seems to store arcs clockwise (-> sweep_dir = 1)?
+			 * So I'm not adding the extra complexity until I find a counterexample and deem it necessary. */
+			const sweep_dir = 1;
+
 			return {r : r, la : large_arc, sd : sweep_dir}
 		}
 
