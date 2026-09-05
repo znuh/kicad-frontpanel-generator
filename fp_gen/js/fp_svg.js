@@ -21,12 +21,25 @@ let SVG_FP = function() {
 			return ne;
 		}
 
-		function arc_radius(x1,y1,x2,y2,x3,y3) {
+		function arc_params(x1,y1,x2,y2,x3,y3) {
 			/* Find circumcenter first (https://en.wikipedia.org/wiki/Circumcircle#Cartesian_coordinates_2) */
 			const d = 2 * (x1 * (y2-y3) + x2 * (y3-y1) + x3 * (y1-y2));
 			const cx = ((x1**2 + y1**2) * (y2-y3) + (x2**2 + y2**2) * (y3-y1) + (x3**2 + y3**2) * (y1-y2)) / d;
 			const cy = ((x1**2 + y1**2) * (x3-x2) + (x2**2 + y2**2) * (x1-x3) + (x3**2 + y3**2) * (x2-x1)) / d;
-			return Math.hypot(x1-cx, y1-cy); // distance from start to center (Pythagoras)
+
+			/* Radius: Distance from start to center (Pythagoras) */
+			const r = Math.hypot(x1-cx, y1-cy);
+
+			/* Cross products needed to determine >180° arcs */
+			const v_ac_x = x3-x1, v_ac_y = y3-y1;
+			const cp_mid    = v_ac_x * (y2-y1) - v_ac_y * (x2-x1);
+			const cp_center = v_ac_x * (cy-y1) - v_ac_y * (cx-x1);
+
+			/* Large arc if >180° */
+			const large_arc = ((cp_mid * cp_center) > 0) ? 1 : 0;
+
+			const sweep_dir = 1; // TBD: always 1?
+			return {r : r, la : large_arc, sd : sweep_dir}
 		}
 
 		const gr_map = {
@@ -65,10 +78,10 @@ let SVG_FP = function() {
 				const start = find_token(se, "start");
 				const mid   = find_token(se, "mid");
 				const end   = find_token(se, "end");
-				const r		= arc_radius(start[1], start[2], mid[1], mid[2], end[1], end[2]);
+				const arc	= arc_params(start[1], start[2], mid[1], mid[2], end[1], end[2]);
 				// TODO: arcs > 180° ?? large-arc-flag sweep-flag ??
 				return mk_elem("path", {
-					"d" : `M ${start[1]},${start[2]} A ${r},${r} 0 0,1 ${end[1]},${end[2]}`,
+					"d" : `M ${start[1]},${start[2]} A ${arc.r},${arc.r} 0 ${arc.la},${arc.sd} ${end[1]},${end[2]}`,
 					"fill" : "none"
 				});
 			},
