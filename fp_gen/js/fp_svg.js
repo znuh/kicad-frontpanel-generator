@@ -127,17 +127,23 @@ let SVG_FP = function() {
 				const pos     = find_token(se,      "at");
 				const effects = find_token(se,      "effects");
 				const font    = find_token(effects, "font");
-				const size    = find_token(font,    "size");
+				const size    = find_token(font,    "size")[1];
 				//const bold    = find_token(font,    "bold");
 				// TBD: italics, etc.?
 				const justify = find_token(effects, "justify");
-				const ne = mk_elem("text", {
+				const te = mk_elem("text", {
 					"x" : pos[1], "y" : pos[2],
-					"font-size" : size[1],
+					"font-size" : size,
 					"fill"      : color,
 				});
-				ne.textContent = JSON.parse(se[1]); // actual text
-				return ne;
+				/* actual text(s) */
+				const lines = JSON.parse(se[1]).split("\n");
+				for(i=0;i<lines.length;i++) {
+					const ts = mk_elem("tspan", {"x" : pos[1], "dy" : i*size});
+					ts.textContent = lines[i];
+					te.appendChild(ts);
+				}
+				return te;
 			},
 		};
 
