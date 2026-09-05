@@ -101,6 +101,22 @@ let SVG_FP = function() {
 					"fill" : "none"
 				});
 			},
+
+			poly : (se) => {
+				const pin = find_token(se, "pts");
+				let pout="";
+
+				/* copy points from pin to pout */
+				for (let i=1; i<pin.length; i++) {
+					const pt = pin[i];
+					console.assert(pt[0] === "xy");
+					pout += " " + pt[1] + "," + pt[2];
+				}
+				return mk_elem("polygon", {
+					"points" : pout.substring(1),
+					"fill"   : "none"
+				});
+			},
 		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
