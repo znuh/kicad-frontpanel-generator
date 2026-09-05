@@ -250,16 +250,6 @@
 		(uuid "4ac60752-b7f4-4a56-8e4e-02671979a158")
 	)
 	(gr_line
-		(start 106.4 44.3)
-		(end 106.4 45.9)
-		(stroke
-			(width 0.1)
-			(type default)
-		)
-		(layer "User.3")
-		(uuid "4d0335c9-5ed5-4152-87a0-1ca53d747800")
-	)
-	(gr_line
 		(start 106.6 45.1)
 		(end 108.2 45.1)
 		(stroke
@@ -358,6 +348,16 @@
 		)
 		(layer "User.3")
 		(uuid "2ff74419-78c5-46d9-8a44-74cc0f0604cc")
+	)
+	(gr_line
+		(start 107.4 44.3)
+		(end 107.4 45.9)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "4d0335c9-5ed5-4152-87a0-1ca53d747800")
 	)
 	(gr_line
 		(start 107.4 73.1)
