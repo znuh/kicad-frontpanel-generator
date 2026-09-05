@@ -117,6 +117,28 @@ let SVG_FP = function() {
 					"fill"   : "none"
 				});
 			},
+
+			text : (se, color) => {
+				/* Notes:
+				 * - text + tspan needed for multiline text (broken atm)
+				 * - let user choose font
+				 * - missing: bold, italics, justify left bottom etc.
+				 */
+				const pos     = find_token(se,      "at");
+				const effects = find_token(se,      "effects");
+				const font    = find_token(effects, "font");
+				const size    = find_token(font,    "size");
+				//const bold    = find_token(font,    "bold");
+				// TBD: italics, etc.?
+				const justify = find_token(effects, "justify");
+				const ne = mk_elem("text", {
+					"x" : pos[1], "y" : pos[2],
+					"font-size" : size[1],
+					"fill"      : color,
+				});
+				ne.textContent = JSON.parse(se[1]); // actual text
+				return ne;
+			},
 		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
@@ -137,15 +159,19 @@ let SVG_FP = function() {
 				return;
 			}
 
-			const elem = conv(src);
+			const elem = conv(src, color);
 			if(!elem) {
 				console.log("no elem!", gr, color, conv);
 				return;
 			}
 
-			/* stroke style */
-			elem.setAttribute("stroke", color);
-			elem.setAttribute("stroke-width", find_token(src, "stroke", "width")[1]);
+			/* stroke style - set only if stroke definition exists
+			 * (not applicable for text) */
+			const stroke_width = find_token(src, "stroke", "width")?.[1];
+			if (stroke_width != undefined) {
+				elem.setAttribute("stroke", color);
+				elem.setAttribute("stroke-width", stroke_width);
+			}
 
 			/* fill? */
 			const fill = find_token(src, "fill");
