@@ -30,14 +30,7 @@ let SVG_FP = function() {
 			/* Radius: Distance from start to center (Pythagoras) */
 			const r = Math.hypot(x1-cx, y1-cy);
 
-			/* Cross products needed to determine >180° arcs */
-			const v_ac_x = x3-x1, v_ac_y = y3-y1;
-			const cp_mid    = v_ac_x * (y2-y1) - v_ac_y * (x2-x1);
-			const cp_center = v_ac_x * (cy-y1) - v_ac_y * (cx-x1);
-
-			/* Large arc if >180° */
-			const large_arc = ((cp_mid * cp_center) > 0) ? 1 : 0;
-
+			const large_arc = 0; // TBD
 			const sweep_dir = 1; // TBD: always 1?
 			return {r : r, la : large_arc, sd : sweep_dir}
 		}
