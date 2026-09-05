@@ -13,16 +13,11 @@ let SVG_FP = function() {
 
 		const svg = document.createElementNS(SVG_NS, "svg");
 
-		/* make SVG element and assign attributes from source element based on att_map */
-		function mk_elem(name, se, att_map = {}) {
+		/* make SVG element and assign attributes from attr_map */
+		function mk_elem(name, attr_map = {}) {
 			const ne = document.createElementNS(SVG_NS, name);
-			/* walk through list of tokens in att_map */
-			for (const [token, dst_list] of Object.entries(att_map)) {
-				const vals = find_token(se, token);
-				/* assign all attributes given for this token in att_map */
-				for (const [idx, dst_attr] of Object.entries(dst_list))
-					ne.setAttribute(dst_attr, vals[parseInt(idx)+1]);
-			}
+			for (const [attr, val] of Object.entries(attr_map))
+				ne.setAttribute(attr, val);
 			return ne;
 		}
 
@@ -36,45 +31,46 @@ let SVG_FP = function() {
 
 		const gr_map = {
 
-			line : (se) => mk_elem("line", se, {
-				"start" : ["x1", "y1"],
-				"end"	: ["x2", "y2"],
-			}),
-
-			rect : (se) => {
-				const ne = mk_elem("rect");
+			line : (se) => {
 				const start = find_token(se, "start");
 				const end   = find_token(se, "end");
-				ne.setAttribute("x", start[1]);
-				ne.setAttribute("y", start[2]);
-				ne.setAttribute("width",  end[1]-start[1]);
-				ne.setAttribute("height", end[2]-start[2]);
-				ne.setAttribute("fill", "none"); // default: no fill
-				return ne;
+				return mk_elem("line", {
+					"x1" : start[1], "y1" : start[2],
+					"x2" : end[1],   "y2" : end[2]
+				});
+			},
+
+			rect : (se) => {
+				const start = find_token(se, "start");
+				const end   = find_token(se, "end");
+				return mk_elem("rect", {
+					"x" : start[1], "y" : start[2],
+					"width"  : end[1]-start[1],
+					"height" : end[2]-start[2],
+					"fill"   : "none"
+				});
 			},
 
 			circle : (se) => {
-				const ne = mk_elem("circle");
 				const center = find_token(se, "center");
 				const end    = find_token(se, "end");
-				ne.setAttribute("cx", center[1]);
-				ne.setAttribute("cy", center[2]);
-				ne.setAttribute("r", end[1]-center[1]);
-				ne.setAttribute("fill", "none"); // default: no fill
-				return ne;
+				return mk_elem("circle", {
+					"cx" : center[1], "cy" : center[2],
+					"r"    : Math.hypot(end[1]-center[1], end[2]-center[2]),
+					"fill" : "none"
+				});
 			},
 
 			arc : (se) => {
-				const ne = mk_elem("path");
 				const start = find_token(se, "start");
 				const mid   = find_token(se, "mid");
 				const end   = find_token(se, "end");
 				const r		= arc_radius(start[1], start[2], mid[1], mid[2], end[1], end[2]);
 				// TODO: arcs > 180° ?? large-arc-flag sweep-flag ??
-				ne.setAttribute("d",
-					`M ${start[1]},${start[2]} A ${r},${r} 0 0,1 ${end[1]},${end[2]}`);
-				ne.setAttribute("fill", "none"); // default: no fill
-				return ne;
+				return mk_elem("path", {
+					"d" : `M ${start[1]},${start[2]} A ${r},${r} 0 0,1 ${end[1]},${end[2]}`,
+					"fill" : "none"
+				});
 			},
 		};
 
@@ -121,14 +117,13 @@ let SVG_FP = function() {
 
 		/* Convert & add a footprint */
 		this.add_footprint = function(src) {
-			const fpg = document.createElementNS(SVG_NS, "g");
-
 			const pos = find_token(src, "at");
-
 			let transform = `translate(${pos[1]} ${pos[2]})`;
 			if (pos[3]) // TODO: verify rotate
 				transform += ` rotate(${-pos[3]}) `;
-			fpg.setAttribute("transform", transform);
+
+			/* make a group */
+			const fpg = mk_elem("g", {"transform" : transform});
 
 			/* walk through remaining elements */
 			for (let i=2; i<src.length; i++) {
