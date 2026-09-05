@@ -11,8 +11,6 @@ let SVG_FP = function() {
 		this.layer_map  = layer_map;
 		this.output_fmt = 'SVG';
 
-		const svg = document.createElementNS(SVG_NS, "svg");
-
 		/* make SVG element and assign attributes from attr_map */
 		function mk_elem(name, attr_map = {}) {
 			const ne = document.createElementNS(SVG_NS, name);
@@ -20,6 +18,10 @@ let SVG_FP = function() {
 				ne.setAttribute(attr, val);
 			return ne;
 		}
+
+		const svg = mk_elem("svg", {
+			"font-family" : "Arial, Helvetica, sans-serif", // set default font
+		});
 
 		function arc_params(x1,y1,x2,y2,x3,y3) {
 			/* Note: The math formulae for deriving the necessary SVG arc parameters (radius & large_arc_flag) from the
@@ -130,12 +132,42 @@ let SVG_FP = function() {
 				const size    = find_token(font,    "size")[1];
 				//const bold    = find_token(font,    "bold");
 				// TBD: italics, etc.?
-				const justify = find_token(effects, "justify");
+
+				/* Getting the same alignment as in KiCad is difficult.
+				 * (Due to various factors such as different fonts.)
+				 * Maybe give the user control over some correction values
+				 * such as x/y offset, font, etc.? */
+				//pos[1]+=1.5;
+
 				const te = mk_elem("text", {
 					"x" : pos[1], "y" : pos[2],
-					"font-size" : size,
-					"fill"      : color,
+					"font-size"			: size,
+					"fill"				: color,
+					"text-anchor"		: "middle", // KiCad default for horizontal alignment
+					"dominant-baseline" : "center", // TBD: vertical alignment
 				});
+
+				/* KiCad default justification is h center, v center */
+				const justify = find_token(effects, "justify");
+				if(justify) {
+					for(i=1;i<justify.length;i++) {
+						const just = justify[i];
+						switch(just) {
+							case "left":
+								// restore SVG default: text-anchor = start
+								te.removeAttribute("text-anchor");
+								break;
+							case "right":
+								te.setAttribute("text-anchor", "end");
+								break;
+							// TBD: bottom top mirror (+vertical default: center)
+							default:
+								console.log("justify", just);
+						}
+					}
+				}
+				// TODO: vertical alignment
+
 				/* actual text(s) */
 				const lines = JSON.parse(se[1]).split("\n");
 				for(i=0;i<lines.length;i++) {
