@@ -129,7 +129,8 @@ let SVG_FP = function() {
 				const pos     = find_token(se,      "at");
 				const effects = find_token(se,      "effects");
 				const font    = find_token(effects, "font");
-				const size    = find_token(font,    "size")[1];
+				const scale   = 1.2; // testing
+				const size    = find_token(font,    "size")[1]*scale;
 				//const bold    = find_token(font,    "bold");
 				// TBD: italics, etc.?
 
