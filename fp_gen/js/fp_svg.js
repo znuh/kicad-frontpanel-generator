@@ -17,7 +17,7 @@ let SVG_FP = function() {
 		for (const src_layer in layer_map)
 			nodes_by_layer[src_layer] = [];
 
-		/* make SVG element and assign attributes from attr_map */
+		/* Helper function to make any sort of SVG element and assign attributes from attr_map in one go. */
 		function mk_elem(name, attr_map = {}) {
 			const ne = document.createElementNS(SVG_NS, name);
 			for (const [attr, val] of Object.entries(attr_map))
@@ -25,10 +25,12 @@ let SVG_FP = function() {
 			return ne;
 		}
 
+		/* Make the SVG root element */
 		const svg = mk_elem("svg", {
 			"font-family" : "Arial, Helvetica, sans-serif", // set default font
 		});
 
+		/* Helper function for deriving SVG arc parameters from KiCad arcs */
 		function arc_params(x1,y1,x2,y2,x3,y3) {
 			/* Note: The math formulae for deriving the necessary SVG arc parameters (radius & large_arc_flag) from the
 			 * KiCad params (mid point instead of radius & large_arc_flag) were figured out with the help of Gemini Flash 3.6 Extended.
@@ -66,6 +68,11 @@ let SVG_FP = function() {
 			return {r : r, la : large_arc, sd : sweep_dir}
 		}
 
+		/* Conversion functions for all relevant KiCad gr_/fp_* elements.
+		 * Conversion function:
+		 *   arg1: source element
+		 *   arg2: color for newly generated node
+		 *   returns generated node */
 		const gr_map = {
 
 			line : (se) => {
