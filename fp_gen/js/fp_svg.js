@@ -11,11 +11,15 @@ let SVG_FP = function() {
 		this.layer_map  = layer_map;
 		this.output_fmt = 'SVG';
 
-		/* keep a cache of nodes per source_layer so we can change the color
-		 * of all affected nodes without redrawing everything */
+		/* Keep a cache of nodes per source_layer so we can change the color
+		 * of all affected nodes without redrawing everything. */
 		const nodes_by_layer = {};
+
 		for (const src_layer in layer_map)
 			nodes_by_layer[src_layer] = [];
+
+		/* Keep a cache of all text nodes so we can change text attributes later without redrawing everything. */
+		const text_nodes = [];
 
 		/* Helper function to make any sort of SVG element and assign attributes from attr_map in one go. */
 		function mk_elem(name, attr_map = {}) {
@@ -189,6 +193,7 @@ let SVG_FP = function() {
 					ts.textContent = lines[i];
 					te.appendChild(ts);
 				}
+				// TBD: text_nodes integration
 				return te;
 			},
 		};
@@ -285,6 +290,11 @@ let SVG_FP = function() {
 				if(e.getAttribute("stroke"))
 					e.setAttribute("stroke", new_color);
 			});
+		}
+
+		/* Call this after changing text attributes to update all text nodes. */
+		this.update_texts = function() {
+			// TBD
 		}
 
 	}; /* constructor */
