@@ -34,6 +34,67 @@ let SVG_FP = function() {
 			"font-family" : "Arial, Helvetica, sans-serif", // set default font
 		});
 
+		/* Make a text node */
+		function mk_text(se, color) {
+			/* Notes:
+			 * - text + tspan needed for multiline text (broken atm)
+			 * - let user choose font
+			 * - missing: bold, italics, justify left bottom etc.
+			 */
+			const pos     = find_token(se,      "at");
+			const effects = find_token(se,      "effects");
+			const font    = find_token(effects, "font");
+			const scale   = 1.2; // testing
+			const size    = find_token(font,    "size")[1]*scale;
+			//const bold    = find_token(font,    "bold");
+			// TBD: italics, etc.?
+
+			/* Getting the same alignment as in KiCad is difficult.
+			 * (Due to various factors such as different fonts.)
+			 * Maybe give the user control over some correction values
+			 * such as x/y offset, font, etc.? */
+			//pos[1]+=1.5;
+
+			const te = mk_elem("text", {
+				"x" : pos[1], "y" : pos[2],
+				"font-size"			: size,
+				"fill"				: color,
+				"text-anchor"		: "middle", // KiCad default for horizontal alignment
+				"dominant-baseline" : "center", // TBD: vertical alignment
+			});
+
+			/* KiCad default justification is h center, v center */
+			const justify = find_token(effects, "justify");
+			if(justify) {
+				for(i=1;i<justify.length;i++) {
+					const just = justify[i];
+					switch(just) {
+						case "left":
+							// restore SVG default: text-anchor = start
+							te.removeAttribute("text-anchor");
+							break;
+						case "right":
+							te.setAttribute("text-anchor", "end");
+							break;
+						// TBD: bottom top mirror (+vertical default: center)
+						default:
+							console.log("justify", just);
+					}
+				}
+			}
+			// TODO: vertical alignment
+
+			/* actual text(s) */
+			const lines = JSON.parse(se[1]).split("\n");
+			for(i=0;i<lines.length;i++) {
+				const ts = mk_elem("tspan", {"x" : pos[1], "dy" : i*size});
+				ts.textContent = lines[i];
+				te.appendChild(ts);
+			}
+			// TBD: text_nodes integration
+			return te;
+		}
+
 		/* Helper function for deriving SVG arc parameters from KiCad arcs */
 		function arc_params(x1,y1,x2,y2,x3,y3) {
 			/* Note: The math formulae for deriving the necessary SVG arc parameters (radius & large_arc_flag) from the
@@ -137,65 +198,8 @@ let SVG_FP = function() {
 				});
 			},
 
-			text : (se, color) => {
-				/* Notes:
-				 * - text + tspan needed for multiline text (broken atm)
-				 * - let user choose font
-				 * - missing: bold, italics, justify left bottom etc.
-				 */
-				const pos     = find_token(se,      "at");
-				const effects = find_token(se,      "effects");
-				const font    = find_token(effects, "font");
-				const scale   = 1.2; // testing
-				const size    = find_token(font,    "size")[1]*scale;
-				//const bold    = find_token(font,    "bold");
-				// TBD: italics, etc.?
-
-				/* Getting the same alignment as in KiCad is difficult.
-				 * (Due to various factors such as different fonts.)
-				 * Maybe give the user control over some correction values
-				 * such as x/y offset, font, etc.? */
-				//pos[1]+=1.5;
-
-				const te = mk_elem("text", {
-					"x" : pos[1], "y" : pos[2],
-					"font-size"			: size,
-					"fill"				: color,
-					"text-anchor"		: "middle", // KiCad default for horizontal alignment
-					"dominant-baseline" : "center", // TBD: vertical alignment
-				});
-
-				/* KiCad default justification is h center, v center */
-				const justify = find_token(effects, "justify");
-				if(justify) {
-					for(i=1;i<justify.length;i++) {
-						const just = justify[i];
-						switch(just) {
-							case "left":
-								// restore SVG default: text-anchor = start
-								te.removeAttribute("text-anchor");
-								break;
-							case "right":
-								te.setAttribute("text-anchor", "end");
-								break;
-							// TBD: bottom top mirror (+vertical default: center)
-							default:
-								console.log("justify", just);
-						}
-					}
-				}
-				// TODO: vertical alignment
-
-				/* actual text(s) */
-				const lines = JSON.parse(se[1]).split("\n");
-				for(i=0;i<lines.length;i++) {
-					const ts = mk_elem("tspan", {"x" : pos[1], "dy" : i*size});
-					ts.textContent = lines[i];
-					te.appendChild(ts);
-				}
-				// TBD: text_nodes integration
-				return te;
-			},
+			/* Text is more complicated - let's give it a "real" function. */
+			text : (se, color) => mk_text(se, color),
 		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
