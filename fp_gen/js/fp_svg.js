@@ -41,13 +41,16 @@ let SVG_FP = function() {
 			 * - let user choose font
 			 * - missing: bold, italics, justify left bottom etc.
 			 */
-			const pos     = find_token(se,      "at");
-			const effects = find_token(se,      "effects");
-			const font    = find_token(effects, "font");
-			const scale   = 1.2; // testing
-			const size    = find_token(font,    "size")[1]*scale;
-			//const bold    = find_token(font,    "bold");
-			// TBD: italics, etc.?
+			const pos      = find_token(se, "at");
+			const effects  = find_token(se, "effects");
+			const font     = find_token(effects, "font");
+
+			const scale    = 1.2; // TESTING
+			const size     = find_token(font, "size")[1]*scale;
+
+			const bold     = find_token(font, "bold")?.[1] === "yes";
+			const italic   = find_token(font, "italic")?.[1] === "yes";
+			const knockout = find_token(se, "layer")[2] === "knockout";
 
 			/* Getting the same alignment as in KiCad is difficult.
 			 * (Due to various factors such as different fonts.)
@@ -63,9 +66,14 @@ let SVG_FP = function() {
 				"dominant-baseline" : "center", // TBD: vertical alignment
 			});
 
+			if (bold)
+				te.setAttribute("font-weight", "bold");
+			if (italic)
+				te.setAttribute("font-style", "italic");
+
 			/* KiCad default justification is h center, v center */
 			const justify = find_token(effects, "justify");
-			if(justify) {
+			if (justify) {
 				for(i=1;i<justify.length;i++) {
 					const just = justify[i];
 					switch(just) {
