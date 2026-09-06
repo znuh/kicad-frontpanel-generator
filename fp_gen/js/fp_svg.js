@@ -66,6 +66,25 @@ let SVG_FP = function() {
 				"dominant-baseline" : "center", // TBD: vertical alignment
 			});
 
+			let text_root = te;
+			/* For knockout effect we need to wrap the text element into a mask element.
+			 * So we replace text_root with the mask and attach the actual text as a child.
+			 *
+			 * This isn't working yet! */
+			/*
+			if (knockout) {
+				const mask = mk_elem("mask");
+				mask.appendChild(mk_elem("rect", {
+					"x" : 0, "y" : 0,
+					"width" : "100%", "height" : "100%",
+					"fill" : color
+				}));
+				te.setAttribute("fill", "#000");
+				mask.appendChild(te);
+				text_root = mask;
+			}
+			*/
+
 			if (bold)
 				te.setAttribute("font-weight", "bold");
 			if (italic)
@@ -100,7 +119,7 @@ let SVG_FP = function() {
 				te.appendChild(ts);
 			}
 			// TBD: text_nodes integration
-			return te;
+			return text_root;
 		}
 
 		/* Helper function for deriving SVG arc parameters from KiCad arcs */
