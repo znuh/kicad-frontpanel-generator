@@ -114,6 +114,8 @@ function update_config() {
 	//console.log("config:", config);
 }
 
+let SVG_gen = null; // TESTING ONLY
+
 function SVG_Test() {
 	const gen_SVG = new SVG_FP(config.SVG_output);
 	const svg = pcb_to_fp(source_pcb.pcb, gen_SVG);
@@ -122,12 +124,14 @@ function SVG_Test() {
 
 	document.getElementById('svg_display').replaceChildren(svg);
 
+	/* TODO: viewBox must be recalculated when Text attributes changed */
 	const bbox = svg.getBBox();
 	const padding = 5;
 	svg.setAttribute(
 		"viewBox",
 		`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
 	);
+	SVG_gen = gen_SVG; // for TESTING ONLY
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {

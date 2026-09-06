@@ -6,10 +6,16 @@ let SVG_FP = function() {
 
     let constructor = function create(cfg) {
 
-		const layer_map = kicad_layer_colors; // TEST
+		const layer_map = cfg.layer_map;
 
 		this.layer_map  = layer_map;
 		this.output_fmt = 'SVG';
+
+		/* keep a cache of nodes per source_layer so we can change the color
+		 * of all affected nodes without redrawing everything */
+		const nodes_by_layer = {};
+		for (const src_layer in layer_map)
+			nodes_by_layer[src_layer] = [];
 
 		/* make SVG element and assign attributes from attr_map */
 		function mk_elem(name, attr_map = {}) {
@@ -219,6 +225,10 @@ let SVG_FP = function() {
 				elem.setAttribute("fill-opacity", "0.5"); // TBD: only for PCB preview?
 			}
 
+			/* add to nodes_by_layer */
+			nodes_by_layer[src_layer].push(elem);
+
+			/* add to parent node */
 			dst.appendChild(elem);
 		}
 
@@ -251,6 +261,23 @@ let SVG_FP = function() {
 
 		this.finalize = function() {
 			return svg;
+		}
+
+		/* Call this after changing a layer mapping in cfg.layer_map
+		 * to update the colors of the affected elements. */
+		this.update_layer = function(layer) {
+			const new_color = layer_map[layer];
+
+			nodes_by_layer[layer].forEach((e) => {
+				// change fill - if set
+				const old_fill = e.getAttribute("fill");
+				if (old_fill && old_fill !== "none")
+					e.setAttribute("fill", new_color);
+
+				// change stroke - if set
+				if(e.getAttribute("stroke"))
+					e.setAttribute("stroke", new_color);
+			});
 		}
 
 	}; /* constructor */

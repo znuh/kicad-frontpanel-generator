@@ -19,8 +19,13 @@ const config = {
 		},
 	},
 
-	svg_output : {
-		// TBD
+	SVG_output : {
+		layer_map : {
+			'User.1' : '#c2c2c2',
+			'User.2' : '#5994dc',
+			'User.3' : '#b4dbd2',
+			'User.4' : '#d8c852',
+		}
 	}
 };
 
