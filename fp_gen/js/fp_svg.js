@@ -144,12 +144,31 @@ let SVG_FP = function() {
 			/* Radius: Distance from start to center (Pythagoras) */
 			const r = Math.hypot(x1-cx, y1-cy);
 
-			/* Cross products needed to determine >180° arcs */
+			/* SVG needs a "large arc" flag for arcs >180°
+			 * Input data from KiCad:
+			 *   [x1,y1]: arc start
+			 *   [x2,y2]: arc midpoint
+			 *   [x3,y3]: arc end
+			 * So the chord is the line between [x1,y1] and [x3,y3].
+			 * We can now check, whether the mid point of the arc [x2,y2] is
+			 * on the same side of the chord as the circumcenter [cx,cy].
+			 * If mid and circumcenter are on the same side of the chord,
+			 * it's a large (major) arc >180°. Otherwise it's a minor (non-large) arc.
+			 *
+			 * With [x1,y1] as the referenct point, cp_mid is the cross product
+			 * between the chord vector and the vector to the mid point.
+			 * The sign of cp_mid tells us, whether mid can be found on the "left" or
+			 * "right" side of the chord. */
 			const v_ac_x = x3-x1, v_ac_y = y3-y1;
-			const cp_mid    = v_ac_x * (y2-y1) - v_ac_y * (x2-x1);
+			const cp_mid = v_ac_x * (y2-y1) - v_ac_y * (x2-x1);
+
+			/* cp_center is the cross product between the chord vector and the vector
+			 * to the circumcenter. */
 			const cp_center = v_ac_x * (cy-y1) - v_ac_y * (cx-x1);
 
-			/* Large arc if >180° */
+			/* Signs of cp_mid and cp_center can be compared by multiplying them.
+			 * Same sign      : Positive result -> large arc
+			 * Different signs: Negative result ->  smol arc */
 			const large_arc = ((cp_mid * cp_center) > 0) ? 1 : 0;
 
 			/* Sweep direction can be determined based on normalized angular difference of mid_ vs. start_angle according to Gemini.
