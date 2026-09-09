@@ -6,6 +6,14 @@ let SVG_FP = function() {
 
     let constructor = function create(cfg) {
 
+		/* Helper function to make any sort of SVG element and assign attributes from attr_map in one go. */
+		function mk_elem(name, attr_map = {}) {
+			const ne = document.createElementNS(SVG_NS, name);
+			for (const [attr, val] of Object.entries(attr_map))
+				ne.setAttribute(attr, val);
+			return ne;
+		}
+
 		const layer_map = cfg.layer_map;
 
 		this.layer_map  = layer_map;
@@ -15,27 +23,51 @@ let SVG_FP = function() {
 		 * of all affected nodes without redrawing everything. */
 		const nodes_by_layer = {};
 
-		for (const src_layer in layer_map)
-			nodes_by_layer[src_layer] = [];
-
 		/* Keep a cache of all text nodes so we can change text attributes later without redrawing everything. */
 		const text_nodes = [];
-
-		/* Helper function to make any sort of SVG element and assign attributes from attr_map in one go. */
-		function mk_elem(name, attr_map = {}) {
-			const ne = document.createElementNS(SVG_NS, name);
-			for (const [attr, val] of Object.entries(attr_map))
-				ne.setAttribute(attr, val);
-			return ne;
-		}
 
 		/* Make the SVG root element */
 		const svg = mk_elem("svg", {
 			"font-family" : "Arial, Helvetica, sans-serif", // set default font
 		});
 
+		/* Make defs section for filters */
+		const defs = mk_elem("defs");
+
+		/* Function to create/replace a knockout filter for src_layer */
+		function update_filter(src_layer) {
+			const id = "knockout_" + src_layer;
+			defs.querySelector(`[id="${id}"]`)?.remove(); // remove old filter if one exists
+
+			const filter = mk_elem("filter", {
+				"id" : id,
+				"x" : "0", "y" : "0",
+				"width" : "100%", "height" : "100%",
+			});
+			filter.appendChild(mk_elem("feFlood", {
+				"flood-color"	: layer_map[src_layer],
+				"result"		: "bg",
+			}));
+			filter.appendChild(mk_elem("feComposite", {
+				"in"		: "bg",
+				"in2"		: "SourceGraphic",
+				"operator"	: "out",
+			}));
+			defs.appendChild(filter);
+		}
+
+		/* Walk through all source layers to initialize some stuff */
+		for (const src_layer in layer_map) {
+			nodes_by_layer[src_layer] = [];  // init nodes_by_layer cache
+			update_filter(src_layer);        // create knockout filter
+		}
+
+		svg.appendChild(defs);
+
+		/***************** Functions to create SVG elements ********************/
+
 		/* Make a text node */
-		function mk_text(se, color) {
+		function mk_text(se, color, src_layer) {
 			/* Notes:
 			 * - text + tspan needed for multiline text (broken atm)
 			 * - let user choose font
@@ -66,24 +98,10 @@ let SVG_FP = function() {
 				"dominant-baseline" : "center", // TBD: vertical alignment
 			});
 
-			let text_root = te;
-			/* For knockout effect we need to wrap the text element into a mask element.
-			 * So we replace text_root with the mask and attach the actual text as a child.
-			 *
-			 * This isn't working yet! */
-			/*
-			if (knockout) {
-				const mask = mk_elem("mask");
-				mask.appendChild(mk_elem("rect", {
-					"x" : 0, "y" : 0,
-					"width" : "100%", "height" : "100%",
-					"fill" : color
-				}));
-				te.setAttribute("fill", "#000");
-				mask.appendChild(te);
-				text_root = mask;
+			if(knockout) {
+				te.removeAttribute("fill");
+				te.setAttribute("filter", `url(#knockout_${src_layer})`);
 			}
-			*/
 
 			if (bold)
 				te.setAttribute("font-weight", "bold");
@@ -119,7 +137,7 @@ let SVG_FP = function() {
 				te.appendChild(ts);
 			}
 			// TBD: text_nodes integration
-			return text_root;
+			return te;
 		}
 
 		/* Helper function for deriving SVG arc parameters from KiCad arcs */
@@ -245,7 +263,7 @@ let SVG_FP = function() {
 			},
 
 			/* Text is more complicated - let's give it a "real" function. */
-			text : (se, color) => mk_text(se, color),
+			text : (se, color, src_layer) => mk_text(se, color, src_layer),
 		};
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
@@ -266,7 +284,7 @@ let SVG_FP = function() {
 				return;
 			}
 
-			const elem = conv(src, color);
+			const elem = conv(src, color, src_layer);
 			if(!elem) {
 				console.log("no elem!", gr, color, conv);
 				return;
@@ -329,6 +347,9 @@ let SVG_FP = function() {
 		 * to update the colors of the affected elements. */
 		this.update_layer = function(layer) {
 			const new_color = layer_map[layer];
+
+			// update the knockout filter to new color
+			update_filter(layer);
 
 			nodes_by_layer[layer].forEach((e) => {
 				// change fill - if set
