@@ -244,14 +244,18 @@ let SVG_FP = function() {
 			},
 
 			rect : (se) => {
-				const start = find_token(se, "start");
-				const end   = find_token(se, "end");
-				return mk_elem("rect", {
+				const start  = find_token(se, "start");
+				const end    = find_token(se, "end");
+				const radius = find_token(se, "radius");
+				const rect = mk_elem("rect", {
 					"x" : start[1], "y" : start[2],
 					"width"  : end[1]-start[1],
 					"height" : end[2]-start[2],
 					"fill"   : "none"
 				});
+				if (radius)
+					rect.setAttribute("rx",radius[1]);
+				return rect;
 			},
 
 			circle : (se) => {
