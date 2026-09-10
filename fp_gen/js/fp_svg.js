@@ -86,6 +86,8 @@ let SVG_FP = function() {
 			const knockout = find_token(se, "layer")[2] === "knockout";
 
 			// TODO: rotate; also verify footprint rotations
+			if(pos[3])
+				return null;
 
 			/* Getting the same alignment as in KiCad is difficult.
 			 * (Due to various factors such as different fonts.)
@@ -153,8 +155,9 @@ let SVG_FP = function() {
 							y_ofs = lines.length * size / 4;
 							break;
 						case "mirror":
-							// TBD: needs a transform
-							//te.setAttribute("transform", "scale(-1, 1)");
+							/* this works but needs tidying up.
+							 * TODO: set x,y of te to zero and do only one transform */
+							te.setAttribute("transform", `translate(${pos[1]}, ${pos[2]-y_ofs}) scale(-1, 1) translate(${-pos[1]}, ${-(pos[2]-y_ofs)})`);
 							break;
 						default:
 							console.log("justify", just);
