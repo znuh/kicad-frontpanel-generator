@@ -121,8 +121,18 @@ let SVG_FP = function() {
 			if (italic)
 				te.setAttribute("font-style", "italic");
 
-			/* actual text(s) */
-			const lines = JSON.parse(se[1]).split("\n");
+			/* Text examples:
+			 *  fp_text value 20k
+			 *  fp_text user "foobar"
+			 *  gr_text bot
+			 *  gr_text "AP3513E"
+			 * => use se[2] for fp_text, se[1] otherwise
+			 * => pass through JSON.parse if first char is a double quote */
+			let actual_text = ((se[0] === "fp_text") ? se[2] : se[1]);
+			if (actual_text.charAt(0) === "\"")
+				actual_text = JSON.parse(actual_text);
+
+			const lines = actual_text.split("\n");
 			for(i=0;i<lines.length;i++) {
 				const ts = mk_elem("tspan", {
 					"x" : pos[1], "dy" : size*(i>0),
@@ -352,8 +362,8 @@ let SVG_FP = function() {
 		this.add_footprint = function(src) {
 			const pos = find_token(src, "at");
 			let transform = `translate(${pos[1]} ${pos[2]})`;
-			if (pos[3]) // TODO: verify rotate
-				transform += ` rotate(${-pos[3]}) `;
+			if (pos[3])
+				transform += ` rotate(${-pos[3]})`;
 
 			/* make a group */
 			const fpg = mk_elem("g", {"transform" : transform});
