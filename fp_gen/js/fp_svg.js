@@ -261,7 +261,6 @@ let SVG_FP = function() {
 				const mid   = find_token(se, "mid");
 				const end   = find_token(se, "end");
 				const arc	= arc_params(start[1], start[2], mid[1], mid[2], end[1], end[2]);
-				// TODO: arcs > 180° ?? large-arc-flag sweep-flag ??
 				return mk_elem("path", {
 					"d" : `M ${start[1]},${start[2]} A ${arc.r},${arc.r} 0 ${arc.la},${arc.sd} ${end[1]},${end[2]}`,
 					"fill" : "none"
