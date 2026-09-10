@@ -98,11 +98,13 @@ let SVG_FP = function() {
 				"text-anchor"		: "middle", // KiCad default for horizontal alignment
 
 				// TBD: vertical alignment
-				//"dominant-baseline" : "text-top", // candidate
-				//"dominant-baseline" : "hanging", // good candidate
+				/* dominant-baseline only applies to the first tspan apparently,
+				 * not the whole text block. So manual adjustment is needed */
+				"dominant-baseline" : "text-top", // candidate
+				/////"dominant-baseline" : "hanging", // not suitable?
 				//"dominant-baseline" : "central", // not suitable?
 				//"dominant-baseline" : "middle",
-				"dominant-baseline" : "alphabetic", // candidate
+				//"dominant-baseline" : "alphabetic", // candidate
 			});
 
 			if(knockout) {
@@ -118,9 +120,10 @@ let SVG_FP = function() {
 			/* actual text(s) */
 			const lines = JSON.parse(se[1]).split("\n");
 			for(i=0;i<lines.length;i++) {
-				const ts = mk_elem("tspan", {"x" : pos[1], "dy" : size});
+				const ts = mk_elem("tspan", {
+					"x" : pos[1], "dy" : size*(i>0),
+				});
 				ts.textContent = lines[i];
-				//console.log("line: "+lines[i],i*size);
 				te.appendChild(ts);
 			}
 
@@ -155,7 +158,7 @@ let SVG_FP = function() {
 			}
 			te.setAttribute("y", pos[2]-y_ofs);
 
-			// TBD: text_nodes integration
+			text_nodes.push(te); // add to list of text nodes
 			return te;
 		}
 
