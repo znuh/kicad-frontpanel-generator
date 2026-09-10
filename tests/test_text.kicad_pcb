@@ -127,6 +127,106 @@
 		(layer "User.1")
 		(uuid "4a062d8c-8c35-43e5-9cb5-c2443c5e2e4b")
 	)
+	(gr_line
+		(start 103.2 65.1)
+		(end 145 65)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "0f4f1325-d8de-4b52-a4ed-e75a07515770")
+	)
+	(gr_line
+		(start 103.2 74.3)
+		(end 103.2 65.1)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "3a731e34-891d-4097-99e2-f43778827bf8")
+	)
+	(gr_line
+		(start 117 65.1)
+		(end 117 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "5263848b-4d93-4844-ae85-43932a447052")
+	)
+	(gr_line
+		(start 117 74.3)
+		(end 117.2 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "3ae07029-1c5d-4e49-aaa4-226c08df6a0b")
+	)
+	(gr_line
+		(start 117.2 65.1)
+		(end 117.2 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "cf6dc21a-0b8c-40d3-8f34-1357096f914e")
+	)
+	(gr_line
+		(start 131 65.1)
+		(end 131 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "d9ca02a9-eea3-4627-b7f9-79eae5b86995")
+	)
+	(gr_line
+		(start 131 74.3)
+		(end 131.2 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "dca0ccde-3767-4be8-86ba-051fd677760d")
+	)
+	(gr_line
+		(start 131.2 65.1)
+		(end 131.2 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "4c1853b8-2b67-40c6-b7fc-1d8549c8154a")
+	)
+	(gr_line
+		(start 145 65)
+		(end 145 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "93cf6a54-1be3-4223-a445-5baa41525e2f")
+	)
+	(gr_line
+		(start 145 74.3)
+		(end 103.2 74.3)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "50394e09-651c-4297-868f-aa715f5f67d4")
+	)
 	(gr_text "enc-hid fp v1\nznu 2025"
 		(at 152.8 37.1 0)
 		(layer "User.2")
@@ -188,9 +288,32 @@
 		)
 	)
 	(gr_text "Range\nOfs"
+		(at 138 65.6 0)
+		(layer "User.4" knockout)
+		(uuid "eb2cd238-0fbc-44bb-b364-9bdf22254d3d")
+		(effects
+			(font
+				(size 3 3)
+				(thickness 0.5)
+			)
+			(justify top)
+		)
+	)
+	(gr_text "Range\nOfs"
 		(at 111.2 84.3 0)
 		(layer "User.4")
 		(uuid "a18d747c-9fca-49fa-b21a-4921af86603c")
+		(effects
+			(font
+				(size 3 3)
+				(thickness 0.5)
+			)
+		)
+	)
+	(gr_text "Range\nOfs"
+		(at 124 69.8 0)
+		(layer "User.4" knockout)
+		(uuid "6856de4e-0da1-4ed3-b2b4-5d03efae40b9")
 		(effects
 			(font
 				(size 3 3)
@@ -207,6 +330,18 @@
 				(size 3 3)
 				(thickness 0.5)
 			)
+		)
+	)
+	(gr_text "Range\nOfs"
+		(at 110 74 0)
+		(layer "User.4" knockout)
+		(uuid "87130bea-8e71-4073-9d88-c34431647c10")
+		(effects
+			(font
+				(size 3 3)
+				(thickness 0.5)
+			)
+			(justify bottom)
 		)
 	)
 	(gr_text "Range\nOfs"
