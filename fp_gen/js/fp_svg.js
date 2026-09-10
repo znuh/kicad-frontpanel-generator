@@ -85,6 +85,8 @@ let SVG_FP = function() {
 			const italic   = find_token(font, "italic")?.[1] === "yes";
 			const knockout = find_token(se, "layer")[2] === "knockout";
 
+			// TODO: rotate; also verify footprint rotations
+
 			/* Getting the same alignment as in KiCad is difficult.
 			 * (Due to various factors such as different fonts.)
 			 * Maybe give the user control over some correction values
@@ -150,7 +152,10 @@ let SVG_FP = function() {
 						case "top":
 							y_ofs = lines.length * size / 4;
 							break;
-						// TBD: bottom top mirror (+vertical default: center)
+						case "mirror":
+							// TBD: needs a transform
+							//te.setAttribute("transform", "scale(-1, 1)");
+							break;
 						default:
 							console.log("justify", just);
 					}
