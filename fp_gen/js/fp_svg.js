@@ -91,11 +91,16 @@ let SVG_FP = function() {
 			//pos[1]+=1.5;
 
 			const te = mk_elem("text", {
-				"x" : pos[1], "y" : pos[2],
+				"x" : pos[1], // we postpone setting y pos until later for vertical alignment
 				"font-size"			: size,
 				"fill"				: color,
 				"text-anchor"		: "middle", // KiCad default for horizontal alignment
-				"dominant-baseline" : "center", // TBD: vertical alignment
+
+				// TBD: vertical alignment
+				"dominant-baseline" : "text-top", // candidate
+				//"dominant-baseline" : "hanging", // good candidate
+				//"dominant-baseline" : "central", // not suitable?
+				//"dominant-baseline" : "alphabetic", // candidate
 			});
 
 			if(knockout) {
@@ -107,6 +112,18 @@ let SVG_FP = function() {
 				te.setAttribute("font-weight", "bold");
 			if (italic)
 				te.setAttribute("font-style", "italic");
+
+			/* actual text(s) */
+			const lines = JSON.parse(se[1]).split("\n");
+			for(i=0;i<lines.length;i++) {
+				const ts = mk_elem("tspan", {"x" : pos[1], "dy" : i*size});
+				ts.textContent = lines[i];
+				te.appendChild(ts);
+			}
+
+			/* Do vertical alignment based on number of lines.
+			 * KiCad default valign : center */
+			let y_ofs = lines.length * size / 2;
 
 			/* KiCad default justification is h center, v center */
 			const justify = find_token(effects, "justify");
@@ -127,15 +144,8 @@ let SVG_FP = function() {
 					}
 				}
 			}
-			// TODO: vertical alignment
+			te.setAttribute("y", pos[2]-y_ofs);
 
-			/* actual text(s) */
-			const lines = JSON.parse(se[1]).split("\n");
-			for(i=0;i<lines.length;i++) {
-				const ts = mk_elem("tspan", {"x" : pos[1], "dy" : i*size});
-				ts.textContent = lines[i];
-				te.appendChild(ts);
-			}
 			// TBD: text_nodes integration
 			return te;
 		}
