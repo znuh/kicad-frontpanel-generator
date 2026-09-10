@@ -78,7 +78,8 @@ let SVG_FP = function() {
 			const font     = find_token(effects, "font");
 
 			const scale    = 1.5; // TESTING
-			const size     = find_token(font, "size")[1]*scale;
+			const raw_size = find_token(font, "size")[1];
+			const size     = raw_size*scale;
 
 			const bold     = find_token(font, "bold")?.[1] === "yes";
 			const italic   = find_token(font, "italic")?.[1] === "yes";
@@ -97,10 +98,11 @@ let SVG_FP = function() {
 				"text-anchor"		: "middle", // KiCad default for horizontal alignment
 
 				// TBD: vertical alignment
-				"dominant-baseline" : "text-top", // candidate
+				//"dominant-baseline" : "text-top", // candidate
 				//"dominant-baseline" : "hanging", // good candidate
 				//"dominant-baseline" : "central", // not suitable?
-				//"dominant-baseline" : "alphabetic", // candidate
+				//"dominant-baseline" : "middle",
+				"dominant-baseline" : "alphabetic", // candidate
 			});
 
 			if(knockout) {
@@ -116,8 +118,9 @@ let SVG_FP = function() {
 			/* actual text(s) */
 			const lines = JSON.parse(se[1]).split("\n");
 			for(i=0;i<lines.length;i++) {
-				const ts = mk_elem("tspan", {"x" : pos[1], "dy" : i*size});
+				const ts = mk_elem("tspan", {"x" : pos[1], "dy" : size});
 				ts.textContent = lines[i];
+				//console.log("line: "+lines[i],i*size);
 				te.appendChild(ts);
 			}
 
@@ -137,6 +140,12 @@ let SVG_FP = function() {
 							break;
 						case "right":
 							te.setAttribute("text-anchor", "end");
+							break;
+						case "bottom":
+							y_ofs = lines.length * size;
+							break;
+						case "top":
+							y_ofs = lines.length * size / 4;
 							break;
 						// TBD: bottom top mirror (+vertical default: center)
 						default:
