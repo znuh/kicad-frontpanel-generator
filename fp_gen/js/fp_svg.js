@@ -77,7 +77,7 @@ let SVG_FP = function() {
 			const effects  = find_token(se, "effects");
 			const font     = find_token(effects, "font");
 
-			const scale    = 1.2; // TESTING
+			const scale    = 1.5; // TESTING
 			const size     = find_token(font, "size")[1]*scale;
 
 			const bold     = find_token(font, "bold")?.[1] === "yes";
