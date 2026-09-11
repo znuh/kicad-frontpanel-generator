@@ -85,7 +85,7 @@ let SVG_FP = function() {
 			const italic   = find_token(font, "italic")?.[1] === "yes";
 			const knockout = find_token(se, "layer")[2] === "knockout";
 
-			// TODO: rotate; also verify footprint rotations
+			// TODO: rotate
 			if(pos[3])
 				return null;
 
@@ -95,8 +95,12 @@ let SVG_FP = function() {
 			 * such as x/y offset, font, etc.? */
 			//pos[1]+=1.5;
 
+			/* TODO: new multi-line approach:
+			 * Use dominant-baseline based on KiCad justify attribute.
+			 * Then adjust tspan dy of each line */
+
 			const te = mk_elem("text", {
-				"x" : pos[1], // we postpone setting y pos until later for vertical alignment
+				"x" : pos[1], "y" : pos[2],
 				"font-size"			: size,
 				"fill"				: color,
 				"text-anchor"		: "middle", // KiCad default for horizontal alignment
@@ -104,9 +108,9 @@ let SVG_FP = function() {
 				// TBD: vertical alignment
 				/* dominant-baseline only applies to the first tspan apparently,
 				 * not the whole text block. So manual adjustment is needed */
-				"dominant-baseline" : "text-top", // candidate
+				//"dominant-baseline" : "text-top", // candidate
 				/////"dominant-baseline" : "hanging", // not suitable?
-				//"dominant-baseline" : "central", // not suitable?
+				"dominant-baseline" : "central", // not suitable?
 				//"dominant-baseline" : "middle",
 				//"dominant-baseline" : "alphabetic", // candidate
 			});
@@ -143,7 +147,7 @@ let SVG_FP = function() {
 
 			/* Do vertical alignment based on number of lines.
 			 * KiCad default valign : center */
-			let y_ofs = lines.length * size / 2;
+			let y_ofs = 0; //lines.length * size / 2;
 
 			/* KiCad default justification is h center, v center */
 			const justify = find_token(effects, "justify");
@@ -159,10 +163,12 @@ let SVG_FP = function() {
 							te.setAttribute("text-anchor", "end");
 							break;
 						case "bottom":
-							y_ofs = lines.length * size;
+							//y_ofs = lines.length * size;
+							te.setAttribute("dominant-baseline", "alphabetic");
 							break;
 						case "top":
-							y_ofs = lines.length * size / 4;
+							//y_ofs = lines.length * size / 4;
+							te.setAttribute("dominant-baseline", "hanging");
 							break;
 						case "mirror":
 							/* this works but needs tidying up.
@@ -174,7 +180,7 @@ let SVG_FP = function() {
 					}
 				}
 			}
-			te.setAttribute("y", pos[2]-y_ofs);
+			//te.setAttribute("y", pos[2]-y_ofs);
 
 			text_nodes.push(te); // add to list of text nodes
 			return te;
