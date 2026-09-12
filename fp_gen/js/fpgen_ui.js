@@ -131,6 +131,7 @@ function SVG_Test() {
 		"viewBox",
 		`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
 	);
+	gen_SVG.update_texts();
 	SVG_gen = gen_SVG; // for TESTING ONLY
 }
 
