@@ -97,7 +97,14 @@ let SVG_FP = function() {
 
 			/* TODO: new multi-line approach:
 			 * Use dominant-baseline based on KiCad justify attribute.
-			 * Then adjust tspan dy of each line */
+			 * Then adjust tspan dy of each line.
+			 *
+			 * Note: Do halign in 2nd pass with a transform based on bounding box
+			 * instead of using the text-anchor?
+			 * Issues with text-anchor:
+			 * - uses actual glyphs instead of bounding box -> not great for knockout rect
+			 * - issue with multi-line text: which one is the longest line after rendering?
+			 */
 
 			const te = mk_elem("text", {
 				"x" : pos[1], "y" : pos[2],
