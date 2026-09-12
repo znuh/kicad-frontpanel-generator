@@ -4,7 +4,7 @@
 
 let SVG_FP = function() {
 
-    let constructor = function create(cfg) {
+    let constructor = function create(cfg, target_node) {
 
 		/* Helper function to make any sort of SVG element and assign attributes from attr_map in one go. */
 		function mk_elem(name, attr_map = {}) {
@@ -77,7 +77,7 @@ let SVG_FP = function() {
 			const effects  = find_token(se, "effects");
 			const font     = find_token(effects, "font");
 
-			const scale    = 1.5; // TESTING
+			const scale    = cfg.scale_text ?? 1.5; // TESTING
 			const raw_size = find_token(font, "size")[1];
 			const size     = raw_size*scale;
 
@@ -191,6 +191,22 @@ let SVG_FP = function() {
 
 			text_nodes.push(te); // add to list of text nodes
 			return te;
+		}
+
+		/* Call this after changing text attributes to update all text nodes. */
+		this.update_texts = function() {
+			text_nodes.forEach((n) => {
+				// TBD
+				//console.log(n.getBBox());
+			});
+
+			/* viewBox must be recalculated after text attributes changed */
+			const bbox = svg.getBBox();
+			const padding = cfg.padding ?? 5;
+			svg.setAttribute(
+				"viewBox",
+				`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
+			);
 		}
 
 		/* Helper function for deriving SVG arc parameters from KiCad arcs */
@@ -396,6 +412,12 @@ let SVG_FP = function() {
 		}
 
 		this.finalize = function() {
+			/* Put the SVG into the DOM so getBBox returns valid values */
+			target_node.replaceChildren(svg);
+
+			/* Update all texts now that getBBox works */
+			this.update_texts();
+
 			return svg;
 		}
 
@@ -417,14 +439,6 @@ let SVG_FP = function() {
 				if(e.getAttribute("stroke"))
 					e.setAttribute("stroke", new_color);
 			});
-		}
-
-		/* Call this after changing text attributes to update all text nodes. */
-		this.update_texts = function() {
-			text_nodes.forEach((n) => {
-				//console.log(n.getBBox());
-			});
-			// TBD
 		}
 
 	}; /* constructor */

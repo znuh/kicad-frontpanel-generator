@@ -117,21 +117,8 @@ function update_config() {
 let SVG_gen = null; // TESTING ONLY
 
 function SVG_Test() {
-	const gen_SVG = new SVG_FP(config.SVG_output);
-	const svg = pcb_to_fp(source_pcb.pcb, gen_SVG);
-
-	frontpanel.SVG = svg;
-
-	document.getElementById('svg_display').replaceChildren(svg);
-
-	/* TODO: viewBox must be recalculated when Text attributes changed */
-	const bbox = svg.getBBox();
-	const padding = 5;
-	svg.setAttribute(
-		"viewBox",
-		`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
-	);
-	gen_SVG.update_texts();
+	const gen_SVG = new SVG_FP(config.SVG_output, document.getElementById('svg_display'));
+	frontpanel.SVG = pcb_to_fp(source_pcb.pcb, gen_SVG);
 	SVG_gen = gen_SVG; // for TESTING ONLY
 }
 

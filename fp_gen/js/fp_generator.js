@@ -25,8 +25,10 @@ const config = {
 			'User.2' : '#5994dc',
 			'User.3' : '#b4dbd2',
 			'User.4' : '#d8c852',
-		}
-	}
+		},
+		padding 	: 5,
+		scale_text 	: 1.5,
+	},
 };
 
 function encode_sexpression(item, ind) {
