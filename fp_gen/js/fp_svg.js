@@ -194,8 +194,8 @@ let SVG_FP = function() {
 		}
 
 		/* Call this after changing text attributes to update all text nodes. */
-		this.update_texts = function() {
-			text_nodes.forEach((n) => {
+		this.update_texts = function(list = text_nodes) {
+			list.forEach((n) => {
 				// TBD
 				//console.log(n.getBBox());
 			});
