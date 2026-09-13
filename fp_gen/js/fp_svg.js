@@ -202,7 +202,7 @@ let SVG_FP = function() {
 				if (pos[3])
 					transform += ` rotate(${-pos[3]})`;
 				if (txt.mirror)
-					transform += "scale(-1, 1)";
+					transform += " scale(-1, 1)";
 				te.setAttribute("transform", transform);
 			});
 
