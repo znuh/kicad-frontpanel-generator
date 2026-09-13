@@ -79,9 +79,12 @@ let SVG_FP = function() {
 			const raw_size = find_token(font, "size")[1];
 			const size     = raw_size*scale;
 
+			const face     = find_token(font, "face")?.[1];
 			const bold     = find_token(font, "bold")?.[1] === "yes";
 			const italic   = find_token(font, "italic")?.[1] === "yes";
 			const knockout = find_token(se, "layer")[2] === "knockout";
+
+			//if(face) console.log("font face: ", face);
 
 			// TODO: rotate
 			if(pos[3])
