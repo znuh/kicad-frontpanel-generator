@@ -74,25 +74,12 @@ let SVG_FP = function() {
 			const pos      = find_token(se, "at");
 			const effects  = find_token(se, "effects");
 			const font     = find_token(effects, "font");
-
-			const scale    = cfg.scale_text ?? 1.5; // TESTING
-			const raw_size = find_token(font, "size")[1];
-			const size     = raw_size*scale;
-
+			const size     = find_token(font, "size")[1];
 			const face     = find_token(font, "face")?.[1];
 			const bold     = find_token(font, "bold")?.[1] === "yes";
 			const italic   = find_token(font, "italic")?.[1] === "yes";
 			const knockout = find_token(se, "layer")[2] === "knockout";
-
-			// TODO: rotate
-			if(pos[3])
-				return null;
-
-			/* Getting the same alignment as in KiCad is difficult.
-			 * (Due to various factors such as different fonts.)
-			 * Maybe give the user control over some correction values
-			 * such as x/y offset, font, etc.? */
-			//pos[1]+=1.5;
+			let   mirror   = false;
 
 			/* TODO: new multi-line approach:
 			 * Use dominant-baseline based on KiCad justify attribute.
@@ -106,17 +93,18 @@ let SVG_FP = function() {
 			 */
 
 			const te = mk_elem("text", {
-				"x" : pos[1], "y" : pos[2],
-				"font-size"			: size,
+				//"x" : pos[1], "y" : pos[2],
+				//"font-size"			: size,
 				"fill"				: color,
-				"text-anchor"		: "middle", // KiCad default for horizontal alignment
+				"text-anchor"		: "middle",  // KiCad default for horizontal alignment
+				"dominant-baseline"	: "central", // KiCad default for vertical alignment
 
 				// TBD: vertical alignment
 				/* dominant-baseline only applies to the first tspan apparently,
 				 * not the whole text block. So manual adjustment is needed */
 				//"dominant-baseline" : "text-top", // candidate
 				/////"dominant-baseline" : "hanging", // not suitable?
-				"dominant-baseline" : "central", // not suitable?
+				  //"dominant-baseline" : "central", // not suitable?
 				//"dominant-baseline" : "middle",
 				//"dominant-baseline" : "alphabetic", // candidate
 			});
@@ -134,31 +122,7 @@ let SVG_FP = function() {
 			if (italic)
 				te.setAttribute("font-style", "italic");
 
-			/* Text examples:
-			 *  fp_text value 20k
-			 *  fp_text user "foobar"
-			 *  gr_text bot
-			 *  gr_text "AP3513E"
-			 * => use se[2] for fp_text, se[1] otherwise
-			 * => pass through JSON.parse if first char is a double quote */
-			let actual_text = ((se[0] === "fp_text") ? se[2] : se[1]);
-			if (actual_text.charAt(0) === "\"")
-				actual_text = JSON.parse(actual_text);
-
-			const lines = actual_text.split("\n");
-			for(i=0;i<lines.length;i++) {
-				const ts = mk_elem("tspan", {
-					"x" : pos[1], "dy" : size*(i>0),
-				});
-				ts.textContent = lines[i];
-				te.appendChild(ts);
-			}
-
-			/* Do vertical alignment based on number of lines.
-			 * KiCad default valign : center */
-			let y_ofs = 0; //lines.length * size / 2;
-
-			/* KiCad default justification is h center, v center */
+			/* Walk through text justifications */
 			const justify = find_token(effects, "justify");
 			if (justify) {
 				for(i=1;i<justify.length;i++) {
@@ -172,33 +136,81 @@ let SVG_FP = function() {
 							te.setAttribute("text-anchor", "end");
 							break;
 						case "bottom":
-							//y_ofs = lines.length * size;
 							te.setAttribute("dominant-baseline", "alphabetic");
 							break;
 						case "top":
-							//y_ofs = lines.length * size / 4;
 							te.setAttribute("dominant-baseline", "hanging");
 							break;
 						case "mirror":
+							mirror = true;
 							/* this works but needs tidying up.
 							 * TODO: set x,y of te to zero and do only one transform */
-							te.setAttribute("transform", `translate(${pos[1]}, ${pos[2]-y_ofs}) scale(-1, 1) translate(${-pos[1]}, ${-(pos[2]-y_ofs)})`);
+							//te.setAttribute("transform", `translate(${pos[1]}, ${pos[2]-y_ofs}) scale(-1, 1) translate(${-pos[1]}, ${-(pos[2]-y_ofs)})`);
 							break;
 						default:
-							console.log("justify", just);
+							console.log("unknown justify:", just);
 					}
 				}
 			}
+
+			/* Text examples:
+			 *  fp_text value 20k
+			 *  fp_text user "foobar"
+			 *  gr_text bot
+			 *  gr_text "AP3513E"
+			 * => use se[2] for fp_text, se[1] otherwise
+			 * => pass through JSON.parse if first char is a double quote */
+			let actual_text = ((se[0] === "fp_text") ? se[2] : se[1]);
+			if (actual_text.charAt(0) === "\"")
+				actual_text = JSON.parse(actual_text);
+
+			const lines = actual_text.split("\n");
+			const tspans = [];
+			for(i=0;i<lines.length;i++) {
+				const ts = mk_elem("tspan", {"x":0});
+					//"x" : pos[1], "dy" : size*(i>0),
+				//});
+				ts.textContent = lines[i];
+				te.appendChild(ts);
+				tspans.push(ts);
+			}
+
+			/* Do vertical alignment based on number of lines.
+			 * KiCad default valign : center */
+			//let y_ofs = 0; //lines.length * size / 2;
+
 			//te.setAttribute("y", pos[2]-y_ofs);
 
-			text_nodes.push(te); // add to list of text nodes
+			/* All the positioning/alignment, rotation and mirroring is done later
+			 * by update_texts() when getBBox() returns valid values.
+			 * Save all relevant text parameters here in text_nodes,
+			 * so update_texts() can use them directly later. */
+			text_nodes.push({
+				pos     : pos, // [1]:x, [2]:y, [3]:rotation - if any
+				size    : size,
+				valign  : te.getAttribute("dominant-baseline"),
+				halign  : te.getAttribute("text-anchor"),
+				mirror  : mirror,
+
+				te      : te,     // text element
+				tspans  : tspans, // tspan elements
+			}); // add to list of text nodes
 			return te;
 		}
 
 		/* Call this after changing text attributes to update all text nodes. */
 		this.update_texts = function(list = text_nodes) {
-			list.forEach((n) => {
-				// TBD
+			const scale = cfg.scale_text ?? 1.5;
+
+			list.forEach((txt) => {
+				const te = txt.te;
+
+				// set size first
+				te.setAttribute("font-size", txt.size * scale);
+
+				// TODO: now set dy on all tspans
+				// TODO: after this call getBBox and set transform attribute
+
 				//console.log(n.getBBox());
 			});
 
