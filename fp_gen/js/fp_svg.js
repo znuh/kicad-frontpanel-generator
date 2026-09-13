@@ -84,8 +84,6 @@ let SVG_FP = function() {
 			const italic   = find_token(font, "italic")?.[1] === "yes";
 			const knockout = find_token(se, "layer")[2] === "knockout";
 
-			//if(face) console.log("font face: ", face);
-
 			// TODO: rotate
 			if(pos[3])
 				return null;
@@ -122,6 +120,9 @@ let SVG_FP = function() {
 				//"dominant-baseline" : "middle",
 				//"dominant-baseline" : "alphabetic", // candidate
 			});
+
+			if(face)
+				te.setAttribute("font-family", (face.charAt(0) === "\"") ? JSON.parse(face) : face);
 
 			if(knockout) {
 				te.removeAttribute("fill");
