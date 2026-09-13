@@ -166,7 +166,7 @@ let SVG_FP = function() {
 				pos     : pos, // [1]:x, [2]:y, [3]:rotation - if any
 				size    : size,
 				valign  : te.getAttribute("dominant-baseline"),
-				//halign  : te.getAttribute("text-anchor"), // not needed by update_texts() ?
+				//halign  : te.getAttribute("text-anchor"), // not needed by update_texts() atm
 				mirror  : mirror,
 
 				te      : te,     // text element
@@ -195,8 +195,8 @@ let SVG_FP = function() {
 					ts.setAttribute("dy", size*(i>0));
 				});
 
-				// TODO: modify x, y based on getBBox and valign
-				//console.log(n.getBBox());
+				// TODO: modify y based on getBBox and valign
+				//const bbox = te.getBBox();
 
 				let transform = `translate(${x}, ${y})`;
 				if (pos[3])
