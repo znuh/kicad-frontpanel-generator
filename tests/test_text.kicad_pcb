@@ -801,18 +801,6 @@
 			(justify top)
 		)
 	)
-	(gr_text "line1\nLine 2\nlin3"
-		(at 158.6 72.2 0)
-		(layer "User.4" knockout)
-		(uuid "b60511b1-a27d-4ca5-af54-b9c42fbda146")
-		(effects
-			(font
-				(size 3 3)
-				(thickness 0.5)
-			)
-			(justify top)
-		)
-	)
 	(gr_text "Range\nOfs"
 		(at 143.8 32.7 0)
 		(layer "User.4" knockout)
@@ -823,6 +811,19 @@
 				(thickness 0.5)
 			)
 			(justify top mirror)
+		)
+	)
+	(gr_text "line1\nLine 2\nlin3"
+		(at 158.6 72.2 0)
+		(layer "User.4" knockout)
+		(uuid "b60511b1-a27d-4ca5-af54-b9c42fbda146")
+		(effects
+			(font
+				(size 3 3)
+				(thickness 0.5)
+				(italic yes)
+			)
+			(justify top)
 		)
 	)
 	(gr_text "Range\nOfs"
