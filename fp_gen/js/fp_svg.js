@@ -66,11 +66,6 @@ let SVG_FP = function() {
 
 		/* Make a text node */
 		function mk_text(se, color, src_layer) {
-			/* Notes:
-			 * - text + tspan needed for multiline text (broken atm)
-			 * - let user choose font
-			 * - missing: bold, italics, justify left bottom etc.
-			 */
 			const pos      = find_token(se, "at");
 			const effects  = find_token(se, "effects");
 			const font     = find_token(effects, "font");
@@ -93,26 +88,19 @@ let SVG_FP = function() {
 			 */
 
 			const te = mk_elem("text", {
-				//"x" : pos[1], "y" : pos[2],
-				//"font-size"			: size,
+				/* Initially we place all text at x,y = 0,0 so we can do rotation & mirroring easily.
+				 * Then we use a transform w/ translate in update_texts() to move the text into place.
+				 * font-size is also set in update_texts() */
 				"fill"				: color,
 				"text-anchor"		: "middle",  // KiCad default for horizontal alignment
 				"dominant-baseline"	: "central", // KiCad default for vertical alignment
-
-				// TBD: vertical alignment
-				/* dominant-baseline only applies to the first tspan apparently,
-				 * not the whole text block. So manual adjustment is needed */
-				//"dominant-baseline" : "text-top", // candidate
-				/////"dominant-baseline" : "hanging", // not suitable?
-				  //"dominant-baseline" : "central", // not suitable?
-				//"dominant-baseline" : "middle",
-				//"dominant-baseline" : "alphabetic", // candidate
 			});
 
 			if(face)
 				te.setAttribute("font-family", (face.charAt(0) === "\"") ? JSON.parse(face) : face);
 
 			if(knockout) {
+				/* Knockout effect is done with a filter */
 				te.removeAttribute("fill");
 				te.setAttribute("filter", `url(#knockout_${src_layer})`);
 			}
@@ -143,9 +131,6 @@ let SVG_FP = function() {
 							break;
 						case "mirror":
 							mirror = true;
-							/* this works but needs tidying up.
-							 * TODO: set x,y of te to zero and do only one transform */
-							//te.setAttribute("transform", `translate(${pos[1]}, ${pos[2]-y_ofs}) scale(-1, 1) translate(${-pos[1]}, ${-(pos[2]-y_ofs)})`);
 							break;
 						default:
 							console.log("unknown justify:", just);
@@ -168,18 +153,10 @@ let SVG_FP = function() {
 			const tspans = [];
 			for(i=0;i<lines.length;i++) {
 				const ts = mk_elem("tspan", {"x":0});
-					//"x" : pos[1], "dy" : size*(i>0),
-				//});
 				ts.textContent = lines[i];
 				te.appendChild(ts);
 				tspans.push(ts);
 			}
-
-			/* Do vertical alignment based on number of lines.
-			 * KiCad default valign : center */
-			//let y_ofs = 0; //lines.length * size / 2;
-
-			//te.setAttribute("y", pos[2]-y_ofs);
 
 			/* All the positioning/alignment, rotation and mirroring is done later
 			 * by update_texts() when getBBox() returns valid values.
@@ -189,7 +166,7 @@ let SVG_FP = function() {
 				pos     : pos, // [1]:x, [2]:y, [3]:rotation - if any
 				size    : size,
 				valign  : te.getAttribute("dominant-baseline"),
-				halign  : te.getAttribute("text-anchor"),
+				//halign  : te.getAttribute("text-anchor"), // not needed by update_texts() ?
 				mirror  : mirror,
 
 				te      : te,     // text element
@@ -203,15 +180,30 @@ let SVG_FP = function() {
 			const scale = cfg.scale_text ?? 1.5;
 
 			list.forEach((txt) => {
-				const te = txt.te;
+				const pos    = txt.pos;
+				const size   = txt.size * scale;
+				const te     = txt.te;
+				const tspans = txt.tspans;
+				let x = pos[1], y = pos[2];
 
 				// set size first
-				te.setAttribute("font-size", txt.size * scale);
+				te.setAttribute("font-size", size);
 
-				// TODO: now set dy on all tspans
-				// TODO: after this call getBBox and set transform attribute
+				// now set dy on all tspans
+				tspans.forEach((ts, i) => {
+					// TBD: valign
+					ts.setAttribute("dy", size*(i>0));
+				});
 
+				// TODO: modify x, y based on getBBox and valign
 				//console.log(n.getBBox());
+
+				let transform = `translate(${x}, ${y})`;
+				if (pos[3])
+					transform += ` rotate(${-pos[3]})`;
+				if (txt.mirror)
+					transform += "scale(-1, 1)";
+				te.setAttribute("transform", transform);
 			});
 
 			// set default font
