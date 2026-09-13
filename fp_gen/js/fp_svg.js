@@ -27,9 +27,7 @@ let SVG_FP = function() {
 		const text_nodes = [];
 
 		/* Make the SVG root element */
-		const svg = mk_elem("svg", {
-			"font-family" : "Arial, Helvetica, sans-serif", // set default font
-		});
+		const svg = mk_elem("svg");
 
 		/* Make defs section for filters */
 		const defs = mk_elem("defs");
@@ -199,6 +197,12 @@ let SVG_FP = function() {
 				// TBD
 				//console.log(n.getBBox());
 			});
+
+			// set default font
+			svg.setAttribute(
+				"font-family",
+				cfg.font ?? "Arial, Helvetica, sans-serif"
+			);
 
 			/* viewBox must be recalculated after text attributes changed */
 			const bbox = svg.getBBox();

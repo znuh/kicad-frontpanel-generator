@@ -28,6 +28,7 @@ const config = {
 		},
 		padding 	: 5,
 		scale_text 	: 1.5,
+		font		: "Arial, Helvetica, sans-serif",
 	},
 };
 
