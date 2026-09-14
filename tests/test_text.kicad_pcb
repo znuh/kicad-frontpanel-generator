@@ -647,6 +647,46 @@
 		(layer "User.3")
 		(uuid "3faed706-f57f-40cc-a675-1bfb4e1e579c")
 	)
+	(gr_line
+		(start 149.225 126.15)
+		(end 165.475 126.15)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "4f1b6d82-f299-481e-a708-37781c75b80e")
+	)
+	(gr_line
+		(start 149.325 129.25)
+		(end 165.575 129.25)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "68787990-bbdd-41ef-8f87-abed8283654e")
+	)
+	(gr_line
+		(start 150.5 125.8)
+		(end 150.5 129.7)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "7aa70867-876c-4a8e-80fb-af71fa904ca0")
+	)
+	(gr_line
+		(start 164.05 125.85)
+		(end 164.05 129.75)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "User.3")
+		(uuid "85599cf0-f4e0-4bb2-82a4-713682005a03")
+	)
 	(gr_text "enc-hid fp v1\nznu 2025"
 		(at 152.8 29.1 0)
 		(layer "User.2")
