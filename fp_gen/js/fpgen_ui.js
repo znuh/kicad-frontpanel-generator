@@ -255,7 +255,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* Dowload SVG FP */
 	const svg_dl_btn = document.getElementById('download_SVG');
 	svg_dl_btn.addEventListener('click', () => {
-		SVG_download(frontpanel.SVG);
+		/* Make a clone with the style attribute removed */
+		const clone = frontpanel.SVG.cloneNode(true);
+		clone.removeAttribute('style');
+		SVG_download(clone);
 	});
 
 	/* setup theme switching */
