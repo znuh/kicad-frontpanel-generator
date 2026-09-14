@@ -191,12 +191,15 @@ let SVG_FP = function() {
 
 				// now set dy on all tspans
 				tspans.forEach((ts, i) => {
-					// TBD: valign
 					ts.setAttribute("dy", size*(i>0));
 				});
 
-				// TODO: modify y based on getBBox and valign
-				//const bbox = te.getBBox();
+				// adjust y based on valign and bounding box
+				const bbox = te.getBBox();
+				if (txt.valign === "alphabetic")
+					y-=bbox.height-size;
+				//else if(txt.valign === "central")
+					// TBD
 
 				let transform = `translate(${x}, ${y})`;
 				if (pos[3])
