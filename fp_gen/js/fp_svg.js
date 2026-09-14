@@ -209,13 +209,16 @@ let SVG_FP = function() {
 				cfg.font ?? "Arial, Helvetica, sans-serif"
 			);
 
+			const padding = cfg.padding ?? 5;
+
 			/* viewBox must be recalculated after text attributes changed */
 			const bbox = svg.getBBox();
-			const padding = cfg.padding ?? 5;
-			svg.setAttribute(
-				"viewBox",
-				`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
-			);
+			// round everything to 1um
+			const x = +(bbox.x - padding).toFixed(3), y = +(bbox.y - padding).toFixed(3);
+			const w = +(bbox.width + padding * 2).toFixed(3), h = +(bbox.height + padding * 2).toFixed(3);
+			svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+			svg.setAttribute("width", w+"mm");
+			svg.setAttribute("height", h+"mm");
 		}
 
 		/* Helper function for deriving SVG arc parameters from KiCad arcs */
@@ -441,6 +444,7 @@ let SVG_FP = function() {
 			nodes_by_layer[layer].forEach((e) => {
 				// change fill - if set
 				const old_fill = e.getAttribute("fill");
+				// TODO: fill-opacity update
 				if (old_fill && old_fill !== "none")
 					e.setAttribute("fill", new_color);
 
