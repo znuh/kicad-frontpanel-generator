@@ -76,17 +76,6 @@ let SVG_FP = function() {
 			const knockout = find_token(se, "layer")[2] === "knockout";
 			let   mirror   = false;
 
-			/* TODO: new multi-line approach:
-			 * Use dominant-baseline based on KiCad justify attribute.
-			 * Then adjust tspan dy of each line.
-			 *
-			 * Note: Do halign in 2nd pass with a transform based on bounding box
-			 * instead of using the text-anchor?
-			 * Issues with text-anchor:
-			 * - uses actual glyphs instead of bounding box -> not great for knockout rect
-			 * - issue with multi-line text: which one is the longest line after rendering?
-			 */
-
 			const te = mk_elem("text", {
 				/* Initially we place all text at x,y = 0,0 so we can do rotation & mirroring easily.
 				 * Then we use a transform w/ translate in update_texts() to move the text into place.
@@ -179,6 +168,7 @@ let SVG_FP = function() {
 		this.update_texts = function(list = text_nodes) {
 			const scale = cfg.scale_text ?? 1.5;
 
+			// update all text_nodes
 			list.forEach((txt) => {
 				const pos    = txt.pos;
 				const size   = txt.size * scale;
@@ -189,11 +179,14 @@ let SVG_FP = function() {
 				// set size first
 				te.setAttribute("font-size", size);
 
-				// now set dy on all tspans
-				let dy = 0;
+				/* Now set dy on all tspans.
+				 * The dominant-baseline SVG attribute only affects the position of the first tspan,
+				 * not the whole text block. So we move the first tspan if necessary (when valign == central).
+				 * All remaining tspans are positioned relative to the previous one. */
+				let dy = (txt.valign === "central") ? -((tspans.length-1)*size/2) : 0;
 				tspans.forEach((ts, i) => {
 					ts.setAttribute("dy", dy);
-					dy = size;
+					dy = size; // switch to regular font size stepping after first tspan
 				});
 
 				// adjust y based on valign and bounding box
@@ -201,8 +194,6 @@ let SVG_FP = function() {
 					const bbox = te.getBBox();
 					y-=bbox.height-size;
 				}
-				//else if(txt.valign === "central")
-					// TBD
 
 				let transform = `translate(${x}, ${y})`;
 				if (pos[3])
