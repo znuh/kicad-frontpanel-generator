@@ -190,14 +190,17 @@ let SVG_FP = function() {
 				te.setAttribute("font-size", size);
 
 				// now set dy on all tspans
+				let dy = 0;
 				tspans.forEach((ts, i) => {
-					ts.setAttribute("dy", size*(i>0));
+					ts.setAttribute("dy", dy);
+					dy = size;
 				});
 
 				// adjust y based on valign and bounding box
-				const bbox = te.getBBox();
-				if (txt.valign === "alphabetic")
+				if (txt.valign === "alphabetic") {
+					const bbox = te.getBBox();
 					y-=bbox.height-size;
+				}
 				//else if(txt.valign === "central")
 					// TBD
 
