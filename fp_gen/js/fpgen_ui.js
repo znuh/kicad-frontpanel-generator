@@ -118,8 +118,13 @@ let SVG_gen = null; // TESTING ONLY
 
 function SVG_Test() {
 	const gen_SVG = new SVG_FP(config.SVG_output, document.getElementById('svg_display'));
-	frontpanel.SVG = pcb_to_fp(source_pcb.pcb, gen_SVG);
+	const SVG = pcb_to_fp(source_pcb.pcb, gen_SVG);
+	frontpanel.SVG = SVG;
 	SVG_gen = gen_SVG; // for TESTING ONLY
+	// zoom to fit
+	SVG.style.width  = '100%';
+	SVG.style.height = 'auto';
+	// SVG.removeAttribute('style'); // testing
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
