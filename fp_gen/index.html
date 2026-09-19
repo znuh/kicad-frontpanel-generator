@@ -71,10 +71,10 @@
 			  <option value="svg">Scalable Vector Graphics (SVG)</option>
 			</select>
 		</div> <!-- input-group -->
-      </div>
+      </div> <!-- card body -->
     </div> <!-- card -->
 
-    <!-- Config & Preview -->
+    <!-- Config -->
     <div class="card mx-auto mt-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3>3) Configuration</h3>
@@ -132,7 +132,17 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3>4) Preview</h3>
       </div>
-      <div class="card-body" id="svg_display">
+      <div class="card-body">
+		<div class="input-group" style="max-width: 400px;">
+			<span class="input-group-text col-5" id="preview_bg_label">Background color:</span>
+			<select class="form-select" aria-label="Background color" aria-describedby="preview_bg_label" id="preview_bg">
+			  <option value="" selected>Transparent</option>
+			  <option value="white">White</option>
+			  <option value="black">Black</option>
+			</select>
+		</div> <!-- input-group -->
+      </div>
+      <div class="card-body border-top" id="svg_display">
 		  No data yet.
       </div>
     </div> <!-- card -->
