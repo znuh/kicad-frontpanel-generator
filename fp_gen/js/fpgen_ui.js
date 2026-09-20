@@ -241,12 +241,12 @@ function output_fmt_changed(evt) {
 	const kicad_output = (val === 'kicad_pcb');
 	const svg_output   = (val === 'svg');
 
-	/* config card */
+	/* Config card */
 	show_container('output_info_no_fmt', false);
 	show_container('cfg_kicad', kicad_output);
 	show_container('cfg_SVG',   svg_output);
 
-	/* download card */
+	/* Download card */
 	show_container('cfg_empty', false);
 	show_container('kicad_output_info', kicad_output);
 	document.getElementById('download_pcb').hidden = !kicad_output;
@@ -255,17 +255,25 @@ function output_fmt_changed(evt) {
 
 document.addEventListener("DOMContentLoaded", function() {
 
-	/* clear value on click to allow reloading the same file */
+	/* Clear value on click to allow reloading the same file */
 	const file_upload = document.getElementById('kicad_file_upload');
 	file_upload.addEventListener('click', e => e.target.value="");
 	file_upload.addEventListener('change', e => fileReader(e,KicadLoader), false);
 
-	/* add click to drop note */
+	/* Add click to drop note */
 	document.getElementById('drop_note').addEventListener('click', () => { file_upload.click(); });
 
 	ui_dropzone_setup(file_upload);
 
+	/* Output format selection */
 	document.getElementById('output_fmt').addEventListener('input', output_fmt_changed);
+
+	/* Preview background selection */
+	document.getElementById('preview_bg').addEventListener('input', (evt) => {
+		const color = evt.target.value;
+		const disp  = document.getElementById('svg_display');
+		disp.style.backgroundColor = color;
+	});
 
 	/* Dowload PCB FP */
 	const pcb_dl_btn = document.getElementById('download_pcb');
