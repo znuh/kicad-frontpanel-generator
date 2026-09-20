@@ -145,6 +145,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	} catch(e) {}
 
 	document.getElementById('download_pcb').disabled = !have_data;
+	document.getElementById('download_SVG').disabled = !have_data;
 	if(have_data) {
 		/* get & check input file KiCad version */
 		const kicad_ver = source_pcb.pcb.find(e => e[0] === "generator_version")?.[1];
@@ -227,6 +228,31 @@ async function SVG_download(svg) {
 	});
 }
 
+function show_container(div, show) {
+	if (show)
+		document.getElementById(div).classList.remove('d-none');
+	else
+		document.getElementById(div).classList.add('d-none');
+}
+
+function output_fmt_changed(evt) {
+	const node = evt.target;
+	const val  = node.value;
+	const kicad_output = (val === 'kicad_pcb');
+	const svg_output   = (val === 'svg');
+
+	/* config card */
+	show_container('output_info_no_fmt', false);
+	show_container('cfg_kicad', kicad_output);
+	show_container('cfg_SVG',   svg_output);
+
+	/* download card */
+	show_container('cfg_empty', false);
+	show_container('kicad_output_info', kicad_output);
+	document.getElementById('download_pcb').hidden = !kicad_output;
+	document.getElementById('download_SVG').hidden = !svg_output;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 
 	/* clear value on click to allow reloading the same file */
@@ -238,6 +264,8 @@ document.addEventListener("DOMContentLoaded", function() {
 	document.getElementById('drop_note').addEventListener('click', () => { file_upload.click(); });
 
 	ui_dropzone_setup(file_upload);
+
+	document.getElementById('output_fmt').addEventListener('input', output_fmt_changed);
 
 	/* Dowload PCB FP */
 	const pcb_dl_btn = document.getElementById('download_pcb');
