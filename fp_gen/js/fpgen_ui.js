@@ -55,6 +55,8 @@ function mk_layermap_table(ttype) {
 	const kicad_mode = (ttype === 'kicad');
 	const svg_mode   = (ttype === 'svg');
 
+	// TBD: add event handler for layer assignment change
+
 	function mk_kicad_output_layers(sel_node, input_layer) {
 		/* only keep node when in KiCad -> KiCad mode */
 		if (!kicad_mode) {
@@ -72,15 +74,15 @@ function mk_layermap_table(ttype) {
 		});
 	}
 
-	function mk_svg_output_selection(sel_node, input_layer) {
+	function mk_svg_output_selection(node, input_layer) {
 		/* only keep node when in KiCad -> SVG mode */
 		if (!svg_mode) {
-			sel_node.remove();
+			node.remove();
 			return;
 		}
 		/* create output layer options */
-		sel_node.dataset.input_layer = input_layer;
-		// TBD
+		node.dataset.input_layer = input_layer;
+		node.value = SVG_default_colors[input_layer] ?? "#000000";
 	}
 
 	/* data translation / mapping functions */
@@ -115,6 +117,7 @@ function update_config() {
 			const input_layer   = n.dataset.input_layer;
 			const output_layers = ((n.value === 'Unassigned') ? [] : n.value.split(' + '));
 			config.kicad_output.layer_map[input_layer] = output_layers;
+			// TODO: SVG
 		},
 		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
 		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
