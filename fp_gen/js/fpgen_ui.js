@@ -82,7 +82,7 @@ function mk_layermap_table(ttype) {
 		}
 		/* create output layer options */
 		node.dataset.input_layer = input_layer;
-		node.value = SVG_default_colors[input_layer] ?? "#000000";
+		node.value = config.SVG_output.layer_map[input_layer] ?? "#000000";
 	}
 
 	/* data translation / mapping functions */

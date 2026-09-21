@@ -21,10 +21,14 @@ const config = {
 
 	SVG_output : {
 		layer_map : {
-			'User.1' : '#c2c2c2',
-			'User.2' : '#5994dc',
-			'User.3' : '#b4dbd2',
-			'User.4' : '#d8c852',
+			//'User.1' : '#c2c2c2',
+			//'User.2' : '#5994dc',
+			//'User.3' : '#b4dbd2',
+			//'User.4' : '#d8c852',
+			'User.1' : '#ff0000',
+			'User.2' : '#00ff00',
+			'User.3' : '#0000ff',
+			'User.4' : '#ff8000',
 		},
 		padding 	: 5,
 		scale_text 	: 1.5,

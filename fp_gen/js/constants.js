@@ -18,10 +18,3 @@ const kicad_output_layers = [
 	'F.SilkS', 'F.Cu', 'F.Mask', 'F.Cu + F.Mask',
 	'B.SilkS', 'B.Cu', 'B.Mask', 'B.Cu + B.Mask',
 ];
-
-const SVG_default_colors = {
-	'User.1' : '#ff0000',
-	'User.2' : '#00ff00',
-	'User.3' : '#0000ff',
-	'User.4' : '#ff8000',
-};
