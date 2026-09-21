@@ -246,6 +246,10 @@ function output_fmt_changed(evt) {
 	show_container('cfg_kicad', kicad_output);
 	show_container('cfg_SVG',   svg_output);
 
+	/* Preview card */
+	show_container('kicad_preview_cfg', kicad_output);
+	show_container('svg_preview_cfg',   svg_output);
+
 	/* Download card */
 	show_container('cfg_empty', false);
 	show_container('kicad_output_info', kicad_output);
