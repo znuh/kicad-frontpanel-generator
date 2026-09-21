@@ -28,7 +28,10 @@
 		  <th scope="row"><div class="rounded" style="width: 20px; height: 20px;" data-role="layer_in_color"></div></th>
 		  <td data-role="layer_in_name"></td>
 		  <td class="fs-4">&#10132;</td>
-		  <td><select class="form-select" aria-label="Output Layers" data-role="kicad_layers_out" data-config="layer_map"></select></td>
+		  <td>
+			  <select class="form-select" aria-label="Output Layers" data-role="kicad_layers_out" data-config="layer_map"></select>
+			  <span data-role="svg_color_out" data-config="layer_map">SVG_TBD</span>
+		  </td>
 		</tr>
 	</template>
 
@@ -121,7 +124,21 @@
 
       </div> <!-- card body -->
       <div class="card-body d-none" id="cfg_SVG">
-		  TBD: cfg_SVG
+
+		<table class="table w-auto caption-top text-nowrap">
+		  <caption class="text-center fs-4 fw-semibold text-body">KiCad to SVG Layer Mapping</caption>
+		  <thead>
+			<tr>
+			  <th scope="col"></th>
+			  <th scope="col">Input</th>
+			  <th scope="col"></th>
+			  <th scope="col">Output</th>
+			</tr>
+		  </thead>
+		  <tbody class="align-middle" id="tb_layermap_svg">
+		  </tbody>
+		</table>
+
       </div> <!-- card body -->
       <div class="card-body" id="cfg_empty">
 		  Select output format first.

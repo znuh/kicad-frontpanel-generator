@@ -49,20 +49,21 @@ function ui_dropzone_setup(finput) {
 	});
 }
 
-function mk_kc_layermap_table() {
-	const tbody = document.getElementById('tb_layermap_kicad');
+function mk_layermap_table(ttype) {
+	const tbody = document.getElementById('tb_layermap_'+ttype);
 	const tr_template = document.getElementById('tr_layermap').content.firstElementChild;
+	const kicad_mode = (ttype === 'kicad');
+	const svg_mode   = (ttype === 'svg');
 
-	const output_layers = [
-		'Unassigned',
-		'Edge.Cuts',
-		'F.SilkS', 'F.Cu', 'F.Mask', 'F.Cu + F.Mask',
-		'B.SilkS', 'B.Cu', 'B.Mask', 'B.Cu + B.Mask',
-	];
-
-	function mk_output_layers(sel_node, input_layer) {
+	function mk_kicad_output_layers(sel_node, input_layer) {
+		/* only keep node when in KiCad -> KiCad mode */
+		if (!kicad_mode) {
+			sel_node.remove();
+			return;
+		}
+		/* create output layer options */
 		sel_node.dataset.input_layer = input_layer;
-		output_layers.forEach(ols_entry => {
+		kicad_output_layers.forEach(ols_entry => {
 			const opt = document.createElement("option");
 			opt.value = ols_entry;
 			opt.text = ols_entry;
@@ -71,11 +72,23 @@ function mk_kc_layermap_table() {
 		});
 	}
 
+	function mk_svg_output_selection(sel_node, input_layer) {
+		/* only keep node when in KiCad -> SVG mode */
+		if (!svg_mode) {
+			sel_node.remove();
+			return;
+		}
+		/* create output layer options */
+		sel_node.dataset.input_layer = input_layer;
+		// TBD
+	}
+
 	/* data translation / mapping functions */
 	const role_transl = {
 		layer_in_color	 : (n, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
 		layer_in_name	 : (n, lname) => {n.textContent = lname; },
-		kicad_layers_out : (n, lname) => {mk_output_layers(n, lname); },
+		kicad_layers_out : (n, lname) => {mk_kicad_output_layers(n, lname); },
+		svg_color_out	 : (n, lname) => {mk_svg_output_selection(n, lname); },
 	};
 
 	function process_roles(node, lname) {
@@ -89,7 +102,7 @@ function mk_kc_layermap_table() {
 		});
 	}
 
-	Object.keys(config.kicad_output.layer_map).forEach(l => {
+	kicad_input_layers.forEach(l => {
 		const tr = tr_template.cloneNode(true);
 		process_roles(tr, l);
 		tbody.appendChild(tr);
@@ -304,8 +317,9 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* setup theme switching */
 	ui_theme_setup();
 
-	/* make KiCad Layer mapping table */
-	mk_kc_layermap_table();
+	/* make Layer mapping tables */
+	mk_layermap_table("kicad");
+	mk_layermap_table("svg");
 
 	/* apply default settings from config & sanitize z_ofs input */
 	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models;
