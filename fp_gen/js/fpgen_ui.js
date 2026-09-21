@@ -50,7 +50,7 @@ function ui_dropzone_setup(finput) {
 }
 
 function mk_kc_layermap_table() {
-	const tbody = document.getElementById('tb_layermap');
+	const tbody = document.getElementById('tb_layermap_kicad');
 	const tr_template = document.getElementById('tr_layermap').content.firstElementChild;
 
 	const output_layers = [
@@ -73,9 +73,9 @@ function mk_kc_layermap_table() {
 
 	/* data translation / mapping functions */
 	const role_transl = {
-		layer_in_color	: (n, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
-		layer_in_name	: (n, lname) => {n.textContent = lname; },
-		layers_out		: (n, lname) => {mk_output_layers(n, lname); },
+		layer_in_color	 : (n, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
+		layer_in_name	 : (n, lname) => {n.textContent = lname; },
+		kicad_layers_out : (n, lname) => {mk_output_layers(n, lname); },
 	};
 
 	function process_roles(node, lname) {

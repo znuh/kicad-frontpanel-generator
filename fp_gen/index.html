@@ -22,6 +22,16 @@
     </ul>
   </div>
 
+	<!-- template for layermap table row -->
+	<template id="tr_layermap">
+		<tr>
+		  <th scope="row"><div class="rounded" style="width: 20px; height: 20px;" data-role="layer_in_color"></div></th>
+		  <td data-role="layer_in_name"></td>
+		  <td class="fs-4">&#10132;</td>
+		  <td><select class="form-select" aria-label="Output Layers" data-role="kicad_layers_out" data-config="layer_map"></select></td>
+		</tr>
+	</template>
+
   <!-- Root container -->
   <div class="container my-2">
     <h1>KiCad Frontpanel Generator</h1>
@@ -91,18 +101,9 @@
 			  <th scope="col">Output</th>
 			</tr>
 		  </thead>
-		  <tbody class="align-middle" id="tb_layermap">
+		  <tbody class="align-middle" id="tb_layermap_kicad">
 		  </tbody>
 		</table>
-
-		<template id="tr_layermap">
-			<tr>
-			  <th scope="row"><div class="rounded" style="width: 20px; height: 20px;" data-role="layer_in_color"></div></th>
-			  <td data-role="layer_in_name"></td>
-			  <td class="fs-4">&#10132;</td>
-			  <td><select class="form-select" aria-label="Output Layers" data-role="layers_out" data-config="layer_map"></select></td>
-			</tr>
-		</template>
 
 		<div class="input-group" style="max-width: 450px;">
 		  <div class="input-group-text">
