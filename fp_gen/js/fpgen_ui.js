@@ -251,11 +251,23 @@ function show_container(div, show) {
 		document.getElementById(div).classList.add('d-none');
 }
 
+let kc_layermap_done = false, svg_layermap_done = false;
+
 function output_fmt_changed(evt) {
 	const node = evt.target;
 	const val  = node.value;
 	const kicad_output = (val === 'kicad_pcb');
 	const svg_output   = (val === 'svg');
+
+	/* Create layermap config table if not yet done */
+	if (kicad_output && !kc_layermap_done) {
+		kc_layermap_done = true;
+		mk_layermap_table("kicad");
+	}
+	else if(svg_output && !svg_layermap_done) {
+		svg_layermap_done = true;
+		mk_layermap_table("svg");
+	}
 
 	/* Config card */
 	show_container('output_info_no_fmt', false);
@@ -319,10 +331,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	/* setup theme switching */
 	ui_theme_setup();
-
-	/* make Layer mapping tables */
-	mk_layermap_table("kicad");
-	mk_layermap_table("svg");
 
 	/* apply default settings from config & sanitize z_ofs input */
 	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models;
