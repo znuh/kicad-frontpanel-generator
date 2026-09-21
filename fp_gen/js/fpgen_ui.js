@@ -113,19 +113,23 @@ function mk_layermap_table(ttype) {
 
 function update_config() {
 	const role_funcs = {
-		layer_map		: n => {
+		layer_map_kicad	: n => {
 			const input_layer   = n.dataset.input_layer;
 			const output_layers = ((n.value === 'Unassigned') ? [] : n.value.split(' + '));
 			config.kicad_output.layer_map[input_layer] = output_layers;
-			// TODO: SVG
 		},
+		layer_map_svg	: n => { }, // fall through (already handled on change event)
 		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
 		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
 	};
 
 	document.querySelectorAll('[data-config]').forEach( n => {
 		const cfg_id = n.dataset.config;
-		role_funcs[cfg_id](n);
+		const func = role_funcs[cfg_id];
+		if (typeof(func) === 'function')
+			func(n);
+		else
+			console.log("missing role_func in update_config: "+cfg_id);
 	});
 	//console.log("config:", config);
 }
