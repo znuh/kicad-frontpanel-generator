@@ -18,3 +18,18 @@ const kicad_output_layers = [
 	'F.SilkS', 'F.Cu', 'F.Mask', 'F.Cu + F.Mask',
 	'B.SilkS', 'B.Cu', 'B.Mask', 'B.Cu + B.Mask',
 ];
+
+const soldermask_colors = {
+	'black'  : '#000000',
+	'white'  : '#ffffff',
+	'blue'   : '#153e81',
+	'purple' : '#3d1c4f',
+	'green'  : '#30523a',
+	'red'    : '#c62923',
+	'yellow' : '#f1b400',
+};
+
+const surface_colors = {
+	'HASL'   : '#e2e2e2',
+	'ENIG'   : '#fbdf17',
+};
