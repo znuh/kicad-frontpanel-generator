@@ -52,7 +52,7 @@ function ui_dropzone_setup(finput) {
 /* create dst_parent child nodes from template_id for each entry of entries
  * using the role_transl functions applied to data-role attributes */
 function adopt_template(dst_parent, template_id, entries, role_transl) {
-	const template = document.getElementById(template_id).content.firstElementChild;
+	const template = document.getElementById(template_id);
 
 	function process_roles(node, key, val) {
 		const roleNodes = node.querySelectorAll('[data-role]');
@@ -66,10 +66,30 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 	}
 
 	for (const [key, val] of Object.entries(entries)) {
-		const cn = template.cloneNode(true);
-		process_roles(cn, key, val);
-		dst_parent.appendChild(cn);
+		const cloned = template.content.cloneNode(true);
+		process_roles(cloned, key, val);
+		dst_parent.append(cloned);
 	}
+}
+
+function mk_kicad_preview_radios() {
+	const mask_group = document.getElementById('preview_soldermask_color');
+	const cfg = config.kicad_preview;
+
+	const mask_role_transl = {
+		colorsel_input : (n, cname, col) => {
+			n.id   = 'mask_col_'+cname;
+			n.name = 'mask_sel';
+			n.checked = col === cfg.soldermask_color;
+		},
+		colorsel_label : (n, cname, col) => {
+			n.htmlFor = 'mask_col_'+cname;
+			n.appendChild(document.createTextNode(cname));
+		},
+		colorsel_color : (n, cname, col) => { n.style.backgroundColor = col; },
+	};
+
+	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, mask_role_transl);
 }
 
 function mk_layermap_table(ttype) {
@@ -262,7 +282,7 @@ function show_container(div, show) {
 		document.getElementById(div).classList.add('d-none');
 }
 
-let kc_layermap_done = false, svg_layermap_done = false;
+let kc_init_done = false, svg_init_done = false;
 
 function output_fmt_changed(evt) {
 	const node = evt.target;
@@ -270,13 +290,14 @@ function output_fmt_changed(evt) {
 	const kicad_output = (val === 'kicad_pcb');
 	const svg_output   = (val === 'svg');
 
-	/* Create layermap config table if not yet done */
-	if (kicad_output && !kc_layermap_done) {
-		kc_layermap_done = true;
+	/* Create notes if not yet done */
+	if (kicad_output && !kc_init_done) {
+		kc_init_done = true;
 		mk_layermap_table("kicad");
+		mk_kicad_preview_radios();
 	}
-	else if(svg_output && !svg_layermap_done) {
-		svg_layermap_done = true;
+	else if(svg_output && !svg_init_done) {
+		svg_init_done = true;
 		mk_layermap_table("svg");
 	}
 

@@ -34,6 +34,12 @@ const config = {
 		scale_text 	: 1.5,
 		font		: "Arial, Helvetica, sans-serif",
 	},
+
+	kicad_preview : {
+		soldermask_color : '#000000',
+		silkscreen_color : '#ffffff',
+		surface_color    : '#fbdf17',
+	},
 };
 
 function encode_sexpression(item, ind) {

@@ -48,6 +48,14 @@
 		</tr>
 	</template>
 
+	<!-- template for Color Selection Radio Buttons (e.g. KiCad Preview Soldermask Color) -->
+	<template id="color_sel_radiobtn">
+			  <input type="radio" class="btn-check" name="CHANGEME" autocomplete="off" data-role="colorsel_input">
+			  <label class="btn btn-outline-primary d-inline-flex align-items-center gap-2" for="CHANGEME" data-role="colorsel_label">
+				  <span class="color-rect-sm rounded" data-role="colorsel_color"></span>
+			  </label>
+	</template>
+
   <!-- Root container -->
   <div class="container my-2">
     <h1>KiCad Frontpanel Generator</h1>
@@ -168,20 +176,10 @@
 		<!-- <h4>Preview colors:</h4> -->
 		<div class="input-group">
 			<span class="input-group-text" id="preview_mask_label">Soldermask:</span>
-			<!-- TBD -->
-			<div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-			  <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
-			  <label class="btn btn-outline-primary d-inline-flex align-items-center gap-2" for="btnradio1">
-				  <span class="color-rect-sm rounded" style="background-color: #00ff00;"></span>
-				  Radio 1</label>
-
-			  <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
-			  <label class="btn btn-outline-primary" for="btnradio2">Radio 2</label>
-
-			  <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
-			  <label class="btn btn-outline-primary" for="btnradio3">Radio 3</label>
+			<div class="btn-group" role="group" aria-label="Preview Soldermask Color" id="preview_soldermask_color">
 			</div>
 		</div> <!-- input-group -->
+		<!-- TBD -->
 		<div class="input-group" style="max-width: 400px;">
 			<span class="input-group-text col-5" id="preview_silk_label">Silkscreen:</span>
 			<select class="form-select" aria-label="Silkscreen color" aria-describedby="preview_silk_label" id="preview_silk">
