@@ -49,9 +49,31 @@ function ui_dropzone_setup(finput) {
 	});
 }
 
+/* create dst_parent child nodes from template_id for each entry of entries
+ * using the role_transl functions applied to data-role attributes */
+function adopt_template(dst_parent, template_id, entries, role_transl) {
+	const template = document.getElementById(template_id).content.firstElementChild;
+
+	function process_roles(node, key, val) {
+		const roleNodes = node.querySelectorAll('[data-role]');
+		roleNodes.forEach(node => {
+			const role = node.dataset.role;
+			if(role_transl[role])
+				role_transl[role](node, key, val);
+			else
+				console.log("process_roles / missing role mapping:", role);
+		});
+	}
+
+	for (const [key, val] of Object.entries(entries)) {
+		const cn = template.cloneNode(true);
+		process_roles(cn, key, val);
+		dst_parent.appendChild(cn);
+	}
+}
+
 function mk_layermap_table(ttype) {
 	const tbody = document.getElementById('tb_layermap_'+ttype);
-	const tr_template = document.getElementById('tr_layermap').content.firstElementChild;
 	const kicad_mode = (ttype === 'kicad');
 	const svg_mode   = (ttype === 'svg');
 
@@ -87,28 +109,13 @@ function mk_layermap_table(ttype) {
 
 	/* data translation / mapping functions */
 	const role_transl = {
-		layer_in_color	 : (n, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
-		layer_in_name	 : (n, lname) => {n.textContent = lname; },
-		kicad_layers_out : (n, lname) => {mk_kicad_output_layers(n, lname); },
-		svg_color_out	 : (n, lname) => {mk_svg_output_selection(n, lname); },
+		layer_in_color	 : (n, idx, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
+		layer_in_name	 : (n, idx, lname) => {n.textContent = lname; },
+		kicad_layers_out : (n, idx, lname) => {mk_kicad_output_layers(n, lname); },
+		svg_color_out	 : (n, idx, lname) => {mk_svg_output_selection(n, lname); },
 	};
 
-	function process_roles(node, lname) {
-		const roleNodes = node.querySelectorAll('[data-role]');
-		roleNodes.forEach(node => {
-			const role = node.dataset.role;
-			if(role_transl[role])
-				role_transl[role](node, lname);
-			else
-				console.log("process_roles / missing role mapping:", role);
-		});
-	}
-
-	kicad_input_layers.forEach(l => {
-		const tr = tr_template.cloneNode(true);
-		process_roles(tr, l);
-		tbody.appendChild(tr);
-	});
+	adopt_template(tbody, 'tr_layermap', kicad_input_layers, role_transl);
 }
 
 function update_config() {
