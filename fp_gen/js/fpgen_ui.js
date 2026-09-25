@@ -73,7 +73,12 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 }
 
 function kicad_preview_color_changed(evt) {
-	console.log(evt);
+	const node = evt.target;
+	const name = node.name;
+	const color = node.dataset.color;
+	config.kicad_preview[name] = color;
+	console.log(name, color);
+	// TBD: update SVG
 }
 
 function mk_kicad_preview_radios() {
@@ -88,7 +93,8 @@ function mk_kicad_preview_radios() {
 	const role_transl = {
 		colorsel_input : (n, cname, col) => {
 			n.id   = `${type}_col_${cname}`;
-			n.name = type+'_sel';
+			n.name = cfg_entry;
+			n.dataset.color = col;
 			n.checked = col === cfg[cfg_entry];
 		},
 		colorsel_label : (n, cname, col) => {
