@@ -72,6 +72,10 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 	}
 }
 
+function kicad_preview_color_changed(evt) {
+	console.log(evt);
+}
+
 function mk_kicad_preview_radios() {
 	const mask_group = document.getElementById('preview_soldermask_color');
 	const silkscreen_group = document.getElementById('preview_silkscreen_color');
@@ -95,14 +99,17 @@ function mk_kicad_preview_radios() {
 	};
 
 	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, role_transl);
+	mask_group.addEventListener('change', kicad_preview_color_changed);
 
 	type = 'silk';
 	cfg_entry = 'silkscreen_color';
 	adopt_template(silkscreen_group, 'color_sel_radiobtn', silkscreen_colors, role_transl);
+	silkscreen_group.addEventListener('change', kicad_preview_color_changed);
 
 	type = 'finish';
 	cfg_entry = 'surface_color';
 	adopt_template(finish_group, 'color_sel_radiobtn', surface_colors, role_transl);
+	finish_group.addEventListener('change', kicad_preview_color_changed);
 }
 
 function mk_layermap_table(ttype) {
