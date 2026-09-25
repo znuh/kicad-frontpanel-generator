@@ -74,22 +74,35 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 
 function mk_kicad_preview_radios() {
 	const mask_group = document.getElementById('preview_soldermask_color');
+	const silkscreen_group = document.getElementById('preview_silkscreen_color');
+	const finish_group = document.getElementById('preview_finish_color');
 	const cfg = config.kicad_preview;
 
-	const mask_role_transl = {
+	let type = 'mask';
+	let cfg_entry = 'soldermask_color';
+
+	const role_transl = {
 		colorsel_input : (n, cname, col) => {
-			n.id   = 'mask_col_'+cname;
-			n.name = 'mask_sel';
-			n.checked = col === cfg.soldermask_color;
+			n.id   = `${type}_col_${cname}`;
+			n.name = type+'_sel';
+			n.checked = col === cfg[cfg_entry];
 		},
 		colorsel_label : (n, cname, col) => {
-			n.htmlFor = 'mask_col_'+cname;
+			n.htmlFor = `${type}_col_${cname}`;
 			n.appendChild(document.createTextNode(cname));
 		},
 		colorsel_color : (n, cname, col) => { n.style.backgroundColor = col; },
 	};
 
-	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, mask_role_transl);
+	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, role_transl);
+
+	type = 'silk';
+	cfg_entry = 'silkscreen_color';
+	adopt_template(silkscreen_group, 'color_sel_radiobtn', silkscreen_colors, role_transl);
+
+	type = 'finish';
+	cfg_entry = 'surface_color';
+	adopt_template(finish_group, 'color_sel_radiobtn', surface_colors, role_transl);
 }
 
 function mk_layermap_table(ttype) {
