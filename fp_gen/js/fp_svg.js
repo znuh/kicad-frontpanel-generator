@@ -454,8 +454,8 @@ let SVG_FP = function() {
 				// change fill - if set
 				const old_fill = e.getAttribute("fill");
 
-				/* fill-opacity update
-				 * Only applied to nodes which have update_opacity set */
+				/* fill-opacity update for nodes which have update_opacity set.
+				 * (Only set for filled shapes - not for text.) */
 				if (ep.update_opacity) {
 					if (!cfg.fill_opacity)
 						e.removeAttribute("fill-opacity");
