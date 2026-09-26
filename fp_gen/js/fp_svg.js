@@ -2,6 +2,41 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
+/* There are two SVG use-cases:
+ *
+ * 1) SVG for a laser-cut frontpanel - this is the straightforward case.
+ *    Every input layer is translated to a different output color.
+ *    The different output colors are used to identify the cutting order
+ *    and distinguish between cutting and engraving.
+ *
+ *    Preview and exported SVG are exactly the same.
+ *    Exported SVG always has a transparent background, while
+ *    the preview can have a solid background color. However, this
+ *    background color is applied through the underlying HTML div
+ *    instead of drawing the background in the SVG itself.
+ *
+ * 2) SVG as PCB frontpanel preview - this is more complicated.
+ *    The SVG should resemble the actual PCB as close as possible.
+ *    This means we need to draw the layers in the correct order:
+ *    - FR-4 base material
+ *    - F.Cu (front copper)
+ *    - F.Mask (front solermask - negative mask!)
+ *    - F.SilkS (front silkscreen)
+ *    Figuring out the overall PCB shape is non-trivial because there
+ *    is no continuous path in Edge.Cuts defining the shape.
+ *    So intead we just reproduce the Edge.Cuts paths as an extra layer.
+ *
+ *    TBD:
+ *    - Use mask or filter for F.Mask? (Color blending on top of FR-4/F.Cu needed)
+ *    - Apply surface finish only where F.Cu and no F.Mask is?
+ *
+ */
+
+/* TBD:
+ * - PCB preview mode
+ * - Document cfg (config) options
+ */
+
 let SVG_FP = function() {
 
     let constructor = function create(cfg, target_node) {
