@@ -118,13 +118,6 @@ function mk_kicad_preview_radios() {
 	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, role_transl);
 	mask_group.addEventListener('change', kicad_preview_color_changed);
 
-/*
-	type = 'silk';
-	cfg_entry = 'silkscreen_color';
-	adopt_template(silkscreen_group, 'color_sel_radiobtn', silkscreen_colors, role_transl);
-	silkscreen_group.addEventListener('change', kicad_preview_color_changed);
-*/
-
 	/* set initial silkscreen color */
 	document.getElementById('preview_silkscreen_color').style.backgroundColor = cfg.silkscreen_color;
 	document.getElementById('preview_silkscreen_cname').textContent =
