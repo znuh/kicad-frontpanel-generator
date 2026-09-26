@@ -369,6 +369,7 @@ let SVG_FP = function() {
 			}
 
 			const elem = conv(src, color, src_layer);
+			const elem_parms = {elem : elem};
 			if(!elem) {
 				console.log("no elem!", gr, color, conv);
 				return;
@@ -386,11 +387,17 @@ let SVG_FP = function() {
 			const fill = find_token(src, "fill");
 			if (fill != null && fill[1] === "yes") {
 				elem.setAttribute("fill", color);
-				elem.setAttribute("fill-opacity", "0.5"); // TBD: only for PCB preview?
+
+				/* update opacity value for this element if set/changed */
+				elem_parms.update_opacity = true;
+
+				/* set opacity value if set in config */
+				if (cfg.fill_opacity)
+					elem.setAttribute("fill-opacity", cfg.fill_opacity);
 			}
 
 			/* add to nodes_by_layer */
-			nodes_by_layer[src_layer].push(elem);
+			nodes_by_layer[src_layer].push(elem_parms);
 
 			/* add to parent node */
 			dst.appendChild(elem);
@@ -441,10 +448,21 @@ let SVG_FP = function() {
 			// update the knockout filter to new color
 			update_filter(layer);
 
-			nodes_by_layer[layer].forEach((e) => {
+			nodes_by_layer[layer].forEach( ep => {
+				const e = ep.elem; // get element
+
 				// change fill - if set
 				const old_fill = e.getAttribute("fill");
-				// TODO: fill-opacity update
+
+				/* fill-opacity update
+				 * Only applied to nodes which have update_opacity set */
+				if (ep.update_opacity) {
+					if (!cfg.fill_opacity)
+						e.removeAttribute("fill-opacity");
+					else
+						e.setAttribute("fill-opacity", cfg.fill_opacity);
+				}
+
 				if (old_fill && old_fill !== "none")
 					e.setAttribute("fill", new_color);
 
