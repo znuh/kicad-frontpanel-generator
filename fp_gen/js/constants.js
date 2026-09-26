@@ -33,3 +33,5 @@ const surface_colors = {
 	'HASL'   : '#e2e2e2',
 	'ENIG'   : '#fbdf17',
 };
+
+const FR4_color = '#dfd6c4';
