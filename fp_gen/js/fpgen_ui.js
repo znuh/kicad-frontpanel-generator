@@ -76,14 +76,25 @@ function kicad_preview_color_changed(evt) {
 	const node = evt.target;
 	const name = node.name;
 	const color = node.dataset.color;
-	config.kicad_preview[name] = color;
+	const cfg = config.kicad_preview;
+
+	cfg[name] = color;
 	console.log(name, color);
+
+	if (name === 'soldermask_color') {
+		/* Black silkscreen only makes sense for white soldermask. */
+		cfg.silkscreen_color = (node.id.indexOf('_white') >= 0) ? '#000000' : '#ffffff';
+
+		/* Update Silkscreen color */
+		document.getElementById('preview_silkscreen_color').style.backgroundColor = cfg.silkscreen_color;
+		document.getElementById('preview_silkscreen_cname').textContent =
+			(cfg.silkscreen_color === '#000000') ? 'black' : 'white';
+	}
 	// TBD: update SVG
 }
 
 function mk_kicad_preview_radios() {
-	const mask_group = document.getElementById('preview_soldermask_color');
-	const silkscreen_group = document.getElementById('preview_silkscreen_color');
+	const mask_group   = document.getElementById('preview_soldermask_color');
 	const finish_group = document.getElementById('preview_finish_color');
 	const cfg = config.kicad_preview;
 
@@ -107,10 +118,17 @@ function mk_kicad_preview_radios() {
 	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, role_transl);
 	mask_group.addEventListener('change', kicad_preview_color_changed);
 
+/*
 	type = 'silk';
 	cfg_entry = 'silkscreen_color';
 	adopt_template(silkscreen_group, 'color_sel_radiobtn', silkscreen_colors, role_transl);
 	silkscreen_group.addEventListener('change', kicad_preview_color_changed);
+*/
+
+	/* set initial silkscreen color */
+	document.getElementById('preview_silkscreen_color').style.backgroundColor = cfg.silkscreen_color;
+	document.getElementById('preview_silkscreen_cname').textContent =
+		(cfg.silkscreen_color === '#000000') ? 'black' : 'white';
 
 	type = 'finish';
 	cfg_entry = 'surface_color';

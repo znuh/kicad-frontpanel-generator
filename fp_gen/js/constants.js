@@ -29,11 +29,6 @@ const soldermask_colors = {
 	'yellow' : '#f1b400',
 };
 
-const silkscreen_colors = {
-	'black'  : '#000000',
-	'white'  : '#ffffff',
-};
-
 const surface_colors = {
 	'HASL'   : '#e2e2e2',
 	'ENIG'   : '#fbdf17',
