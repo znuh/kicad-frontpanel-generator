@@ -35,6 +35,7 @@ function ui_theme_setup() {
 	});
 }
 
+/* Setup file drop zone for .kicad_pcb files */
 function ui_dropzone_setup(finput) {
 	/* Do not open kicad files directly in browser */
 	window.addEventListener('dragover', (e) => e.preventDefault());
@@ -72,6 +73,7 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 	}
 }
 
+/* Called when user changed a preview color for the kicad preview */
 function kicad_preview_color_changed(evt) {
 	const node = evt.target;
 	const name = node.name;
@@ -93,6 +95,8 @@ function kicad_preview_color_changed(evt) {
 	// TBD: update SVG
 }
 
+/* Make the KiCad preview radio buttons for soldermask and surface finish.
+ * Call this only once when user chooses kicad output for the first time. */
 function mk_kicad_preview_radios() {
 	const mask_group   = document.getElementById('preview_soldermask_color');
 	const finish_group = document.getElementById('preview_finish_color');
@@ -140,13 +144,22 @@ function SVG_layermap_changed(evt) {
 	// TBD: invoke SVG gen update method
 }
 
+/* Called when user changed an entry of the kicad -> kicad layer map */
+function kicad_layermap_changed(evt) {
+	const node = evt.target;
+	const input_layer   = node.dataset.input_layer;
+	const output_layers = ((node.value === 'Unassigned') ? [] : node.value.split(' + '));
+	const cfg = config.kicad_output;
+	cfg.layer_map[input_layer] = output_layers;
+	//console.log(input_layer, output_layers);
+	// TBD: update preview
+}
+
 /* Make layer map table for KiCad or SVG - depending on ttype */
 function mk_layermap_table(ttype) {
 	const tbody = document.getElementById('tb_layermap_'+ttype);
 	const kicad_mode = (ttype === 'kicad');
 	const svg_mode   = (ttype === 'svg');
-
-	// TBD: add event handler for layer assignment change
 
 	function mk_kicad_output_layers(sel_node, input_layer) {
 		/* only keep node when in KiCad -> KiCad mode */
@@ -154,6 +167,7 @@ function mk_layermap_table(ttype) {
 			sel_node.remove();
 			return;
 		}
+
 		/* create output layer options */
 		sel_node.dataset.input_layer = input_layer;
 		kicad_output_layers.forEach(ols_entry => {
@@ -163,6 +177,9 @@ function mk_layermap_table(ttype) {
 			opt.selected = config.kicad_output.layer_map[input_layer].join(' + ') === ols_entry;
 			sel_node.add(opt);
 		});
+
+		/* attach change event handler */
+		sel_node.addEventListener('change', kicad_layermap_changed);
 	}
 
 	function mk_svg_output_selection(node, input_layer) {
@@ -193,11 +210,7 @@ function mk_layermap_table(ttype) {
 
 function update_config() {
 	const role_funcs = {
-		layer_map_kicad	: n => { // TODO: use on change event for this
-			const input_layer   = n.dataset.input_layer;
-			const output_layers = ((n.value === 'Unassigned') ? [] : n.value.split(' + '));
-			config.kicad_output.layer_map[input_layer] = output_layers;
-		},
+		layer_map_kicad	: n => { }, // fall through (already handled in change event)
 		layer_map_svg	: n => { }, // fall through (already handled in change event)
 		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
 		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
