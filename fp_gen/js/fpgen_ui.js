@@ -227,13 +227,11 @@ function update_config() {
 	//console.log("config:", config);
 }
 
-let SVG_gen = null; // TESTING ONLY
-
 function SVG_Test() {
 	const gen_SVG = new SVG_FP(config.SVG_output, document.getElementById('svg_display'));
 	const SVG = pcb_to_fp(source_pcb.pcb, gen_SVG);
-	frontpanel.SVG = SVG;
-	SVG_gen = gen_SVG; // for TESTING ONLY
+	fpgen.SVG_output.SVG = SVG;
+	fpgen.SVG_output.SVG_gen = gen_SVG;
 	// zoom to fit
 	SVG.style.width  = '100%';
 	SVG.style.height = 'auto';
@@ -247,7 +245,11 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	let version_unsupported = false;
 	let have_data = false;
 
-	frontpanel = {}; // clear existing data
+	fpgen_reset();
+
+	/* Clear old SVG first */
+	document.getElementById('svg_display').replaceChildren(
+		document.createTextNode('No data yet.'));
 
 	try {
 		source_pcb = {
@@ -273,6 +275,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
 		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
 
+		// TODO: update SVG if mode selected
 		SVG_Test();
 	}
 	else {
@@ -348,23 +351,20 @@ function show_container(div, show) {
 		document.getElementById(div).classList.add('d-none');
 }
 
-let kc_init_done = false, svg_init_done = false;
-
 function output_fmt_changed(evt) {
 	const node = evt.target;
 	const val  = node.value;
-	const kicad_output = (val === 'kicad_pcb');
+	const kicad_output = (val === 'kicad');
 	const svg_output   = (val === 'svg');
+	const output = kicad_output ? fpgen.kicad_output : fpgen.SVG_output;
 
-	/* Create notes if not yet done */
-	if (kicad_output && !kc_init_done) {
-		kc_init_done = true;
-		mk_layermap_table("kicad");
-		mk_kicad_preview_radios();
-	}
-	else if(svg_output && !svg_init_done) {
-		svg_init_done = true;
-		mk_layermap_table("svg");
+	/* Create config nodes for selected output if not yet done */
+	if(!output.ui_init_done) {
+		output.ui_init_done = true;
+		//console.log("ui_init", val);
+		mk_layermap_table(val);
+		if(kicad_output)
+			mk_kicad_preview_radios();
 	}
 
 	/* Config card */
@@ -422,7 +422,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	const svg_dl_btn = document.getElementById('download_SVG');
 	svg_dl_btn.addEventListener('click', () => {
 		/* Make a clone with the style attribute removed */
-		const clone = frontpanel.SVG.cloneNode(true);
+		const clone = fpgen.SVG_output.SVG.cloneNode(true);
 		clone.removeAttribute('style');
 		SVG_download(clone);
 	});

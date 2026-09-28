@@ -1,9 +1,34 @@
 /* Copyright (c) 2025, 2026 Benedikt Heinz <zn000h AT gmail.com>
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
-let source_pcb = null;
-let frontpanel = {};
 
+/* Holds the input KiCad PCB */
+let source_pcb = null;
+
+/* Big static object holding all our internal stuff. */
+const fpgen = {
+
+	/* ui_init_done: true if UI init done ;-)
+	 * SVG: SVG object which can be displayed in preview
+	 * SVG_gen: The SVG generator object
+	 *
+	 * These values are null/undefined if user never selected the
+	 * corresponding output format. */
+
+	SVG_output : {
+		//ui_init_done	: null,
+		//SVG			: null,
+		//SVG_gen		: null,
+	},
+
+	kicad_output : {
+		//ui_init_done	: null,
+		//SVG			: null,
+		//SVG_gen		: null,
+	},
+};
+
+/* All the config stuff goes into this object: */
 const config = {
 
 	kicad_output : {
@@ -44,6 +69,16 @@ const config = {
 		surface_color    : '#fbdf17',
 	},
 };
+
+function fpgen_reset() {
+	source_pcb = null;
+
+	delete fpgen.SVG_output.SVG;
+	delete fpgen.SVG_output.SVG_gen;
+
+	delete fpgen.kicad_output.SVG;
+	delete fpgen.kicad_output.SVG_gen;
+}
 
 function encode_sexpression(item, ind) {
 	if (!Array.isArray(item))
