@@ -129,6 +129,18 @@ function mk_kicad_preview_radios() {
 	finish_group.addEventListener('change', kicad_preview_color_changed);
 }
 
+/* Called when user changed an entry of the SVG layer map */
+function SVG_layermap_changed(evt) {
+	const node = evt.target;
+	const input_layer = node.dataset.input_layer;
+	const color = node.value;
+	const cfg = config.SVG_output;
+	cfg.layer_map[input_layer] = color;
+	//console.log(input_layer, color);
+	// TBD: invoke SVG gen update method
+}
+
+/* Make layer map table for KiCad or SVG - depending on ttype */
 function mk_layermap_table(ttype) {
 	const tbody = document.getElementById('tb_layermap_'+ttype);
 	const kicad_mode = (ttype === 'kicad');
@@ -159,9 +171,13 @@ function mk_layermap_table(ttype) {
 			node.remove();
 			return;
 		}
+
 		/* create output layer options */
 		node.dataset.input_layer = input_layer;
 		node.value = config.SVG_output.layer_map[input_layer] ?? "#000000";
+
+		/* attach change event handler */
+		node.addEventListener('change', SVG_layermap_changed);
 	}
 
 	/* data translation / mapping functions */
@@ -177,12 +193,12 @@ function mk_layermap_table(ttype) {
 
 function update_config() {
 	const role_funcs = {
-		layer_map_kicad	: n => {
+		layer_map_kicad	: n => { // TODO: use on change event for this
 			const input_layer   = n.dataset.input_layer;
 			const output_layers = ((n.value === 'Unassigned') ? [] : n.value.split(' + '));
 			config.kicad_output.layer_map[input_layer] = output_layers;
 		},
-		layer_map_svg	: n => { }, // fall through (already handled on change event)
+		layer_map_svg	: n => { }, // fall through (already handled in change event)
 		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
 		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
 	};
