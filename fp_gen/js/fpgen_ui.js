@@ -159,7 +159,7 @@ function kicad_layermap_changed(evt) {
 function mk_layermap_table(ttype) {
 	const tbody = document.getElementById('tb_layermap_'+ttype);
 	const kicad_mode = (ttype === 'kicad');
-	const svg_mode   = (ttype === 'svg');
+	const svg_mode   = (ttype === 'SVG');
 
 	function mk_kicad_output_layers(sel_node, input_layer) {
 		/* only keep node when in KiCad -> KiCad mode */
@@ -208,6 +208,7 @@ function mk_layermap_table(ttype) {
 	adopt_template(tbody, 'tr_layermap', kicad_input_layers, role_transl);
 }
 
+/* Collects the (missing) config options from UI for a KiCad PCB export */
 function update_config() {
 	const role_funcs = {
 		layer_map_kicad	: n => { }, // fall through (already handled in change event)
@@ -227,8 +228,22 @@ function update_config() {
 	//console.log("config:", config);
 }
 
-function SVG_Test() {
-	const gen_SVG = new SVG_FP(config.SVG_output, document.getElementById('svg_display'));
+/* TBD */
+function update_preview(output_mode) {
+	output_mode ??= document.getElementById('output_fmt').value;
+
+	console.log("update_preview " + output_mode);
+
+	if (!output_mode)
+		return;
+
+	const kicad_output = (output_mode === 'kicad');
+	const svg_output   = (output_mode === 'SVG');
+	const output = fpgen[output_mode+'_output'];
+
+	/* TBD */
+	const display_node = document.getElementById('svg_display');
+	const gen_SVG = new SVG_FP(config.SVG_output, display_node);
 	const SVG = pcb_to_fp(source_pcb.pcb, gen_SVG);
 	fpgen.SVG_output.SVG = SVG;
 	fpgen.SVG_output.SVG_gen = gen_SVG;
@@ -275,8 +290,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
 		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
 
-		// TODO: update SVG if mode selected
-		SVG_Test();
+		update_preview();
 	}
 	else {
 		const modalElement = document.getElementById('error-modal');
@@ -353,16 +367,16 @@ function show_container(div, show) {
 
 function output_fmt_changed(evt) {
 	const node = evt.target;
-	const val  = node.value;
-	const kicad_output = (val === 'kicad');
-	const svg_output   = (val === 'svg');
-	const output = kicad_output ? fpgen.kicad_output : fpgen.SVG_output;
+	const output_mode  = node.value;
+	const kicad_output = (output_mode === 'kicad');
+	const svg_output   = (output_mode === 'SVG');
+	const output = fpgen[output_mode+'_output'];
 
 	/* Create config nodes for selected output if not yet done */
 	if(!output.ui_init_done) {
 		output.ui_init_done = true;
-		//console.log("ui_init", val);
-		mk_layermap_table(val);
+		//console.log("ui_init", output_mode);
+		mk_layermap_table(output_mode);
 		if(kicad_output)
 			mk_kicad_preview_radios();
 	}
@@ -375,6 +389,7 @@ function output_fmt_changed(evt) {
 	/* Preview card */
 	show_container('kicad_preview_cfg', kicad_output);
 	show_container('svg_preview_cfg',   svg_output);
+	update_preview(output_mode);
 
 	/* Download card */
 	show_container('cfg_empty', false);
