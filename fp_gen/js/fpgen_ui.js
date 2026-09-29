@@ -249,7 +249,7 @@ function update_preview(output_mode) {
 
 	console.log("update_preview " + output_mode);
 
-	if (!output_mode)
+	if (!output_mode || !source_pcb)
 		return;
 
 	const kicad_output = (output_mode === 'kicad');
