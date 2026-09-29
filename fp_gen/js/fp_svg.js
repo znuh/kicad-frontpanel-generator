@@ -392,6 +392,22 @@ let SVG_FP = function() {
 			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
 			let color = layer_map[src_layer];
 
+			/* TODO: special treatment for kicad preview
+			 *
+			 * Drawing order based on PCB layers:
+			 *  - FR-4 base material
+			 *  - F.Cu (front copper)
+			 *  - F.Mask (front solermask - negative mask!)
+			 *  - F.SilkS (front silkscreen)
+			 *
+			 * -> one group per layer must be created
+			 * -> all elements of this layer must be added to the dedicated layer group
+			 *    instead of dst
+			 * -> in footprint mode one footprint must be created per used layer on-demand
+			 *    -> do this with an extra footpring lookup/creation function?
+			 *    -> pass footprint params from add_footprint for this
+			 */
+
 			if (color == undefined)
 				return;
 
