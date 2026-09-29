@@ -228,7 +228,6 @@ function update_config() {
 	//console.log("config:", config);
 }
 
-/* TBD */
 function update_preview(output_mode) {
 	output_mode ??= document.getElementById('output_fmt').value;
 
@@ -241,16 +240,29 @@ function update_preview(output_mode) {
 	const svg_output   = (output_mode === 'SVG');
 	const output = fpgen[output_mode+'_output'];
 
-	/* TBD */
 	const display_node = document.getElementById('svg_display');
-	const gen_SVG = new SVG_FP(config.SVG_output, display_node);
-	const SVG = pcb_to_fp(source_pcb.pcb, gen_SVG);
-	fpgen.SVG_output.SVG = SVG;
-	fpgen.SVG_output.SVG_gen = gen_SVG;
-	// zoom to fit
-	SVG.style.width  = '100%';
-	SVG.style.height = 'auto';
-	// SVG.removeAttribute('style'); // testing
+
+	/* If we do not have an SVG for the selected output yet, generate it now. */
+	if (!output.SVG) {
+		// TBD: layered "realistic" kicad preview
+		const cfg     = svg_output ? config.SVG_output : config.kicad_output;
+		const SVG_gen = new SVG_FP(cfg, display_node);
+		const SVG     = pcb_to_fp(source_pcb.pcb, SVG_gen);
+
+		output.SVG_gen = SVG_gen;
+		output.SVG     = SVG;
+
+		// zoom to fit
+		SVG.style.width  = '100%';
+		SVG.style.height = 'auto';
+		// SVG.removeAttribute('style'); // testing
+	}
+	else {
+		/* If we already had an SVG for the selected output, we replace
+		 * the SVG. This isn't needed when we just created a fresh SVG,
+		 * because the finalize method of SVG generator already did the replace. */
+		display_node.replaceChildren(output.SVG);
+	}
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
