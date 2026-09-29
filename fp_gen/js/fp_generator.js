@@ -23,6 +23,7 @@ const fpgen = {
 
 	kicad_output : {
 		//ui_init_done	: null,
+		//preview_fp	: null, // generated frontpanel for preview
 		//SVG			: null,
 		//SVG_gen		: null,
 	},
@@ -76,6 +77,7 @@ function fpgen_reset() {
 	delete fpgen.SVG_output.SVG;
 	delete fpgen.SVG_output.SVG_gen;
 
+	delete fpgen.kicad_output.preview_fp;
 	delete fpgen.kicad_output.SVG;
 	delete fpgen.kicad_output.SVG_gen;
 }
@@ -162,6 +164,5 @@ function make_PCB_frontpanel() {
 	const fp_template = (config.kicad_output.output_kicad_version < 10.0) ? 
 		fp_template_kicad9 : fp_template_kicad10;
 	const gen_kicad = new Kicad_FP(config.kicad_output, fp_template);
-	const generated = pcb_to_fp(source_pcb.pcb, gen_kicad);
-	return encode_sexpression(generated);
+	return pcb_to_fp(source_pcb.pcb, gen_kicad);
 }

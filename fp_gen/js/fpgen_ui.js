@@ -133,7 +133,8 @@ function mk_kicad_preview_radios() {
 	finish_group.addEventListener('change', kicad_preview_color_changed);
 }
 
-/* Called when user changed an entry of the SVG layer map */
+/* Called when user changed an entry of the SVG layer map.
+ * Layer map: 1 KiCad input layer -> 1 SVG output color */
 function SVG_layermap_changed(evt) {
 	const node = evt.target;
 	const input_layer = node.dataset.input_layer;
@@ -145,15 +146,29 @@ function SVG_layermap_changed(evt) {
 	fpgen.SVG_output.SVG_gen.update_layer(input_layer);
 }
 
-/* Called when user changed an entry of the kicad -> kicad layer map */
+/* Called when user changed an entry of the kicad -> kicad layer map.
+ * This map is different from the SVG layer map:
+ * 1 KiCad input layer -> N KiCad output layer(s) */
 function kicad_layermap_changed(evt) {
 	const node = evt.target;
 	const input_layer   = node.dataset.input_layer;
 	const output_layers = ((node.value === 'Unassigned') ? [] : node.value.split(' + '));
 	const cfg = config.kicad_output;
 	cfg.layer_map[input_layer] = output_layers;
-	//console.log(input_layer, output_layers);
-	// TBD: update preview
+
+	/* Clear old SVG first */
+	document.getElementById('svg_display').replaceChildren();
+
+	/* Invalidate old SVG + generator first */
+	delete fpgen.kicad_output.SVG;
+	delete fpgen.kicad_output.SVG_gen;
+
+	/* Make a new preview_fp and update the preview.
+	 * We do not need to call update_config here, because
+	 * these config options (3D models stuff) are irrelevant
+	 * for the preview. */
+	fpgen.kicad_output.preview_fp = make_PCB_frontpanel();
+	update_preview('kicad');
 }
 
 /* Make layer map table for KiCad or SVG - depending on ttype */
@@ -438,7 +453,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	pcb_dl_btn.disabled = true;
 	pcb_dl_btn.addEventListener('click', () => {
 		update_config();
-		const kicad_pcb = make_PCB_frontpanel();
+		const kicad_pcb = encode_sexpression(make_PCB_frontpanel());
 		fp_download(kicad_pcb, {
 			ext 	: ".kicad_pcb",
 			type	: "text/plain",
