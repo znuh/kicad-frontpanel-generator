@@ -139,9 +139,10 @@ function SVG_layermap_changed(evt) {
 	const input_layer = node.dataset.input_layer;
 	const color = node.value;
 	const cfg = config.SVG_output;
-	cfg.layer_map[input_layer] = color;
-	//console.log(input_layer, color);
-	// TBD: invoke SVG gen update method
+	cfg.layer_map[input_layer] = color; // update config
+
+	/* Invoke SVG gen update method */
+	fpgen.SVG_output.SVG_gen.update_layer(input_layer);
 }
 
 /* Called when user changed an entry of the kicad -> kicad layer map */
