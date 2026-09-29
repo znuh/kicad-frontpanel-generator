@@ -65,9 +65,12 @@ const config = {
 	},
 
 	kicad_preview : {
-		soldermask_color : '#000000',
-		silkscreen_color : '#ffffff',
-		surface_color    : '#fbdf17',
+		layer_map : {
+			'F.Cu'      : '#fbdf17',
+			'F.Mask'    : '#000000',
+			'F.SilkS'   : '#ffffff',
+			'Edge.Cuts' : '#808080',
+		},
 	},
 };
 

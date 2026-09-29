@@ -76,23 +76,28 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 /* Called when user changed a preview color for the kicad preview */
 function kicad_preview_color_changed(evt) {
 	const node = evt.target;
-	const name = node.name;
+	const input_layer = node.name;
 	const color = node.dataset.color;
-	const cfg = config.kicad_preview;
+	const cfg = config.kicad_preview.layer_map;
 
-	cfg[name] = color;
-	console.log(name, color);
+	cfg[input_layer] = color;
+	console.log(input_layer, color);
 
-	if (name === 'soldermask_color') {
+	fpgen.kicad_output.SVG_gen?.update_layer(input_layer);
+
+	if (input_layer === 'F.Mask') {
 		/* Black silkscreen only makes sense for white soldermask. */
-		cfg.silkscreen_color = (node.id.indexOf('_white') >= 0) ? '#000000' : '#ffffff';
+		const silkscreen_color = (node.id.indexOf('_white') >= 0) ? '#000000' : '#ffffff';
+		if (silkscreen_color !== cfg['F.SilkS']) {
+			cfg['F.SilkS'] = silkscreen_color;
+			fpgen.kicad_output.SVG_gen?.update_layer('F.SilkS');
 
-		/* Update Silkscreen color */
-		document.getElementById('preview_silkscreen_color').style.backgroundColor = cfg.silkscreen_color;
-		document.getElementById('preview_silkscreen_cname').textContent =
-			(cfg.silkscreen_color === '#000000') ? 'black' : 'white';
+			/* Update Silkscreen color */
+			document.getElementById('preview_silkscreen_color').style.backgroundColor = silkscreen_color;
+			document.getElementById('preview_silkscreen_cname').textContent =
+				(silkscreen_color === '#000000') ? 'black' : 'white';
+		}
 	}
-	// TBD: update SVG
 }
 
 /* Make the KiCad preview radio buttons for soldermask and surface finish.
@@ -100,20 +105,19 @@ function kicad_preview_color_changed(evt) {
 function mk_kicad_preview_radios() {
 	const mask_group   = document.getElementById('preview_soldermask_color');
 	const finish_group = document.getElementById('preview_finish_color');
-	const cfg = config.kicad_preview;
+	const cfg = config.kicad_preview.layer_map;
 
-	let type = 'mask';
-	let cfg_entry = 'soldermask_color';
+	let cfg_entry = 'F.Mask';
 
 	const role_transl = {
 		colorsel_input : (n, cname, col) => {
-			n.id   = `${type}_col_${cname}`;
+			n.id   = `${cfg_entry}_col_${cname}`;
 			n.name = cfg_entry;
 			n.dataset.color = col;
 			n.checked = col === cfg[cfg_entry];
 		},
 		colorsel_label : (n, cname, col) => {
-			n.htmlFor = `${type}_col_${cname}`;
+			n.htmlFor = `${cfg_entry}_col_${cname}`;
 			n.appendChild(document.createTextNode(cname));
 		},
 		colorsel_color : (n, cname, col) => { n.style.backgroundColor = col; },
@@ -127,8 +131,7 @@ function mk_kicad_preview_radios() {
 	document.getElementById('preview_silkscreen_cname').textContent =
 		(cfg.silkscreen_color === '#000000') ? 'black' : 'white';
 
-	type = 'finish';
-	cfg_entry = 'surface_color';
+	cfg_entry = 'F.Cu';
 	adopt_template(finish_group, 'color_sel_radiobtn', surface_colors, role_transl);
 	finish_group.addEventListener('change', kicad_preview_color_changed);
 }
@@ -143,7 +146,7 @@ function SVG_layermap_changed(evt) {
 	cfg.layer_map[input_layer] = color; // update config
 
 	/* Invoke SVG gen update method */
-	fpgen.SVG_output.SVG_gen.update_layer(input_layer);
+	fpgen.SVG_output.SVG_gen?.update_layer(input_layer);
 }
 
 /* Called when user changed an entry of the kicad -> kicad layer map.
@@ -156,18 +159,17 @@ function kicad_layermap_changed(evt) {
 	const cfg = config.kicad_output;
 	cfg.layer_map[input_layer] = output_layers;
 
+	if (!source_pcb)
+		return;
+
 	/* Clear old SVG first */
 	document.getElementById('svg_display').replaceChildren();
 
-	/* Invalidate old SVG + generator first */
+	/* Invalidate old stuff first */
 	delete fpgen.kicad_output.SVG;
 	delete fpgen.kicad_output.SVG_gen;
+	delete fpgen.kicad_output.preview_fp;
 
-	/* Make a new preview_fp and update the preview.
-	 * We do not need to call update_config here, because
-	 * these config options (3D models stuff) are irrelevant
-	 * for the preview. */
-	fpgen.kicad_output.preview_fp = make_PCB_frontpanel();
 	update_preview('kicad');
 }
 
@@ -260,10 +262,14 @@ function update_preview(output_mode) {
 
 	/* If we do not have an SVG for the selected output yet, generate it now. */
 	if (!output.SVG) {
-		// TBD: layered "realistic" kicad preview
-		const cfg     = svg_output ? config.SVG_output : config.kicad_output;
+		/* For KiCad preview we let the KiCad -> KiCad generator do the initial
+		 * layer remapping. After this we use the preview colors on the result. */
+		if (kicad_output)
+			output.preview_fp ??= make_PCB_frontpanel();
+		const input_pcb = kicad_output ? output.preview_fp : source_pcb.pcb;
+		const cfg     = svg_output ? config.SVG_output : config.kicad_preview;
 		const SVG_gen = new SVG_FP(cfg, display_node);
-		const SVG     = pcb_to_fp(source_pcb.pcb, SVG_gen);
+		const SVG     = pcb_to_fp(input_pcb, SVG_gen);
 
 		output.SVG_gen = SVG_gen;
 		output.SVG     = SVG;
