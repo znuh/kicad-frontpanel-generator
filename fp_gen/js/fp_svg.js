@@ -99,6 +99,25 @@ let SVG_FP = function() {
 			svg.appendChild(background);
 		}
 
+		/* TODO: PCB preview mode:
+		 * defs:
+		 * - create F.Cu group "cu" w/o copper color applied
+		 * - create F.Mask group "mask_base" in defs w/ fill="#000000" (default?)
+		 * - create a mask for actual soldermask "mask_mask":
+		 *   - rect width="100%" height="100%" fill="#ffffff"
+		 *   - use href="#mask_base"
+		 * - create a clipPath "mask_clip" w/ use href=F.Mask for surface finish
+		 * body:
+		 * - create actual F.Cu layer:
+		 *     use href="#cu", fill&stroke set copper color
+		 * - create actual F.Mask layer:
+		 *     rect w, h, fill/stroke: F.Mask color, fill-opacity & stroke-opacity ~0.75?
+		 *     mask="url(#mask_mask)"
+		 * - create surface finish layer:
+		 *     fill & stroke: surface finish
+		 *     clip-path="url(#mask_clip)"
+		 */
+
 		/* Walk through all source layers to initialize some stuff */
 		for (const [input_layer, color] of Object.entries(layer_map)) {
 
