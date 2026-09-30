@@ -385,11 +385,27 @@ let SVG_FP = function() {
 			text : (se, color, src_layer) => mk_text(se, color, src_layer),
 		};
 
+		/* gi: group_info holding info & per-layer groups for footprints */
+		function get_group(src_layer, gi) {
+			/* TBD: use per-layer groups */
+			if (gi) {
+				if (!gi.group) {
+					// hack for now before we switch to per-layer groups
+					gi.group = mk_elem("g", {"transform" : gi.transform});
+					svg.appendChild(gi.group);
+				}
+				return gi.group;
+			}
+			else
+				return svg;
+		}
+
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
 		 * and add the new element to dst. */
-		function gr_conv(parent, src) {
+		function gr_conv(src, group_info) {
 			let src_layer_tok = find_token(src, "layer");
 			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
+			const parent = get_group(src_layer, group_info);
 			let color = layer_map[src_layer];
 
 			/* TODO: special treatment for kicad preview
@@ -455,7 +471,7 @@ let SVG_FP = function() {
 		}
 
 		/* Convert & add a gr_ element */
-		this.add_gr = (src) => gr_conv(svg, src);
+		this.add_gr = (src) => gr_conv(src);
 
 		/* Convert & add a footprint */
 		this.add_footprint = function(src) {
@@ -464,8 +480,10 @@ let SVG_FP = function() {
 			if (pos[3])
 				transform += ` rotate(${-pos[3]})`;
 
-			/* make a group */
-			const fpg = mk_elem("g", {"transform" : transform});
+			const grouping = {
+				transform : transform,
+				groups    : {}, // input layer -> group
+			};
 
 			/* walk through remaining elements */
 			for (let i=2; i<src.length; i++) {
@@ -473,13 +491,10 @@ let SVG_FP = function() {
 
 				/* pass graphic elements on to gr_conv */
 				if (se[0].startsWith("fp_"))
-					gr_conv(fpg, se);
+					gr_conv(se, grouping);
+			} // foreach element of footprint
 
-				//else console.log("fp element", se[0]);
-			}
-
-			svg.appendChild(fpg); // add converted footprint
-		}
+		} // this.add_footprint
 
 		this.finalize = function() {
 			/* Put the SVG into the DOM so getBBox returns valid values */
