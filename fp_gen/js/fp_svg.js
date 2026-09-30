@@ -108,8 +108,9 @@ let SVG_FP = function() {
 
 			/* Make one group per input layer - TBD: change for F.Mask */
 			const g = mk_elem("g", {
-				fill   : color,
-				stroke : color,
+				fill				: color,
+				stroke				: color,
+				"stroke-linecap"	: "round",
 			});
 			if (cfg.fill_opacity)
 				g.setAttribute("fill_opacity", cfg.fill_opacity);
