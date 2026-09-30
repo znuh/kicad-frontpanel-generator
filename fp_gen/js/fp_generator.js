@@ -71,6 +71,7 @@ const config = {
 			'F.SilkS'   : '#ffffff',
 			'Edge.Cuts' : '#808080',
 		},
+		background : FR4_color,
 	},
 };
 

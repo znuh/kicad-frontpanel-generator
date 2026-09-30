@@ -90,6 +90,15 @@ let SVG_FP = function() {
 
 		svg.appendChild(defs);
 
+		/* Optional background */
+		let background = null;
+		if (cfg.background) {
+			background = mk_elem("g", {
+				"fill" : cfg.background,
+			});
+			svg.appendChild(background);
+		}
+
 		/* Walk through all source layers to initialize some stuff */
 		for (const [input_layer, color] of Object.entries(layer_map)) {
 
@@ -108,7 +117,35 @@ let SVG_FP = function() {
 			svg.appendChild(g);
 		}
 
-		/***************** Functions to create SVG elements ********************/
+		/***************** Functions to create/process/update SVG elements ********************/
+
+		/* Update SVG extents / viewport */
+		function update_extents() {
+			const padding = cfg.padding ?? 5;
+
+			/* Remove background rect before calling getBBox */
+			if (background)
+				background.replaceChildren();
+
+			const bbox = svg.getBBox();
+
+			/* Add background again if non-null */
+			if (background) {
+				const rect = mk_elem("rect", {
+					"x" : bbox.x, "y" : bbox.y,
+					"width"  : bbox.width,
+					"height" : bbox.height,
+				});
+				background.replaceChildren(rect);
+			}
+
+			// round everything to 1um
+			const x = +(bbox.x - padding).toFixed(3), y = +(bbox.y - padding).toFixed(3);
+			const w = +(bbox.width + padding * 2).toFixed(3), h = +(bbox.height + padding * 2).toFixed(3);
+			svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+			svg.setAttribute("width", w+"mm");
+			svg.setAttribute("height", h+"mm");
+		}
 
 		/* Make a text node */
 		function mk_text(se, src_layer) {
@@ -254,16 +291,8 @@ let SVG_FP = function() {
 				cfg.font ?? "Arial, Helvetica, sans-serif"
 			);
 
-			const padding = cfg.padding ?? 5;
-
 			/* viewBox must be recalculated after text attributes changed */
-			const bbox = svg.getBBox();
-			// round everything to 1um
-			const x = +(bbox.x - padding).toFixed(3), y = +(bbox.y - padding).toFixed(3);
-			const w = +(bbox.width + padding * 2).toFixed(3), h = +(bbox.height + padding * 2).toFixed(3);
-			svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
-			svg.setAttribute("width", w+"mm");
-			svg.setAttribute("height", h+"mm");
+			update_extents();
 		}
 
 		/* Helper function for deriving SVG arc parameters from KiCad arcs */
@@ -494,7 +523,8 @@ let SVG_FP = function() {
 			/* Put the SVG into the DOM so getBBox returns valid values */
 			target_node.replaceChildren(svg);
 
-			/* Update all texts now that getBBox works */
+			/* Update all texts now that getBBox works.
+			 * Also calls update_extents() */
 			this.update_texts();
 
 			return svg;
