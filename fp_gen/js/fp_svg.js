@@ -387,7 +387,7 @@ let SVG_FP = function() {
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
 		 * and add the new element to dst. */
-		function gr_conv(dst, src) {
+		function gr_conv(parent, src) {
 			let src_layer_tok = find_token(src, "layer");
 			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
 			let color = layer_map[src_layer];
@@ -402,7 +402,7 @@ let SVG_FP = function() {
 			 *
 			 * -> one group per layer must be created
 			 * -> all elements of this layer must be added to the dedicated layer group
-			 *    instead of dst
+			 *    instead of parent
 			 * -> in footprint mode one footprint must be created per used layer on-demand
 			 *    -> do this with an extra footpring lookup/creation function?
 			 *    -> pass footprint params from add_footprint for this
@@ -451,7 +451,7 @@ let SVG_FP = function() {
 			nodes_by_layer[src_layer].push(elem_parms);
 
 			/* add to parent node */
-			dst.appendChild(elem);
+			parent.appendChild(elem);
 		}
 
 		/* Convert & add a gr_ element */
