@@ -54,9 +54,8 @@ let SVG_FP = function() {
 		this.layer_map  = layer_map;
 		this.output_fmt = 'SVG';
 
-		/* Keep a cache of nodes per source_layer so we can change the color
-		 * of all affected nodes without redrawing everything. */
-		const nodes_by_layer = {};
+		/* One group per layer */
+		const layer_groups = {};
 
 		/* Keep a cache of all text nodes so we can change text attributes later without redrawing everything. */
 		const text_nodes = [];
@@ -89,18 +88,30 @@ let SVG_FP = function() {
 			defs.appendChild(filter);
 		}
 
-		/* Walk through all source layers to initialize some stuff */
-		for (const src_layer in layer_map) {
-			nodes_by_layer[src_layer] = [];  // init nodes_by_layer cache
-			update_filter(src_layer);        // create knockout filter
-		}
-
 		svg.appendChild(defs);
+
+		/* Walk through all source layers to initialize some stuff */
+		for (const [input_layer, color] of Object.entries(layer_map)) {
+
+			console.log("create layer group "+input_layer);
+
+			update_filter(input_layer);        // create knockout filter
+
+			/* Make one group per input layer - TBD: change for F.Mask */
+			const g = mk_elem("g", {
+				fill   : color,
+				stroke : color,
+			});
+			if (cfg.fill_opacity)
+				g.setAttribute("fill_opacity", cfg.fill_opacity);
+			layer_groups[input_layer] = g;
+			svg.appendChild(g);
+		}
 
 		/***************** Functions to create SVG elements ********************/
 
 		/* Make a text node */
-		function mk_text(se, color, src_layer) {
+		function mk_text(se, src_layer) {
 			const pos      = find_token(se, "at");
 			const effects  = find_token(se, "effects");
 			const font     = find_token(effects, "font");
@@ -115,7 +126,6 @@ let SVG_FP = function() {
 				/* Initially we place all text at x,y = 0,0 so we can do rotation & mirroring easily.
 				 * Then we use a transform w/ translate in update_texts() to move the text into place.
 				 * font-size is also set in update_texts() */
-				"fill"				: color,
 				"text-anchor"		: "middle",  // KiCad default for horizontal alignment
 				"dominant-baseline"	: "central", // KiCad default for vertical alignment
 			});
@@ -316,7 +326,7 @@ let SVG_FP = function() {
 		/* Conversion functions for all relevant KiCad gr_/fp_* elements.
 		 * Conversion function:
 		 *   arg1: source element
-		 *   arg2: color for newly generated node
+		 *   arg2: source layer
 		 *   returns generated node */
 		const gr_map = {
 
@@ -337,7 +347,6 @@ let SVG_FP = function() {
 					"x" : start[1], "y" : start[2],
 					"width"  : end[1]-start[1],
 					"height" : end[2]-start[2],
-					"fill"   : "none"
 				});
 				if (radius)
 					rect.setAttribute("rx",radius[1]);
@@ -350,7 +359,6 @@ let SVG_FP = function() {
 				return mk_elem("circle", {
 					"cx" : center[1], "cy" : center[2],
 					"r"    : Math.hypot(end[1]-center[1], end[2]-center[2]),
-					"fill" : "none"
 				});
 			},
 
@@ -361,7 +369,6 @@ let SVG_FP = function() {
 				const arc	= arc_params(start[1], start[2], mid[1], mid[2], end[1], end[2]);
 				return mk_elem("path", {
 					"d" : `M ${start[1]},${start[2]} A ${arc.r},${arc.r} 0 ${arc.la},${arc.sd} ${end[1]},${end[2]}`,
-					"fill" : "none"
 				});
 			},
 
@@ -377,27 +384,27 @@ let SVG_FP = function() {
 				}
 				return mk_elem("polygon", {
 					"points" : pout.substring(1),
-					"fill"   : "none"
 				});
 			},
 
 			/* Text is more complicated - let's give it a "real" function. */
-			text : (se, color, src_layer) => mk_text(se, color, src_layer),
+			text : (se, src_layer) => mk_text(se, src_layer),
 		};
 
 		/* gi: group_info holding info & per-layer groups for footprints */
 		function get_group(src_layer, gi) {
-			/* TBD: use per-layer groups */
-			if (gi) {
-				if (!gi.group) {
-					// hack for now before we switch to per-layer groups
-					gi.group = mk_elem("g", {"transform" : gi.transform});
-					svg.appendChild(gi.group);
+			//console.log(src_layer, gi);
+			if (gi && layer_groups[src_layer]) {
+				let g = gi.groups[src_layer];
+				if (!g) {
+					g = mk_elem("g", {"transform" : gi.transform});
+					gi.groups[src_layer] = g;
+					layer_groups[src_layer].appendChild(g);
 				}
-				return gi.group;
+				return g;
 			}
 			else
-				return svg;
+				return layer_groups[src_layer];
 		}
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
@@ -406,7 +413,6 @@ let SVG_FP = function() {
 			let src_layer_tok = find_token(src, "layer");
 			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
 			const parent = get_group(src_layer, group_info);
-			let color = layer_map[src_layer];
 
 			/* TODO: special treatment for kicad preview
 			 *
@@ -424,47 +430,35 @@ let SVG_FP = function() {
 			 *    -> pass footprint params from add_footprint for this
 			 */
 
-			if (color == undefined)
+			if (!parent)
 				return;
 
 			const gr   = src[0].substring(3);
 			const conv = gr_map[gr];
 
 			if(!conv) {
-				console.log("no conv!", gr, color, conv);
+				console.log("no conv!", gr, conv);
 				return;
 			}
 
-			const elem = conv(src, color, src_layer);
-			const elem_parms = {elem : elem};
+			const elem = conv(src, src_layer);
 			if(!elem) {
-				console.log("no elem!", gr, color, conv);
+				console.log("no elem!", gr, conv);
 				return;
 			}
 
 			/* stroke style - set only if stroke definition exists
 			 * (not applicable for text) */
 			const stroke_width = find_token(src, "stroke", "width")?.[1];
-			if (stroke_width != undefined) {
-				elem.setAttribute("stroke", color);
+			if (stroke_width != undefined)
 				elem.setAttribute("stroke-width", stroke_width);
-			}
+			else
+				elem.setAttribute("stroke", "none");
 
 			/* fill? */
 			const fill = find_token(src, "fill");
-			if (fill != null && fill[1] === "yes") {
-				elem.setAttribute("fill", color);
-
-				/* update opacity value for this element if set/changed */
-				elem_parms.update_opacity = true;
-
-				/* set opacity value if set in config */
-				if (cfg.fill_opacity)
-					elem.setAttribute("fill-opacity", cfg.fill_opacity);
-			}
-
-			/* add to nodes_by_layer */
-			nodes_by_layer[src_layer].push(elem_parms);
+			if (gr !== 'text' && (!fill || fill[1] !== "yes"))
+				elem.setAttribute("fill", "none");
 
 			/* add to parent node */
 			parent.appendChild(elem);
@@ -504,7 +498,7 @@ let SVG_FP = function() {
 			this.update_texts();
 
 			return svg;
-		}
+		} // this.finalize
 
 		/* Call this after changing a layer mapping in cfg.layer_map
 		 * to update the colors of the affected elements. */
@@ -514,29 +508,15 @@ let SVG_FP = function() {
 			// update the knockout filter to new color
 			update_filter(layer);
 
-			nodes_by_layer[layer].forEach( ep => {
-				const e = ep.elem; // get element
+			const g = layer_groups[layer];
+			g.setAttribute("fill", new_color);
+			g.setAttribute("stroke", new_color);
 
-				// change fill - if set
-				const old_fill = e.getAttribute("fill");
-
-				/* fill-opacity update for nodes which have update_opacity set.
-				 * (Only set for filled shapes - not for text.) */
-				if (ep.update_opacity) {
-					if (!cfg.fill_opacity)
-						e.removeAttribute("fill-opacity");
-					else
-						e.setAttribute("fill-opacity", cfg.fill_opacity);
-				}
-
-				if (old_fill && old_fill !== "none")
-					e.setAttribute("fill", new_color);
-
-				// change stroke - if set
-				if(e.getAttribute("stroke"))
-					e.setAttribute("stroke", new_color);
-			});
-		}
+			if (!cfg.fill_opacity)
+				g.removeAttribute("fill-opacity");
+			else
+				g.setAttribute("fill-opacity", cfg.fill_opacity);
+		} // this.update_layer
 
 	}; /* constructor */
 
