@@ -25,15 +25,11 @@
  *    Figuring out the overall PCB shape is non-trivial because there
  *    is no continuous path in Edge.Cuts defining the shape.
  *    So intead we just reproduce the Edge.Cuts paths as an extra layer.
- *
- *    TBD:
- *    - Use mask or filter for F.Mask? (Color blending on top of FR-4/F.Cu needed)
- *    - Apply surface finish only where F.Cu and no F.Mask is?
- *
  */
 
 /* TBD:
- * - PCB preview mode
+ * - PCB preview mode: fix text y position
+ * - Text: make knockout effect work again
  * - Document cfg (config) options
  */
 
@@ -189,6 +185,7 @@ let SVG_FP = function() {
 
 		/* Walk through all source layers to initialize some stuff */
 		for (const [input_layer, color] of Object.entries(layer_map)) {
+
 			/* In PCB preview mode we already created "special" layers
 			 * for F.Cu & F.Mask, so we must skip creating them here. */
 			const skip = !!layer_groups[input_layer];
@@ -199,7 +196,7 @@ let SVG_FP = function() {
 
 			//update_filter(input_layer);        // create knockout filter
 
-			/* Make one group per input layer - TBD: change for F.Mask */
+			/* Make one group per input layer */
 			const g = mk_elem("g", {
 				fill				: color,
 				stroke				: color,
