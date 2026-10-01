@@ -120,6 +120,18 @@
 		(layer "User.4")
 		(uuid "9975b549-2130-4348-82fe-40b131e380a9")
 	)
+	(gr_text "TestABC"
+		(at 128 82 0)
+		(layer "User.2")
+		(uuid "ef45ea03-fd78-444d-b227-b4a6dac68cdd")
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "Test456"
 		(at 145 105 0)
 		(layer "User.3")
