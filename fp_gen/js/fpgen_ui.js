@@ -383,6 +383,9 @@ async function SVG_download(ref_svg) {
 	if (!svg.getAttribute('xmlns'))
 		svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
+	if (!svg.getAttribute('xmlns:xlink'))
+		svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
 	const serializer = new XMLSerializer();
 	let svg_str = serializer.serializeToString(svg);
 	if (!svg_str.startsWith('<?xml'))

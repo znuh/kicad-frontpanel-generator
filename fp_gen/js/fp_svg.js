@@ -96,6 +96,7 @@ let SVG_FP = function() {
 		/* 1st layer in body: Background - optional*/
 		if (cfg.background) {
 			svg.appendChild(mk_elem("use", {
+				'xlink:href' : "#extents_rect",
 				href : "#extents_rect",
 				fill : cfg.background,
 			}));
@@ -119,11 +120,13 @@ let SVG_FP = function() {
 			g = mk_elem("mask", {id : 'F.Mask_mask'});
 			/* Add inversion rect to the mask */
 			g.appendChild(mk_elem("use", {
+				'xlink:href' : "#extents_rect",
 				href : "#extents_rect",
 				fill : "#ffffff",
 			}));
 			/* Add F.Mask to the mask */
 			g.appendChild(mk_elem("use", {
+				'xlink:href' : '#F.Mask',
 				href   : '#F.Mask',
 				fill   : "#000000",
 				stroke : "#000000",
@@ -137,11 +140,13 @@ let SVG_FP = function() {
 			g = mk_elem("mask", {id : 'F.Mask_finish'});
 			/* Clear mask initially */
 			g.appendChild(mk_elem("use", {
+				'xlink:href' : "#extents_rect",
 				href : "#extents_rect",
 				fill : "#000000",
 			}));
 			/* Add openings from F.Mask */
 			g.appendChild(mk_elem("use", {
+				'xlink:href' : '#F.Mask',
 				href   : '#F.Mask',
 				fill   : "#ffffff",
 				stroke : "#ffffff",
@@ -151,6 +156,7 @@ let SVG_FP = function() {
 
 			/* Now create the body F.Cu layer which invokes the defs F.Cu: F.Cu_bare */
 			g = mk_elem("use", {
+				'xlink:href' : '#F.Cu',
 				href	: '#F.Cu',
 				fill	: Cu_color,
 				stroke	: Cu_color,
@@ -162,6 +168,7 @@ let SVG_FP = function() {
 			const mask_color = layer_map['F.Mask'];
 			const opacity    = mask_opacity[mask_color] ?? 0.85;
 			g = mk_elem("use", {
+				'xlink:href' : '#extents_rect',
 				href: '#extents_rect',
 				mask  : 'url(#F.Mask_mask)',
 				fill   : mask_color,
@@ -174,6 +181,7 @@ let SVG_FP = function() {
 
 			/* Finally the surface finish layer on the exposed copper */
 			g = mk_elem("use", {
+				'xlink:href' : '#F.Cu',
 				href	: '#F.Cu',
 				fill	: layer_map['F.Cu'],
 				stroke	: layer_map['F.Cu'],
