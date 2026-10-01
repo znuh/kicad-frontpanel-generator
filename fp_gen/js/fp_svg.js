@@ -106,7 +106,8 @@ let SVG_FP = function() {
 		}
 
 		/* PCB preview mode if F.Cu or F.Mask layer found in layer_map */
-		if (layer_map['F.Cu'] || layer_map['F.Mask']) {
+		const PCB_preview_mode = !!(layer_map['F.Cu'] || layer_map['F.Mask']);
+		if (PCB_preview_mode) {
 
 			/* Create F.Cu group which holds the actual F.Cu data */
 			let g = mk_elem("g", {id : 'F.Cu'});
@@ -605,9 +606,15 @@ let SVG_FP = function() {
 		/* Call this after changing a layer mapping in cfg.layer_map
 		 * to update the colors of the affected elements. */
 		this.update_layer = function(layer) {
-			// TBD: change layer name for F.Cu & F.Mask
-			console.log("TBD: update_layer");
 			const new_color = layer_map[layer];
+			/* In PCB preview mode we must switch to different layer names
+			 * when dealing with F.Mask or F.Cu */
+			const redirects = {
+				'F.Cu'   : 'F.Cu_finish',
+				'F.Mask' : 'F.Mask_pour',
+			};
+			layer = redirects[layer] ?? layer;
+			console.log("update_layer "+layer+" "+new_color);
 
 			// update the knockout filter to new color
 			//update_filter(layer);
@@ -615,6 +622,10 @@ let SVG_FP = function() {
 			const g = layer_groups[layer];
 			g.setAttribute("fill", new_color);
 			g.setAttribute("stroke", new_color);
+
+			/* Don't touch opacity values in PCB preview mode */
+			if (PCB_preview_mode)
+				return;
 
 			if (!cfg.fill_opacity)
 				g.removeAttribute("fill-opacity");
