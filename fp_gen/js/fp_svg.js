@@ -370,7 +370,9 @@ let SVG_FP = function() {
 				// adjust y based on valign and bounding box
 				if (txt.valign === "alphabetic") {
 					const bbox = te.getBBox();
-					y-=bbox.height-size;
+					// TBD: this seems so go wrong in PCB_preview_mode - but why?
+					if (!PCB_preview_mode)
+						y-=bbox.height-size;
 				}
 
 				let transform = `translate(${x}, ${y})`;
