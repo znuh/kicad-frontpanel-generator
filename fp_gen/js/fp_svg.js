@@ -66,6 +66,12 @@ let SVG_FP = function() {
 		/* Make defs section for filters */
 		const defs = mk_elem("defs");
 
+		/* Create a base rectangle for the full extents of the PCB
+		 * we will adjust x, y, width and height later on and invoke
+		 * it for the background and masks. */
+		const extents_rect = mk_elem("rect", {id : 'extents_rect'});
+		defs.appendChild(extents_rect);
+
 		/* Function to create/replace a knockout filter for src_layer
 		function update_filter(src_layer) {
 			const id = "knockout_" + src_layer;
@@ -91,13 +97,12 @@ let SVG_FP = function() {
 
 		svg.appendChild(defs);
 
-		/* Optional background */
-		let background = null;
+		/* 1st layer in body: Background - optional*/
 		if (cfg.background) {
-			background = mk_elem("g", {
-				"fill" : cfg.background,
-			});
-			svg.appendChild(background);
+			svg.appendChild(mk_elem("use", {
+				href : "#extents_rect",
+				fill : cfg.background,
+			}));
 		}
 
 		/* TODO: PCB preview mode:
@@ -126,15 +131,16 @@ let SVG_FP = function() {
 			defs.appendChild(g);
 
 			/* Create initial/base F.Mask group which holds the actual F.Mask data */
-			g = mk_elem("g", {id : 'F.Mask'});
+			g = mk_elem("g", {id : 'F.Mask', fill : '#000000'});
 			layer_groups['F.Mask'] = g;
 			defs.appendChild(g);
 
 			/* Create F.Mask_mask which creates the SVG mask for F.Mask */
 			g = mk_elem("mask", {id : 'F.Mask_mask'});
-			/* Add rect to the mask */
-			g.appendChild(mk_elem("rect", {
-				width : "100%", height : "100%", fill : "#ffffff",
+			/* Add inversion rect to the mask */
+			g.appendChild(mk_elem("use", {
+				"href" : "#extents_rect",
+				"fill" : "#ffffff",
 			}));
 			/* Add F.Mask to the mask */
 			g.appendChild(mk_elem("use", {href : '#F.Mask'}));
@@ -158,9 +164,19 @@ let SVG_FP = function() {
 			svg.appendChild(g);
 
 			/* Now create the body F.Mask layer */
+			/*
 			g = mk_elem("rect", {
 				mask  : 'url(#F.Mask_mask)',
 				width : "100%", height : "100%",
+				fill   : layer_map['F.Mask'],
+				stroke : layer_map['F.Mask'],
+				'fill-opacity'   : mask_opacity,
+				'stroke-opacity' : mask_opacity,
+			});
+			*/
+			g = mk_elem("use", {
+				href: '#extents_rect',
+				mask  : 'url(#F.Mask_mask)',
 				fill   : layer_map['F.Mask'],
 				stroke : layer_map['F.Mask'],
 				'fill-opacity'   : mask_opacity,
@@ -210,21 +226,17 @@ let SVG_FP = function() {
 		function update_extents() {
 			const padding = cfg.padding ?? 5;
 
-			/* Remove background rect before calling getBBox */
-			if (background)
-				background.replaceChildren();
+			/* Exclude previous extents from extents ;-) */
+			extents_rect.setAttribute("display", "none");
 
 			const bbox = svg.getBBox();
 
-			/* Add background again if non-null */
-			if (background) {
-				const rect = mk_elem("rect", {
-					"x" : bbox.x, "y" : bbox.y,
-					"width"  : bbox.width,
-					"height" : bbox.height,
-				});
-				background.replaceChildren(rect);
-			}
+			/* Update extents_rect and drop display=none again */
+			extents_rect.setAttribute("x", bbox.x);
+			extents_rect.setAttribute("y", bbox.y);
+			extents_rect.setAttribute("width",  bbox.width);
+			extents_rect.setAttribute("height", bbox.height);
+			extents_rect.removeAttribute("display");
 
 			// round everything to 1um
 			const x = +(bbox.x - padding).toFixed(3), y = +(bbox.y - padding).toFixed(3);
