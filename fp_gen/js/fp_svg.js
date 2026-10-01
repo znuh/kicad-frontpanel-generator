@@ -66,7 +66,7 @@ let SVG_FP = function() {
 		/* Make defs section for filters */
 		const defs = mk_elem("defs");
 
-		/* Function to create/replace a knockout filter for src_layer */
+		/* Function to create/replace a knockout filter for src_layer
 		function update_filter(src_layer) {
 			const id = "knockout_" + src_layer;
 			defs.querySelector(`[id="${id}"]`)?.remove(); // remove old filter if one exists
@@ -87,6 +87,7 @@ let SVG_FP = function() {
 			}));
 			defs.appendChild(filter);
 		}
+		*/
 
 		svg.appendChild(defs);
 
@@ -118,13 +119,7 @@ let SVG_FP = function() {
 		 *     clip-path="url(#mask_clip)"
 		 */
 
-		/* Walk through all source layers to initialize some stuff */
-		for (const [input_layer, color] of Object.entries(layer_map)) {
-
-			console.log("create layer group "+input_layer);
-
-			update_filter(input_layer);        // create knockout filter
-
+		function mk_simple_layer(input_layer, color) {
 			/* Make one group per input layer - TBD: change for F.Mask */
 			const g = mk_elem("g", {
 				fill				: color,
@@ -133,6 +128,27 @@ let SVG_FP = function() {
 			});
 			if (cfg.fill_opacity)
 				g.setAttribute("fill_opacity", cfg.fill_opacity);
+			//update_filter(input_layer);        // create knockout filter
+			return g;
+		}
+
+		/* Special treatment for F.Cu and F.Mask */
+		const mk_special_layer = {
+			'F.Cu'		: (input_layer, color) => {
+				return mk_simple_layer(input_layer, color); // TBD
+			},
+			'F.Mask'	: (input_layer, color) => {
+				return mk_simple_layer(input_layer, color); // TBD
+			},
+		};
+
+		/* Walk through all source layers to initialize some stuff */
+		for (const [input_layer, color] of Object.entries(layer_map)) {
+
+			console.log("create layer group "+input_layer);
+
+			const mkg = mk_special_layer[input_layer] ?? mk_simple_layer;
+			const g   = mkg(input_layer, color);
 			layer_groups[input_layer] = g;
 			svg.appendChild(g);
 		}
@@ -192,8 +208,8 @@ let SVG_FP = function() {
 
 			if(knockout) {
 				/* Knockout effect is done with a filter */
-				te.removeAttribute("fill");
-				te.setAttribute("filter", `url(#knockout_${src_layer})`);
+				//te.removeAttribute("fill");
+				//te.setAttribute("filter", `url(#knockout_${src_layer})`);
 			}
 
 			if (bold)
@@ -553,10 +569,11 @@ let SVG_FP = function() {
 		/* Call this after changing a layer mapping in cfg.layer_map
 		 * to update the colors of the affected elements. */
 		this.update_layer = function(layer) {
+			// TBD: change layer name for F.Cu & F.Mask
 			const new_color = layer_map[layer];
 
 			// update the knockout filter to new color
-			update_filter(layer);
+			//update_filter(layer);
 
 			const g = layer_groups[layer];
 			g.setAttribute("fill", new_color);
