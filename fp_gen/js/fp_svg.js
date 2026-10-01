@@ -120,7 +120,64 @@ let SVG_FP = function() {
 		 */
 
 		if (layer_map['F.Cu'] || layer_map['F.Mask']) {
-			// TBD
+			/* Create F.Cu group which holds the actual F.Cu data */
+			let g = mk_elem("g", {id : 'F.Cu'});
+			layer_groups['F.Cu'] = g;
+			defs.appendChild(g);
+
+			/* Create initial/base F.Mask group which holds the actual F.Mask data */
+			g = mk_elem("g", {id : 'F.Mask'});
+			layer_groups['F.Mask'] = g;
+			defs.appendChild(g);
+
+			/* Create F.Mask_mask which creates the SVG mask for F.Mask */
+			g = mk_elem("mask", {id : 'F.Mask_mask'});
+			/* Add rect to the mask */
+			g.appendChild(mk_elem("rect", {
+				width : "100%", height : "100%", fill : "#ffffff",
+			}));
+			/* Add F.Mask to the mask */
+			g.appendChild(mk_elem("use", {href : '#F.Mask'}));
+			layer_groups['F.Mask_mask'] = g;
+			defs.appendChild(g);
+
+			/* Create F.Mask_clip for applying the surface finish */
+			g = mk_elem("clipPath", {id : 'F.Mask_clip'});
+			/* Add F.Mask to the clipPath */
+			g.appendChild(mk_elem("use", {href : '#F.Mask'}));
+			layer_groups['F.Mask_clip'] = g;
+			defs.appendChild(g);
+
+			/* Now create the body F.Cu layer which invokes the defs F.Cu */
+			g = mk_elem("use", {
+				href	: '#F.Cu',
+				fill	: Cu_color,
+				stroke	: Cu_color,
+			});
+			layer_groups['F.Cu_bare'] = g;
+			svg.appendChild(g);
+
+			/* Now create the body F.Mask layer */
+			g = mk_elem("rect", {
+				mask  : 'url(#F.Mask_mask)',
+				width : "100%", height : "100%",
+				fill   : layer_map['F.Mask'],
+				stroke : layer_map['F.Mask'],
+				'fill-opacity'   : mask_opacity,
+				'stroke-opacity' : mask_opacity,
+			});
+			layer_groups['F.Mask_pour'] = g;
+			svg.appendChild(g);
+
+			/* Finally the surface finish layer on the exposed copper */
+			g = mk_elem("use", {
+				href	: '#F.Cu',
+				fill	: layer_map['F.Cu'],
+				stroke	: layer_map['F.Cu'],
+				'clip-path' : 'url(#F.Mask_clip)',
+			});
+			layer_groups['F.Cu_finish'] = g;
+			svg.appendChild(g);
 		}
 
 		/* Walk through all source layers to initialize some stuff */
@@ -564,6 +621,7 @@ let SVG_FP = function() {
 		 * to update the colors of the affected elements. */
 		this.update_layer = function(layer) {
 			// TBD: change layer name for F.Cu & F.Mask
+			console.log("TBD: update_layer");
 			const new_color = layer_map[layer];
 
 			// update the knockout filter to new color

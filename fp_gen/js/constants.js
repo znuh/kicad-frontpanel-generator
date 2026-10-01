@@ -34,4 +34,6 @@ const surface_colors = {
 	'ENIG'   : '#fbdf17',
 };
 
-const FR4_color = '#dfd6c4';
+const FR4_color    = '#dfd6c4';
+const Cu_color     = '#f2c4b2';
+const mask_opacity = 0.75;
