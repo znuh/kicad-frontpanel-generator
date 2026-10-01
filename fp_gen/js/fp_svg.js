@@ -105,53 +105,51 @@ let SVG_FP = function() {
 			}));
 		}
 
-		/* TODO: PCB preview mode:
-		 * defs:
-		 * - create F.Cu group "cu" w/o copper color applied
-		 * - create F.Mask group "mask_base" in defs w/ fill="#000000" (default?)
-		 * - create a mask for actual soldermask "mask_mask":
-		 *   - rect width="100%" height="100%" fill="#ffffff"
-		 *   - use href="#mask_base"
-		 * - create a clipPath "mask_clip" w/ use href=F.Mask for surface finish
-		 * body:
-		 * - create actual F.Cu layer:
-		 *     use href="#cu", fill&stroke set copper color
-		 * - create actual F.Mask layer:
-		 *     rect w, h, fill/stroke: F.Mask color, fill-opacity & stroke-opacity ~0.75?
-		 *     mask="url(#mask_mask)"
-		 * - create surface finish layer:
-		 *     fill & stroke: surface finish
-		 *     clip-path="url(#mask_clip)"
-		 */
-
+		/* PCB preview mode if F.Cu or F.Mask layer found in layer_map */
 		if (layer_map['F.Cu'] || layer_map['F.Mask']) {
+
 			/* Create F.Cu group which holds the actual F.Cu data */
 			let g = mk_elem("g", {id : 'F.Cu'});
 			layer_groups['F.Cu'] = g;
 			defs.appendChild(g);
 
-			/* Create initial/base F.Mask group which holds the actual F.Mask data */
-			g = mk_elem("g", {id : 'F.Mask', fill : '#000000'});
+			/* Create initial/base F.Mask group which holds the *negative* actual F.Mask data */
+			g = mk_elem("g", {id : 'F.Mask'});
 			layer_groups['F.Mask'] = g;
 			defs.appendChild(g);
 
-			/* Create F.Mask_mask which creates the SVG mask for F.Mask */
+			/* Create F.Mask_mask which creates the *positive* SVG mask for F.Mask */
 			g = mk_elem("mask", {id : 'F.Mask_mask'});
 			/* Add inversion rect to the mask */
 			g.appendChild(mk_elem("use", {
-				"href" : "#extents_rect",
-				"fill" : "#ffffff",
+				href : "#extents_rect",
+				fill : "#ffffff",
 			}));
 			/* Add F.Mask to the mask */
-			g.appendChild(mk_elem("use", {href : '#F.Mask'}));
+			g.appendChild(mk_elem("use", {
+				href   : '#F.Mask',
+				fill   : "#000000",
+				stroke : "#000000",
+			}));
 			layer_groups['F.Mask_mask'] = g;
 			defs.appendChild(g);
 
-			/* Create F.Mask_clip for applying the surface finish */
-			g = mk_elem("clipPath", {id : 'F.Mask_clip'});
-			/* Add F.Mask to the clipPath */
-			g.appendChild(mk_elem("use", {href : '#F.Mask'}));
-			layer_groups['F.Mask_clip'] = g;
+			/* Create F.Mask_finish which creates a *negative* SVG mask for F.Mask.
+			 * This is used to apply the surface finish by masking F.Cu
+			 * with the original negative F.Mask. */
+			g = mk_elem("mask", {id : 'F.Mask_finish'});
+			/* Clear mask initially */
+			g.appendChild(mk_elem("use", {
+				href : "#extents_rect",
+				fill : "#000000",
+			}));
+			/* Add openings from F.Mask */
+			g.appendChild(mk_elem("use", {
+				href   : '#F.Mask',
+				fill   : "#ffffff",
+				stroke : "#ffffff",
+			}));
+			layer_groups['F.Mask_finish'] = g;
 			defs.appendChild(g);
 
 			/* Now create the body F.Cu layer which invokes the defs F.Cu */
@@ -164,16 +162,6 @@ let SVG_FP = function() {
 			svg.appendChild(g);
 
 			/* Now create the body F.Mask layer */
-			/*
-			g = mk_elem("rect", {
-				mask  : 'url(#F.Mask_mask)',
-				width : "100%", height : "100%",
-				fill   : layer_map['F.Mask'],
-				stroke : layer_map['F.Mask'],
-				'fill-opacity'   : mask_opacity,
-				'stroke-opacity' : mask_opacity,
-			});
-			*/
 			g = mk_elem("use", {
 				href: '#extents_rect',
 				mask  : 'url(#F.Mask_mask)',
@@ -190,7 +178,7 @@ let SVG_FP = function() {
 				href	: '#F.Cu',
 				fill	: layer_map['F.Cu'],
 				stroke	: layer_map['F.Cu'],
-				'clip-path' : 'url(#F.Mask_clip)',
+				mask  : 'url(#F.Mask_finish)',
 			});
 			layer_groups['F.Cu_finish'] = g;
 			svg.appendChild(g);
@@ -270,6 +258,7 @@ let SVG_FP = function() {
 				te.setAttribute("font-family", (face.charAt(0) === "\"") ? JSON.parse(face) : face);
 
 			if(knockout) {
+				// TBD
 				/* Knockout effect is done with a filter */
 				//te.removeAttribute("fill");
 				//te.setAttribute("filter", `url(#knockout_${src_layer})`);
@@ -541,22 +530,6 @@ let SVG_FP = function() {
 			let src_layer_tok = find_token(src, "layer");
 			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
 			const parent = get_group(src_layer, group_info);
-
-			/* TODO: special treatment for kicad preview
-			 *
-			 * Drawing order based on PCB layers:
-			 *  - FR-4 base material
-			 *  - F.Cu (front copper)
-			 *  - F.Mask (front solermask - negative mask!)
-			 *  - F.SilkS (front silkscreen)
-			 *
-			 * -> one group per layer must be created
-			 * -> all elements of this layer must be added to the dedicated layer group
-			 *    instead of parent
-			 * -> in footprint mode one footprint must be created per used layer on-demand
-			 *    -> do this with an extra footpring lookup/creation function?
-			 *    -> pass footprint params from add_footprint for this
-			 */
 
 			if (!parent)
 				return;
