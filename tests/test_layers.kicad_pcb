@@ -88,15 +88,15 @@
 		)
 	)
 	(gr_rect
-		(start 125 80)
-		(end 140 95)
+		(start 110 65)
+		(end 170 120)
 		(stroke
-			(width 0.2)
+			(width 0.05)
 			(type default)
 		)
-		(fill yes)
-		(layer "User.4")
-		(uuid "9975b549-2130-4348-82fe-40b131e380a9")
+		(fill no)
+		(layer "User.1")
+		(uuid "406809e2-97a9-4655-bc3a-dcfe83ad7de2")
 	)
 	(gr_rect
 		(start 130 85)
@@ -110,20 +110,20 @@
 		(uuid "b7308ac2-1d4f-49d1-9a44-dbdac2bdee19")
 	)
 	(gr_rect
-		(start 110 65)
-		(end 170 120)
+		(start 125 80)
+		(end 140 95)
 		(stroke
-			(width 0.05)
+			(width 0.2)
 			(type default)
 		)
-		(fill no)
-		(layer "User.1")
-		(uuid "406809e2-97a9-4655-bc3a-dcfe83ad7de2")
+		(fill yes)
+		(layer "User.4")
+		(uuid "9975b549-2130-4348-82fe-40b131e380a9")
 	)
 	(gr_text "Test123"
-		(at 145 100 0)
-		(layer "User.4")
-		(uuid "c4a53813-be4b-460f-9687-a475e6cedd55")
+		(at 145 105 0)
+		(layer "User.3")
+		(uuid "5df9f7cb-4fee-4038-8ae5-4001f1b99f28")
 		(effects
 			(font
 				(size 3 3)
@@ -133,12 +133,12 @@
 		)
 	)
 	(gr_text "Test123"
-		(at 145 105 0)
-		(layer "User.3")
-		(uuid "5df9f7cb-4fee-4038-8ae5-4001f1b99f28")
+		(at 140 95 0)
+		(layer "User.4")
+		(uuid "c4a53813-be4b-460f-9687-a475e6cedd55")
 		(effects
 			(font
-				(size 3 3)
+				(size 4 4)
 				(bold yes)
 			)
 			(justify left bottom)
