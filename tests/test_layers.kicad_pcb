@@ -134,7 +134,7 @@
 	)
 	(gr_text "Test123"
 		(at 145 105 0)
-		(layer "F.SilkS")
+		(layer "User.3")
 		(uuid "5df9f7cb-4fee-4038-8ae5-4001f1b99f28")
 		(effects
 			(font
