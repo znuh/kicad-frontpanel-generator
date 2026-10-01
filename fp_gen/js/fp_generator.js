@@ -37,11 +37,11 @@ const config = {
 		models_offset_adjust	: [0, 0, -8],
 		layer_map : {
 			'User.1'	:	["Edge.Cuts"],
-			//'User.2'	:	["B.SilkS"],
-			'User.2'	:	["B.Mask"],
+			'User.2'	:	["F.Mask"],
+			//'User.2'	:	["B.Mask"],
 			'User.3'	:	["F.SilkS"],
-			'User.4'	:	["F.Cu", "F.Mask"],
-			//'F.CrtYd'	:	["B.CrtYd"],
+			//'User.4'	:	["F.Cu", "F.Mask"],
+			'User.4'	:	["F.Cu"],
 		},
 	},
 
