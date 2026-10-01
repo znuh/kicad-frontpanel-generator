@@ -153,7 +153,7 @@ let SVG_FP = function() {
 			layer_groups['F.Mask_finish'] = g;
 			defs.appendChild(g);
 
-			/* Now create the body F.Cu layer which invokes the defs F.Cu */
+			/* Now create the body F.Cu layer which invokes the defs F.Cu: F.Cu_bare */
 			g = mk_elem("use", {
 				href	: '#F.Cu',
 				fill	: Cu_color,
@@ -162,14 +162,16 @@ let SVG_FP = function() {
 			layer_groups['F.Cu_bare'] = g;
 			svg.appendChild(g);
 
-			/* Now create the body F.Mask layer */
+			/* Now create the body F.Mask layer: F.Mask_pour */
+			const mask_color = layer_map['F.Mask'];
+			const opacity    = mask_opacity[mask_color] ?? 0.85;
 			g = mk_elem("use", {
 				href: '#extents_rect',
 				mask  : 'url(#F.Mask_mask)',
-				fill   : layer_map['F.Mask'],
+				fill   : mask_color,
 				stroke : layer_map['F.Mask'],
-				'fill-opacity'   : mask_opacity,
-				'stroke-opacity' : mask_opacity,
+				'fill-opacity'   : opacity,
+				'stroke-opacity' : opacity,
 			});
 			layer_groups['F.Mask_pour'] = g;
 			svg.appendChild(g);
@@ -623,11 +625,14 @@ let SVG_FP = function() {
 			g.setAttribute("fill", new_color);
 			g.setAttribute("stroke", new_color);
 
-			/* Don't touch opacity values in PCB preview mode */
-			if (PCB_preview_mode)
-				return;
-
-			if (!cfg.fill_opacity)
+			if (PCB_preview_mode) {
+				if (layer === 'F.Mask_pour') {
+					const opacity = mask_opacity[new_color] ?? 0.85;
+					g.setAttribute('fill-opacity',   opacity);
+					g.setAttribute('stroke-opacity', opacity);
+				}
+			}
+			else if (!cfg.fill_opacity)
 				g.removeAttribute("fill-opacity");
 			else
 				g.setAttribute("fill-opacity", cfg.fill_opacity);

@@ -29,11 +29,20 @@ const soldermask_colors = {
 	'yellow' : '#f1b400',
 };
 
+const mask_opacity = {
+	[soldermask_colors.black]  : 0.9,
+	[soldermask_colors.white]  : 0.9,
+	[soldermask_colors.blue]   : 0.8,
+	[soldermask_colors.purple] : 0.8,
+	[soldermask_colors.green]  : 0.8,
+	[soldermask_colors.red]    : 0.8,
+	[soldermask_colors.yellow] : 0.7,
+};
+
 const surface_colors = {
 	'HASL'   : '#e2e2e2',
 	'ENIG'   : '#fbdf17',
 };
 
-const FR4_color    = '#dfd6c4';
-const Cu_color     = '#f2c4b2';
-const mask_opacity = 0.75;
+const FR4_color = '#dfd6c4';
+const Cu_color  = '#f2c4b2';
