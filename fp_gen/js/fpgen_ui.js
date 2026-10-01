@@ -373,7 +373,13 @@ async function fp_download(fp, parms) {
 	}
 }
 
-async function SVG_download(svg) {
+async function SVG_download(ref_svg) {
+	ref_svg ??= document.getElementById('svg_display').firstElementChild;
+
+	/* Make a clone with the style attribute removed */
+	const svg = ref_svg.cloneNode(true);
+	svg.removeAttribute('style');
+
 	if (!svg.getAttribute('xmlns'))
 		svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
@@ -470,10 +476,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* Dowload SVG FP */
 	const svg_dl_btn = document.getElementById('download_SVG');
 	svg_dl_btn.addEventListener('click', () => {
-		/* Make a clone with the style attribute removed */
-		const clone = fpgen.SVG_output.SVG.cloneNode(true);
-		clone.removeAttribute('style');
-		SVG_download(clone);
+		SVG_download(fpgen.SVG_output.SVG);
 	});
 
 	/* setup theme switching */
