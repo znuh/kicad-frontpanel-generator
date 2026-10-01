@@ -119,7 +119,22 @@ let SVG_FP = function() {
 		 *     clip-path="url(#mask_clip)"
 		 */
 
-		function mk_simple_layer(input_layer, color) {
+		if (layer_map['F.Cu'] || layer_map['F.Mask']) {
+			// TBD
+		}
+
+		/* Walk through all source layers to initialize some stuff */
+		for (const [input_layer, color] of Object.entries(layer_map)) {
+			/* In PCB preview mode we already created "special" layers
+			 * for F.Cu & F.Mask, so we must skip creating them here. */
+			const skip = !!layer_groups[input_layer];
+
+			console.log(`${skip ? "skip" : "create"} layer group ${input_layer}`);
+			if (skip)
+				continue;
+
+			//update_filter(input_layer);        // create knockout filter
+
 			/* Make one group per input layer - TBD: change for F.Mask */
 			const g = mk_elem("g", {
 				fill				: color,
@@ -128,27 +143,6 @@ let SVG_FP = function() {
 			});
 			if (cfg.fill_opacity)
 				g.setAttribute("fill_opacity", cfg.fill_opacity);
-			//update_filter(input_layer);        // create knockout filter
-			return g;
-		}
-
-		/* Special treatment for F.Cu and F.Mask */
-		const mk_special_layer = {
-			'F.Cu'		: (input_layer, color) => {
-				return mk_simple_layer(input_layer, color); // TBD
-			},
-			'F.Mask'	: (input_layer, color) => {
-				return mk_simple_layer(input_layer, color); // TBD
-			},
-		};
-
-		/* Walk through all source layers to initialize some stuff */
-		for (const [input_layer, color] of Object.entries(layer_map)) {
-
-			console.log("create layer group "+input_layer);
-
-			const mkg = mk_special_layer[input_layer] ?? mk_simple_layer;
-			const g   = mkg(input_layer, color);
 			layer_groups[input_layer] = g;
 			svg.appendChild(g);
 		}
