@@ -378,16 +378,6 @@
 		(uuid "f208a54a-616d-40f4-9cc4-180d7dd0d5ff")
 	)
 	(gr_line
-		(start 130.9 100.35)
-		(end 131.1 100.35)
-		(stroke
-			(width 0.1)
-			(type default)
-		)
-		(layer "User.3")
-		(uuid "28e909e2-e60e-438a-a1fe-038a983b706a")
-	)
-	(gr_line
 		(start 131 57.1)
 		(end 131 66.3)
 		(stroke
