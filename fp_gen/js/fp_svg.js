@@ -58,6 +58,8 @@ let SVG_FP = function() {
 
 		/* Make the SVG root element */
 		const svg = mk_elem("svg", {
+			/* Without geometricPrecision alignment issues between F.Cu and F.Mask / surface finish
+			 * arise due to font hinting & snapping to pixel grid. */
 			"text-rendering" : "geometricPrecision"
 		});
 
