@@ -29,7 +29,6 @@
 
 /* TBD:
  * - Text: make knockout effect work again
- * - SVG output: add option to ignore layers
  * - Document cfg (config) options
  */
 
@@ -200,10 +199,10 @@ let SVG_FP = function() {
 
 			/* In PCB preview mode we already created "special" layers
 			 * for F.Cu & F.Mask, so we must skip creating them here. */
-			const skip = !!layer_groups[input_layer];
+			const exists = !!layer_groups[input_layer];
 
-			console.log(`${skip ? "skip" : "create"} layer group ${input_layer}`);
-			if (skip)
+			console.log(`${exists ? "existing" : "create"} layer group ${input_layer}`);
+			if (exists)
 				continue;
 
 			//update_filter(input_layer);        // create knockout filter
@@ -647,6 +646,14 @@ let SVG_FP = function() {
 			//update_filter(layer);
 
 			const g = layer_groups[layer];
+
+			/* layer disabled? */
+			if (new_color == null) {
+				g.setAttribute("display", "none");
+				return;
+			}
+
+			g.removeAttribute("display"); // clear display=none if set previously
 			g.setAttribute("fill", new_color);
 			g.setAttribute("stroke", new_color);
 

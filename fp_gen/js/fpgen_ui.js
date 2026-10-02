@@ -139,9 +139,10 @@ function mk_kicad_preview_radios() {
 /* Called when user changed an entry of the SVG layer map.
  * Layer map: 1 KiCad input layer -> 1 SVG output color */
 function SVG_layermap_changed(evt) {
-	const node = evt.target;
-	const input_layer = node.dataset.input_layer;
-	const color = node.value;
+	const node   = evt.target;
+	const layer_active = !node.disabled;
+	const input_layer  = node.dataset.input_layer;
+	const color = layer_active ? node.value : null;
 	const cfg = config.SVG_output;
 	cfg.layer_map[input_layer] = color; // update config
 
@@ -221,6 +222,21 @@ function mk_layermap_table(ttype) {
 		layer_in_name	 : (n, idx, lname) => {n.textContent = lname; },
 		kicad_layers_out : (n, idx, lname) => {mk_kicad_output_layers(n, lname); },
 		svg_color_out	 : (n, idx, lname) => {mk_svg_output_selection(n, lname); },
+
+		svg_layer_enable : (n, idx, lname) => {
+			if (!svg_mode) return;
+			n.hidden = false;
+			n.addEventListener('change', (evt) => {
+				const en = evt.target.checked;
+				const cin = n.previousElementSibling?.firstElementChild;
+				cin.disabled = !en;
+				if (en)
+					cin.classList.remove('opacity-50');
+				else
+					cin.classList.add('opacity-50');
+				cin.dispatchEvent(new Event('change'));
+			});
+		}, // svg_layer_enable
 	};
 
 	adopt_template(tbody, 'tr_layermap', kicad_input_layers, role_transl);
