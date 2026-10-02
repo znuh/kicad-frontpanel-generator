@@ -98,7 +98,7 @@
 		(uuid "5a204e58-9022-48a8-adb6-5cdf86c73c14")
 	)
 	(gr_line
-		(start 100 141)
+		(start 100 141.1)
 		(end 100 27)
 		(stroke
 			(width 0.1)
@@ -109,7 +109,7 @@
 	)
 	(gr_line
 		(start 170 27)
-		(end 170 141)
+		(end 170 141.1)
 		(stroke
 			(width 0.1)
 			(type default)
@@ -118,8 +118,8 @@
 		(uuid "4a4e6655-9594-41a3-9028-3080bde451ac")
 	)
 	(gr_line
-		(start 170 141)
-		(end 100 141)
+		(start 170 141.1)
+		(end 100 141.1)
 		(stroke
 			(width 0.1)
 			(type default)

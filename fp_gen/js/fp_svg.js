@@ -29,7 +29,6 @@
 
 /* TBD:
  * - Text: make knockout effect work again
- * - investigate extents vs. edge cuts vs. F.Mask slight misalignment?
  * - Document cfg (config) options
  */
 
