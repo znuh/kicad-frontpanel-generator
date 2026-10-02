@@ -29,7 +29,6 @@
 
 /* TBD:
  * - fix F.Cu / F.Mask misalignment
- * - fix Text rotation
  * - Text: make knockout effect work again
  * - Document cfg (config) options
  */
@@ -244,8 +243,8 @@ let SVG_FP = function() {
 		}
 
 		/* Make a text node */
-		function mk_text(se, src_layer) {
-			const pos      = find_token(se, "at");
+		function mk_text(se, src_layer, se_parent) {
+			let   pos      = find_token(se, "at");
 			const effects  = find_token(se, "effects");
 			const font     = find_token(effects, "font");
 			const size     = find_token(font, "size")[1];
@@ -324,6 +323,17 @@ let SVG_FP = function() {
 				ts.textContent = lines[i];
 				te.appendChild(ts);
 				tspans.push(ts);
+			}
+
+			/* Apparently fp_text is stored with absolute rotation instead
+			 * of relative to footprint. So we have to adjust the rotation
+			 * to parent-relative. */
+			if (pos[3] && se_parent) {
+				const parent_rot = find_token(se_parent, "at")[3] || 0;
+				pos = [
+					pos[0], pos[1], pos[2],
+					(pos[3] - parent_rot) % 360,
+				];
 			}
 
 			/* All the positioning/alignment, rotation and mirroring is done later
@@ -518,7 +528,7 @@ let SVG_FP = function() {
 			},
 
 			/* Text is more complicated - let's give it a "real" function. */
-			text : (se, src_layer) => mk_text(se, src_layer),
+			text : (se, src_layer, se_parent) => mk_text(se, src_layer, se_parent),
 		};
 
 		/* gi: group_info holding info & per-layer groups for footprints */
@@ -539,7 +549,7 @@ let SVG_FP = function() {
 
 		/* Convert a graphics element for frontpanel (can be either gr_* or fp_*)
 		 * and add the new element to dst. */
-		function gr_conv(src, group_info) {
+		function gr_conv(src, group_info, src_parent) {
 			let src_layer_tok = find_token(src, "layer");
 			let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
 			const parent = get_group(src_layer, group_info);
@@ -555,7 +565,7 @@ let SVG_FP = function() {
 				return;
 			}
 
-			const elem = conv(src, src_layer);
+			const elem = conv(src, src_layer, src_parent);
 			if(!elem) {
 				console.log("no elem!", gr, conv);
 				return;
@@ -599,7 +609,7 @@ let SVG_FP = function() {
 
 				/* pass graphic elements on to gr_conv */
 				if (se[0].startsWith("fp_"))
-					gr_conv(se, grouping);
+					gr_conv(se, grouping, src);
 			} // foreach element of footprint
 
 		} // this.add_footprint
