@@ -28,8 +28,8 @@
  */
 
 /* TBD:
- * - fix F.Cu / F.Mask misalignment
  * - Text: make knockout effect work again
+ * - investigate extents vs. edge cuts vs. F.Mask slight misalignment?
  * - Document cfg (config) options
  */
 
@@ -57,7 +57,9 @@ let SVG_FP = function() {
 		const text_nodes = [];
 
 		/* Make the SVG root element */
-		const svg = mk_elem("svg");
+		const svg = mk_elem("svg", {
+			"text-rendering" : "geometricPrecision"
+		});
 
 		/* Make defs section for filters */
 		const defs = mk_elem("defs");
@@ -361,6 +363,7 @@ let SVG_FP = function() {
 			list.forEach((txt) => {
 				const pos    = txt.pos;
 				const size   = txt.size * scale;
+				const y_step = size * 1.1;
 				const te     = txt.te;
 				const tspans = txt.tspans;
 				let x = pos[1], y = pos[2];
@@ -372,20 +375,20 @@ let SVG_FP = function() {
 				 * The dominant-baseline SVG attribute only affects the position of the first tspan,
 				 * not the whole text block. So we move the first tspan if necessary (when valign == central).
 				 * All remaining tspans are positioned relative to the previous one. */
-				let dy = (txt.valign === "central") ? -((tspans.length-1)*size/2) : 0;
+				let dy = (txt.valign === "central") ? -((tspans.length-1)*y_step/2) : 0;
 				tspans.forEach((ts, i) => {
 					ts.setAttribute("dy", dy);
-					dy = size; // switch to regular font size stepping after first tspan
+					dy = y_step; // switch to regular font size stepping after first tspan
 				});
 
-				//console.log(te.textContent, te.getBBox(), tspans.length*size);
+				//console.log(txt.size, te.textContent, te.getBBox(), tspans.length*size, tspans.length * y_step);
 
 				// adjust y based on valign and height
 				if (txt.valign === "alphabetic") {
 					/* BBox is invalid for elements in defs */
 					//const bbox = te.getBBox();
 					//y-=bbox.height-size;
-					y -= (tspans.length-1) * size * 1.125;
+					y -= (tspans.length-1) * y_step;
 				}
 
 				let transform = `translate(${x}, ${y})`;
