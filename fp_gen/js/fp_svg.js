@@ -28,7 +28,8 @@
  */
 
 /* TBD:
- * - PCB preview mode: fix text y position
+ * - fix F.Cu / F.Mask misalignment
+ * - fix Text rotation
  * - Text: make knockout effect work again
  * - Document cfg (config) options
  */
@@ -367,12 +368,14 @@ let SVG_FP = function() {
 					dy = size; // switch to regular font size stepping after first tspan
 				});
 
-				// adjust y based on valign and bounding box
+				//console.log(te.textContent, te.getBBox(), tspans.length*size);
+
+				// adjust y based on valign and height
 				if (txt.valign === "alphabetic") {
-					const bbox = te.getBBox();
-					// TBD: this seems so go wrong in PCB_preview_mode - but why?
-					if (!PCB_preview_mode)
-						y-=bbox.height-size;
+					/* BBox is invalid for elements in defs */
+					//const bbox = te.getBBox();
+					//y-=bbox.height-size;
+					y -= (tspans.length-1) * size * 1.125;
 				}
 
 				let transform = `translate(${x}, ${y})`;
