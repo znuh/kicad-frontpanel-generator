@@ -29,6 +29,7 @@
 
 /* TBD:
  * - Text: make knockout effect work again
+ * - SVG output: add option to ignore layers
  * - Document cfg (config) options
  */
 
