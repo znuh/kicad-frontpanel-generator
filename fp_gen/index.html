@@ -42,8 +42,11 @@
 		  <td data-role="layer_in_name"></td>
 		  <td class="fs-4">&#10132;</td>
 		  <td>
-			  <select class="form-select" aria-label="Output Layers" data-role="kicad_layers_out" data-config="layer_map_kicad"></select>
-			  <input type="color" data-role="svg_color_out" data-config="layer_map_svg" value="#000000" />
+			  <select class="form-select" aria-label="Output Layers" data-role="kicad_layers_out"></select>
+			  <input type="color" data-role="svg_color_out" value="#000000" />
+		  </td>
+		  <td hidden>
+			  X
 		  </td>
 		</tr>
 	</template>
@@ -123,6 +126,7 @@
 			  <th scope="col">Input</th>
 			  <th scope="col"></th>
 			  <th scope="col">Output</th>
+			  <th scope="col" hidden></th> <!-- dummy row - no "use" checkbox for KiCad map -->
 			</tr>
 		  </thead>
 		  <tbody class="align-middle" id="tb_layermap_kicad">
@@ -154,6 +158,7 @@
 			  <th scope="col">Input</th>
 			  <th scope="col"></th>
 			  <th scope="col">Output</th>
+			  <th scope="col">Use</th>
 			</tr>
 		  </thead>
 		  <tbody class="align-middle" id="tb_layermap_SVG">

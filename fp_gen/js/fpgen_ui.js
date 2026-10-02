@@ -229,8 +229,6 @@ function mk_layermap_table(ttype) {
 /* Collects the (missing) config options from UI for a KiCad PCB export */
 function update_config() {
 	const role_funcs = {
-		layer_map_kicad	: n => { }, // fall through (already handled in change event)
-		layer_map_svg	: n => { }, // fall through (already handled in change event)
 		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
 		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
 	};
