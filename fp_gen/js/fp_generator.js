@@ -2,32 +2,14 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
+/* Further ideas:
+ * - save config to / load from localStorage
+ * - read config from User.Comments text(s) in KiCad input board
+ * - UI: button + modal to generate & show User.Comments config entry for current config
+ */
+
 /* Holds the input KiCad PCB */
 let source_pcb = null;
-
-/* Big static object holding all our internal stuff. */
-const fpgen = {
-
-	/* ui_init_done: true if UI init done ;-)
-	 * SVG: SVG object which can be displayed in preview
-	 * SVG_gen: The SVG generator object
-	 *
-	 * These values are null/undefined if user never selected the
-	 * corresponding output format. */
-
-	SVG_output : {
-		//ui_init_done	: null,
-		//SVG			: null,
-		//SVG_gen		: null,
-	},
-
-	kicad_output : {
-		//ui_init_done	: null,
-		//preview_fp	: null, // generated frontpanel for preview
-		//SVG			: null,
-		//SVG_gen		: null,
-	},
-};
 
 /* All the config stuff goes into this object: */
 const config = {
@@ -72,6 +54,30 @@ const config = {
 			'Edge.Cuts' : '#808080',
 		},
 		background : FR4_color,
+	},
+};
+
+/* Big static object holding all our internal stuff. */
+const fpgen = {
+
+	/* ui_init_done: true if UI init done ;-)
+	 * SVG: SVG object which can be displayed in preview
+	 * SVG_gen: The SVG generator object
+	 *
+	 * These values are null/undefined if user never selected the
+	 * corresponding output format. */
+
+	SVG_output : {
+		//ui_init_done	: null,
+		//SVG			: null,
+		//SVG_gen		: null,
+	},
+
+	kicad_output : {
+		//ui_init_done	: null,
+		//preview_fp	: null, // generated frontpanel for preview
+		//SVG			: null,
+		//SVG_gen		: null,
 	},
 };
 
