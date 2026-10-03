@@ -55,8 +55,8 @@ let SVG_FP = function() {
 		/* Keep a cache of all text nodes so we can change text attributes later without redrawing everything. */
 		const text_nodes = [];
 
-		/* Count the number of knockout texts */
-		let knockout_texts = 0;
+		/* Set to true when there are knockout texts */
+		let knockout_texts = false;
 
 		/* Make the SVG root element */
 		const svg = mk_elem("svg", {
@@ -260,7 +260,10 @@ let SVG_FP = function() {
 			let   knockout = find_token(se, "layer")[2] === "knockout";
 			let   mirror   = false;
 
+			const txt_idx = text_nodes.length;
+			const te_id = "txt_" + txt_idx;
 			const te = mk_elem("text", {
+				"id" : te_id,
 				/* Initially we place all text at x,y = 0,0 so we can do rotation & mirroring easily.
 				 * Then we use a transform w/ translate in update_texts() to move the text into place.
 				 * font-size is also set in update_texts() */
@@ -272,14 +275,11 @@ let SVG_FP = function() {
 				te.setAttribute("font-family", (face.charAt(0) === "\"") ? JSON.parse(face) : face);
 
 			if(knockout) {
-				/* Add id to the text element itself and insert it in defs
-				 * right after the extents_rect. */
-				const text_id = `ko_txt_${knockout_texts}`;
-				te.setAttribute("id", text_id);
+				/* Add the text element itself to defs right after the extents_rect. */
 				extents_rect.after(te);
 
 				/* Now we create a mask for the text. */
-				const mask_id = `ko_mask_${knockout_texts}`;
+				const mask_id = "ko_mask_"+txt_idx;
 				const mask = mk_elem("mask", {id : mask_id});
 				/* The mask needs a white rect first.
 				 * We will set x,y,w,h later in update_texts. */
@@ -287,8 +287,8 @@ let SVG_FP = function() {
 				mask.appendChild(mask_rect);
 				/* Now we add a reference to the text with color: black. */
 				mask.appendChild(mk_elem("use", {
-					'xlink:href' : '#'+text_id,
-					href: '#'+text_id,
+					'xlink:href' : '#'+te_id,
+					href: '#'+te_id,
 					fill   : '#000000',
 				}));
 				te.after(mask); // add mask to defs - right after the text element
@@ -304,12 +304,11 @@ let SVG_FP = function() {
 				});
 
 				knockout = {
-					text      : te,
 					mask_rect : mask_rect,
 					text_rect : text_rect,
 				};
 
-				knockout_texts++;
+				knockout_texts = true;
 
 				/* */
 				/* Knockout effect is done with a filter */
