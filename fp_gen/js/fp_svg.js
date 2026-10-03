@@ -283,7 +283,8 @@ let SVG_FP = function() {
 				const mask = mk_elem("mask", {id : mask_id});
 				/* The mask needs a white rect first.
 				 * We will set x,y,w,h later in update_texts. */
-				mask.appendChild(mk_elem("rect", {fill : "#ffffff"}));
+				const mask_rect = mk_elem("rect", {fill : "#ffffff"});
+				mask.appendChild(mask_rect);
 				/* Now we add a reference to the text with color: black. */
 				mask.appendChild(mk_elem("use", {
 					'xlink:href' : '#'+text_id,
@@ -304,7 +305,7 @@ let SVG_FP = function() {
 
 				knockout = {
 					text      : te,
-					mask      : mask,
+					mask_rect : mask_rect,
 					text_rect : text_rect,
 				};
 
