@@ -55,6 +55,9 @@ let SVG_FP = function() {
 		/* Keep a cache of all text nodes so we can change text attributes later without redrawing everything. */
 		const text_nodes = [];
 
+		/* Count the number of knockout texts */
+		let knockout_texts = 0;
+
 		/* Make the SVG root element */
 		const svg = mk_elem("svg", {
 			/* Without geometricPrecision alignment issues between F.Cu and F.Mask / surface finish
@@ -254,7 +257,7 @@ let SVG_FP = function() {
 			const face     = find_token(font, "face")?.[1];
 			const bold     = find_token(font, "bold")?.[1] === "yes";
 			const italic   = find_token(font, "italic")?.[1] === "yes";
-			const knockout = find_token(se, "layer")[2] === "knockout";
+			let   knockout = find_token(se, "layer")[2] === "knockout";
 			let   mirror   = false;
 
 			const te = mk_elem("text", {
@@ -269,7 +272,45 @@ let SVG_FP = function() {
 				te.setAttribute("font-family", (face.charAt(0) === "\"") ? JSON.parse(face) : face);
 
 			if(knockout) {
-				// TBD
+				/* Add id to the text element itself and insert it in defs
+				 * right after the extents_rect. */
+				const text_id = `ko_txt_${knockout_texts}`;
+				te.setAttribute("id", text_id);
+				extents_rect.after(te);
+
+				/* Now we create a mask for the text. */
+				const mask_id = `ko_mask_${knockout_texts}`;
+				const mask = mk_elem("mask", {id : mask_id});
+				/* The mask needs a white rect first.
+				 * We will set x,y,w,h later in update_texts. */
+				mask.appendChild(mk_elem("rect", {fill : "#ffffff"}));
+				/* Now we add a reference to the text with color: black. */
+				mask.appendChild(mk_elem("use", {
+					'xlink:href' : '#'+text_id,
+					href: '#'+text_id,
+					fill   : '#000000',
+				}));
+				te.after(mask); // add mask to defs - right after the text element
+
+				/* To obtain the "actual" knockout text, we need a rect with mask=mask_id.
+				 * Again, we will set x,y,w,h later in update_texts.
+				 *
+				 * This function will return text_rect instead of the text element itself
+				 * when knockout effect is active. */
+				const text_rect = mk_elem("rect", {
+					mask    : "url("+mask_id+")",
+					display : "none", // will be removed by update_texts
+				});
+
+				knockout = {
+					text      : te,
+					mask      : mask,
+					text_rect : text_rect,
+				};
+
+				knockout_texts++;
+
+				/* */
 				/* Knockout effect is done with a filter */
 				//te.removeAttribute("fill");
 				//te.setAttribute("filter", `url(#knockout_${src_layer})`);
@@ -344,16 +385,20 @@ let SVG_FP = function() {
 			 * Save all relevant text parameters here in text_nodes,
 			 * so update_texts() can use them directly later. */
 			text_nodes.push({
-				pos     : pos, // [1]:x, [2]:y, [3]:rotation - if any
-				size    : size,
-				valign  : te.getAttribute("dominant-baseline"),
+				pos      : pos, // [1]:x, [2]:y, [3]:rotation - if any
+				size     : size,
+				valign   : te.getAttribute("dominant-baseline"),
 				//halign  : te.getAttribute("text-anchor"), // not needed by update_texts() atm
-				mirror  : mirror,
+				mirror   : mirror,
+				knockout : knockout,
 
-				te      : te,     // text element
-				tspans  : tspans, // tspan elements
+				te       : te,     // text element
+				tspans   : tspans, // tspan elements
 			}); // add to list of text nodes
-			return te;
+
+			/* When knockout effect is set, we return the rect element with mask=...
+			 * instead of the actual text element. */
+			return knockout?.text_rect ?? te;
 		}
 
 		/* Call this after changing text attributes to update all text nodes. */
@@ -362,11 +407,12 @@ let SVG_FP = function() {
 
 			// update all text_nodes
 			list.forEach((txt) => {
-				const pos    = txt.pos;
-				const size   = txt.size * scale;
-				const y_step = size * 1.1;
-				const te     = txt.te;
-				const tspans = txt.tspans;
+				const pos      = txt.pos;
+				const size     = txt.size * scale;
+				const y_step   = size * 1.1;
+				const te       = txt.te;
+				const tspans   = txt.tspans;
+				const knockout = txt.knockout;
 				let x = pos[1], y = pos[2];
 
 				// set size first
@@ -381,6 +427,16 @@ let SVG_FP = function() {
 					ts.setAttribute("dy", dy);
 					dy = y_step; // switch to regular font size stepping after first tspan
 				});
+
+				/* TBD: knockout handling
+				 * - set display=none on mask & text_rect
+				 * - add actual text as temp node with use to SVG body w/ visibility=hidden
+				 * - call getBBox on temp node
+				 * - remove temp node again
+				 * - set x,y,w,h on mask and text_rect and remove display=none again */
+				 if (knockout) {
+					 console.log("TBD: knockout");
+				 }
 
 				//console.log(txt.size, te.textContent, te.getBBox(), tspans.length*size, tspans.length * y_step);
 
