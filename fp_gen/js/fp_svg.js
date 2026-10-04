@@ -64,7 +64,7 @@ let SVG_FP = function() {
 			"text-rendering" : "geometricPrecision"
 		});
 
-		/* Make defs section for filters */
+		/* Make defs section */
 		const defs = mk_elem("defs");
 
 		/* Create a base rectangle for the full extents of the PCB
@@ -72,29 +72,6 @@ let SVG_FP = function() {
 		 * it for the background and masks. */
 		const extents_rect = mk_elem("rect", {id : 'extents_rect'});
 		defs.appendChild(extents_rect);
-
-		/* Function to create/replace a knockout filter for src_layer
-		function update_filter(src_layer) {
-			const id = "knockout_" + src_layer;
-			defs.querySelector(`[id="${id}"]`)?.remove(); // remove old filter if one exists
-
-			const filter = mk_elem("filter", {
-				"id" : id,
-				"x" : "0", "y" : "0",
-				"width" : "100%", "height" : "100%",
-			});
-			filter.appendChild(mk_elem("feFlood", {
-				"flood-color"	: layer_map[src_layer],
-				"result"		: "bg",
-			}));
-			filter.appendChild(mk_elem("feComposite", {
-				"in"		: "bg",
-				"in2"		: "SourceGraphic",
-				"operator"	: "out",
-			}));
-			defs.appendChild(filter);
-		}
-		*/
 
 		svg.appendChild(defs);
 
@@ -207,8 +184,6 @@ let SVG_FP = function() {
 			if (exists)
 				continue;
 
-			//update_filter(input_layer);        // create knockout filter
-
 			/* Make one group per input layer */
 			const g = mk_elem("g", {
 				fill				: color,
@@ -315,11 +290,6 @@ let SVG_FP = function() {
 				};
 
 				knockout_texts = true;
-
-				/* */
-				/* Knockout effect is done with a filter */
-				//te.removeAttribute("fill");
-				//te.setAttribute("filter", `url(#knockout_${src_layer})`);
 			}
 
 			if (bold)
@@ -415,7 +385,7 @@ let SVG_FP = function() {
 			list.forEach((txt) => {
 				const pos      = txt.pos;
 				const size     = txt.size * scale;
-				const y_step   = size * 1.1;
+				const y_step   = size * 1.0; // 1.0 is closer to KiCad y_step than 1.1
 				const te       = txt.te;
 				const tspans   = txt.tspans;
 				const knockout = txt.knockout;
@@ -721,9 +691,6 @@ let SVG_FP = function() {
 			};
 			layer = redirects[layer] ?? layer;
 			console.log("update_layer "+layer+" "+new_color);
-
-			// update the knockout filter to new color
-			//update_filter(layer);
 
 			const g = layer_groups[layer];
 
