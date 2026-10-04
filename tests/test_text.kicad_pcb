@@ -713,6 +713,30 @@
 			(justify bottom mirror)
 		)
 	)
+	(gr_text "<script>alert({dblquote}fail!{dblquote});</script>"
+		(at 102.2 119 0)
+		(layer "User.4")
+		(uuid "4e057437-3852-4da2-a7dd-b8ca9cad6591")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "{} ! '' `` ''	 \\t \\ \\\\ "
+		(at 127.6 119 0)
+		(layer "User.4")
+		(uuid "b886e567-9fde-4916-a755-99be2c950057")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "Range\nOfs"
 		(at 144.15 136.15 0)
 		(layer "User.4")
