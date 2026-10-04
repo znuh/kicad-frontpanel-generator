@@ -333,8 +333,13 @@ let SVG_FP = function() {
 			 * => use se[2] for fp_text, se[1] otherwise
 			 * => pass through JSON.parse if first char is a double quote */
 			let actual_text = ((se[0] === "fp_text") ? se[2] : se[1]);
-			if (actual_text.charAt(0) === "\"")
-				actual_text = JSON.parse(actual_text);
+			if (actual_text.charAt(0) === "\"") {
+				/* Text in KiCad can include at least 'tab' as unescaped 0x09 bytes.
+				 * So we need to sanitize the input before throwing it into JSON.parse. */
+				actual_text = JSON.parse(actual_text.replace(/[\x00-\x1f]/g, ''));
+				/* KiCad encodes '"' in text as '{dblquote}', so we have to replace these. */
+				actual_text = actual_text.replaceAll('{dblquote}','"');
+			}
 
 			const lines = actual_text.split("\n");
 			const tspans = [];
