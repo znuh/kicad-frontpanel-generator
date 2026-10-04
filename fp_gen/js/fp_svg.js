@@ -390,6 +390,7 @@ let SVG_FP = function() {
 				const tspans   = txt.tspans;
 				const knockout = txt.knockout;
 				let x = pos[1], y = pos[2];
+				//const ts_x = knockout ? 0.3 : 0; // testing
 
 				// set size first
 				te.setAttribute("font-size", size);
@@ -400,6 +401,7 @@ let SVG_FP = function() {
 				 * All remaining tspans are positioned relative to the previous one. */
 				let dy = (txt.valign === "central") ? -((tspans.length-1)*y_step/2) : 0;
 				tspans.forEach((ts, i) => {
+					//ts.setAttribute("x", ts_x); // testing
 					ts.setAttribute("dy", dy);
 					dy = y_step; // switch to regular font size stepping after first tspan
 				});
@@ -423,6 +425,7 @@ let SVG_FP = function() {
 
 				/* TBD: Adjust width of bounding box a bit.
 				 * Not working yet.
+				 * Is x position with or without knockout padding?
 				const x_pad = size * 0.125;
 				bbox.x -= x_pad/2;
 				bbox.w += x_pad*4;
