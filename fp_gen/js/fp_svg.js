@@ -339,7 +339,7 @@ let SVG_FP = function() {
 			const lines = actual_text.split("\n");
 			const tspans = [];
 			for(i=0;i<lines.length;i++) {
-				const ts = mk_elem("tspan", {"x":0});
+				const ts = mk_elem("tspan");
 				ts.textContent = lines[i];
 				te.appendChild(ts);
 				tspans.push(ts);
@@ -364,7 +364,7 @@ let SVG_FP = function() {
 				pos      : pos, // [1]:x, [2]:y, [3]:rotation - if any
 				size     : size,
 				valign   : te.getAttribute("dominant-baseline"),
-				//halign  : te.getAttribute("text-anchor"), // not needed by update_texts() atm
+				halign   : te.getAttribute("text-anchor"),
 				mirror   : mirror,
 				knockout : knockout,
 
@@ -390,18 +390,25 @@ let SVG_FP = function() {
 				const tspans   = txt.tspans;
 				const knockout = txt.knockout;
 				let x = pos[1], y = pos[2];
-				//const ts_x = knockout ? 0.3 : 0; // testing
+
+				/* Adjust x offset to better match text rendering in KiCad */
+				const x_pad = size * 0.1;
+				let ts_x = x_pad; // default: left alignment
+				if (txt.halign === 'end')
+					ts_x = -x_pad;
+				else if (txt.halign === 'middle')
+					ts_x = 0;
 
 				// set size first
 				te.setAttribute("font-size", size);
 
-				/* Now set dy on all tspans.
+				/* Now set x & dy on all tspans.
 				 * The dominant-baseline SVG attribute only affects the position of the first tspan,
 				 * not the whole text block. So we move the first tspan if necessary (when valign == central).
 				 * All remaining tspans are positioned relative to the previous one. */
 				let dy = (txt.valign === "central") ? -((tspans.length-1)*y_step/2) : 0;
 				tspans.forEach((ts, i) => {
-					//ts.setAttribute("x", ts_x); // testing
+					ts.setAttribute("x", ts_x);
 					ts.setAttribute("dy", dy);
 					dy = y_step; // switch to regular font size stepping after first tspan
 				});
@@ -412,7 +419,7 @@ let SVG_FP = function() {
 				if (!bbox.h) {
 					/* Naive approach failed - so we add the text right after defs
 					 * with use and visibility=hidden, get the BBox and remove it again. */
-					 const tmp = mk_elem("use", {
+					const tmp = mk_elem("use", {
 						'xlink:href' : '#'+te.id,
 						href: '#'+te.id,
 						visibility : 'hidden',
@@ -423,20 +430,15 @@ let SVG_FP = function() {
 				}
 				//console.log(bbox);
 
-				/* TBD: Adjust width of bounding box a bit.
-				 * Not working yet.
-				 * Is x position with or without knockout padding?
-				const x_pad = size * 0.125;
-				bbox.x -= x_pad/2;
-				bbox.w += x_pad*4;
-				*/
+				/* Adjust bounding box to account for x padding */
+				bbox.x     -= x_pad;
+				bbox.width += x_pad*2;
 
+				/* Note: KiCad text x position is always the same - with and w/o knockout. */
 				if (knockout) {
 					apply_bbox(knockout.mask_rect, bbox);
 					apply_bbox(knockout.text_rect, bbox, true);
 				}
-
-				//console.log(txt.size, te.textContent, te.getBBox(), tspans.length*size, tspans.length * y_step);
 
 				// adjust y based on valign and height
 				if (txt.valign === "alphabetic") {
