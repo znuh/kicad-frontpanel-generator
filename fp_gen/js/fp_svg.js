@@ -28,7 +28,6 @@
  */
 
 /* TBD:
- * - Text: make knockout effect work again
  * - Document cfg (config) options
  */
 
@@ -224,6 +223,17 @@ let SVG_FP = function() {
 
 		/***************** Functions to create/process/update SVG elements ********************/
 
+		/* Add values from bbox as attributes to target node.
+		 * Remove display attribute if show is set. */
+		function apply_bbox(n, bbox, show) {
+			n.setAttribute("x", bbox.x);
+			n.setAttribute("y", bbox.y);
+			n.setAttribute("width",  bbox.width);
+			n.setAttribute("height", bbox.height);
+			if (show)
+				n.removeAttribute("display");
+		}
+
 		/* Update SVG extents / viewport */
 		function update_extents() {
 			const padding = cfg.padding ?? 5;
@@ -234,11 +244,7 @@ let SVG_FP = function() {
 			const bbox = svg.getBBox();
 
 			/* Update extents_rect and drop display=none again */
-			extents_rect.setAttribute("x", bbox.x);
-			extents_rect.setAttribute("y", bbox.y);
-			extents_rect.setAttribute("width",  bbox.width);
-			extents_rect.setAttribute("height", bbox.height);
-			extents_rect.removeAttribute("display");
+			apply_bbox(extents_rect, bbox, true);
 
 			// round everything to 1um
 			const x = +(bbox.x - padding).toFixed(3), y = +(bbox.y - padding).toFixed(3);
@@ -299,7 +305,7 @@ let SVG_FP = function() {
 				 * This function will return text_rect instead of the text element itself
 				 * when knockout effect is active. */
 				const text_rect = mk_elem("rect", {
-					mask    : "url("+mask_id+")",
+					mask    : "url(#"+mask_id+")",
 					display : "none", // will be removed by update_texts
 				});
 
@@ -428,24 +434,41 @@ let SVG_FP = function() {
 					dy = y_step; // switch to regular font size stepping after first tspan
 				});
 
-				/* TBD: knockout handling
-				 * - set display=none on mask & text_rect
-				 * - add actual text as temp node with use to SVG body w/ visibility=hidden
-				 * - call getBBox on temp node
-				 * - remove temp node again
-				 * - set x,y,w,h on mask and text_rect and remove display=none again */
-				 if (knockout) {
-					 console.log("TBD: knockout");
-				 }
+				/* Try naive approach to get the BBox first.
+				 * This will fail if te is in defs. */
+				let bbox = te.getBBox();
+				if (!bbox.h) {
+					/* Naive approach failed - so we add the text right after defs
+					 * with use and visibility=hidden, get the BBox and remove it again. */
+					 const tmp = mk_elem("use", {
+						'xlink:href' : '#'+te.id,
+						href: '#'+te.id,
+						visibility : 'hidden',
+					});
+					defs.after(tmp);
+					bbox = tmp.getBBox();
+					tmp.remove();
+				}
+				//console.log(bbox);
+
+				/* TBD: Adjust width of bounding box a bit.
+				 * Not working yet.
+				const x_pad = size * 0.125;
+				bbox.x -= x_pad/2;
+				bbox.w += x_pad*4;
+				*/
+
+				if (knockout) {
+					apply_bbox(knockout.mask_rect, bbox);
+					apply_bbox(knockout.text_rect, bbox, true);
+				}
 
 				//console.log(txt.size, te.textContent, te.getBBox(), tspans.length*size, tspans.length * y_step);
 
 				// adjust y based on valign and height
 				if (txt.valign === "alphabetic") {
-					/* BBox is invalid for elements in defs */
-					//const bbox = te.getBBox();
-					//y-=bbox.height-size;
-					y -= (tspans.length-1) * y_step;
+					//y -= (tspans.length-1) * y_step;
+					y -= bbox.height-y_step;
 				}
 
 				let transform = `translate(${x}, ${y})`;
@@ -453,7 +476,8 @@ let SVG_FP = function() {
 					transform += ` rotate(${-pos[3]})`;
 				if (txt.mirror)
 					transform += " scale(-1, 1)";
-				te.setAttribute("transform", transform);
+				const transform_node = knockout ? knockout.text_rect : te;
+				transform_node.setAttribute("transform", transform);
 			});
 
 			// set default font
