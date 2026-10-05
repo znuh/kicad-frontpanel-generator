@@ -3,7 +3,6 @@
  */
 
 /* TODO:
- * - UI: add notice re preview fidelity - esp. text, board outline / not an exact representation / approximate
  * - UI: improve colors
  *
  * Further ideas:
