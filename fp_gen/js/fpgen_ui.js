@@ -81,7 +81,7 @@ function kicad_preview_color_changed(evt) {
 	const cfg = config.kicad_preview.layer_map;
 
 	cfg[input_layer] = color;
-	console.log(input_layer, color);
+	//console.log(input_layer, color);
 
 	fpgen.kicad_output.SVG_gen?.update_layer(input_layer);
 
@@ -263,7 +263,7 @@ function update_config() {
 function update_preview(output_mode) {
 	output_mode ??= document.getElementById('output_fmt').value;
 
-	console.log("update_preview " + output_mode);
+	//console.log("update_preview " + output_mode);
 
 	if (!output_mode || !source_pcb)
 		return;

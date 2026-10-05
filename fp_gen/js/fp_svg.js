@@ -180,7 +180,7 @@ let SVG_FP = function() {
 			 * for F.Cu & F.Mask, so we must skip creating them here. */
 			const exists = !!layer_groups[input_layer];
 
-			console.log(`${exists ? "existing" : "create"} layer group ${input_layer}`);
+			//console.log(`${exists ? "existing" : "create"} layer group ${input_layer}`);
 			if (exists)
 				continue;
 
@@ -703,7 +703,7 @@ let SVG_FP = function() {
 				'F.Mask' : 'F.Mask_pour',
 			};
 			layer = redirects[layer] ?? layer;
-			console.log("update_layer "+layer+" "+new_color);
+			//console.log("update_layer "+layer+" "+new_color);
 
 			const g = layer_groups[layer];
 
