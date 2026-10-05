@@ -220,6 +220,9 @@
         <h3>5) Frontpanel Output</h3>
       </div>
       <div class="card-body">
+		<div class="alert alert-warning" role="alert" id="knockout_warning" hidden>
+			<b>Warning: </b>The SVG file contains <b>knockout text</b>. Most laser cutting/engraving software does not support this.
+		</div>
         <button type="button" class="btn btn-primary btn-lg" id="download_pcb" disabled hidden>Get Frontpanel PCB</button>
         <button type="button" class="btn btn-primary btn-lg ms-2" id="download_SVG" disabled hidden>Get Frontpanel SVG</button>
         <span class="mt-2 ms-2 fs-6 fw-semibold d-block" id="kicad_output_info">No input file loaded yet.</span>
