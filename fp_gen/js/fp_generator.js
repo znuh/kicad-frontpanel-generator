@@ -2,10 +2,7 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
-/* TODO:
- * - UI: improve colors
- *
- * Further ideas:
+/* Further ideas:
  * - save config to / load from localStorage
  * - read config from User.Comments text(s) in KiCad input board
  * - UI: button + modal to generate & show User.Comments config entry for current config
