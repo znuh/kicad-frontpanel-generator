@@ -31,7 +31,17 @@ function ui_theme_setup() {
 			localStorage.setItem('theme', theme);
 			apply_theme();
 			update_selection(theme);
-		})
+		});
+	});
+}
+
+function SVG_has_masks(SVG) {
+	/* We simply look for a group which is a direct child of the SVG that's
+	 * active (display!=none) and has a rect child with a mask set. */
+	const groups = SVG.querySelectorAll(':scope > g');
+	return Array.from(groups).some( g => {
+		const active = g.getAttribute('display') !== 'none';
+		return active && !!g.querySelector('rect[mask]');
 	});
 }
 
@@ -146,8 +156,14 @@ function SVG_layermap_changed(evt) {
 	const cfg = config.SVG_output;
 	cfg.layer_map[input_layer] = color; // update config
 
+	if (!fpgen.SVG_output.SVG_gen)
+		return;
+
 	/* Invoke SVG gen update method */
-	fpgen.SVG_output.SVG_gen?.update_layer(input_layer);
+	fpgen.SVG_output.SVG_gen.update_layer(input_layer);
+
+	/* Update knockout warning visibility */
+	document.getElementById('knockout_warning').hidden = !SVG_has_masks(fpgen.SVG_output.SVG);
 }
 
 /* Called when user changed an entry of the kicad -> kicad layer map.
@@ -299,6 +315,9 @@ function update_preview(output_mode) {
 		 * because the finalize method of SVG generator already did the replace. */
 		display_node.replaceChildren(output.SVG);
 	}
+
+	/* Update knockout warning visibility */
+	document.getElementById('knockout_warning').hidden = !(svg_output && SVG_has_masks(fpgen.SVG_output.SVG));
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
