@@ -54,9 +54,6 @@ let SVG_FP = function() {
 		/* Keep a cache of all text nodes so we can change text attributes later without redrawing everything. */
 		const text_nodes = [];
 
-		/* Set to true when there are knockout texts */
-		let knockout_texts = false;
-
 		/* Make the SVG root element */
 		const svg = mk_elem("svg", {
 			/* Without geometricPrecision alignment issues between F.Cu and F.Mask / surface finish
@@ -288,8 +285,6 @@ let SVG_FP = function() {
 					mask_rect : mask_rect,
 					text_rect : text_rect,
 				};
-
-				knockout_texts = true;
 			}
 
 			if (bold)
@@ -692,17 +687,21 @@ let SVG_FP = function() {
 			return svg;
 		} // this.finalize
 
-		/* Call this after changing a layer mapping in cfg.layer_map
-		 * to update the colors of the affected elements. */
-		this.update_layer = function(layer) {
-			const new_color = layer_map[layer];
+		const lookup_layer = (ln) => {
 			/* In PCB preview mode we must switch to different layer names
 			 * when dealing with F.Mask or F.Cu */
 			const redirects = {
 				'F.Cu'   : 'F.Cu_finish',
 				'F.Mask' : 'F.Mask_pour',
 			};
-			layer = redirects[layer] ?? layer;
+			return redirects[ln] ?? ln;
+		};
+
+		/* Call this after changing a layer mapping in cfg.layer_map
+		 * to update the colors of the affected elements. */
+		this.update_layer = function(layer) {
+			const new_color = layer_map[layer];
+			layer = lookup_layer(layer);
 			//console.log("update_layer "+layer+" "+new_color);
 
 			const g = layer_groups[layer];
