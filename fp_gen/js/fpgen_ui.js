@@ -31,10 +31,21 @@ function ui_theme_setup() {
 			localStorage.setItem('theme', theme);
 			apply_theme();
 			update_selection(theme);
-		})
+		});
 	});
 }
 
+function SVG_has_masks(SVG) {
+	/* We simply look for a group which is a direct child of the SVG that's
+	 * active (display!=none) and has a rect child with a mask set. */
+	const groups = SVG.querySelectorAll(':scope > g');
+	return Array.from(groups).some( g => {
+		const active = g.getAttribute('display') !== 'none';
+		return active && !!g.querySelector('rect[mask]');
+	});
+}
+
+/* Setup file drop zone for .kicad_pcb files */
 function ui_dropzone_setup(finput) {
 	/* Do not open kicad files directly in browser */
 	window.addEventListener('dragover', (e) => e.preventDefault());
@@ -49,76 +60,264 @@ function ui_dropzone_setup(finput) {
 	});
 }
 
-function mk_kc_layermap_table() {
-	const tbody = document.getElementById('tb_layermap');
-	const tr_template = document.getElementById('tr_layermap').content.firstElementChild;
+/* create dst_parent child nodes from template_id for each entry of entries
+ * using the role_transl functions applied to data-role attributes */
+function adopt_template(dst_parent, template_id, entries, role_transl) {
+	const template = document.getElementById(template_id);
 
-	const output_layers = [
-		'Unassigned',
-		'Edge.Cuts',
-		'F.SilkS', 'F.Cu', 'F.Mask', 'F.Cu + F.Mask',
-		'B.SilkS', 'B.Cu', 'B.Mask', 'B.Cu + B.Mask',
-	];
-
-	const kicad_layer_colors = {
-		'User.1' : '#c2c2c2',
-		'User.2' : '#5994dc',
-		'User.3' : '#b4dbd2',
-		'User.4' : '#d8c852',
-	};
-
-	function mk_output_layers(sel_node, input_layer) {
-		sel_node.dataset.input_layer = input_layer;
-		output_layers.forEach(ols_entry => {
-			const opt = document.createElement("option");
-			opt.value = ols_entry;
-			opt.text = ols_entry;
-			opt.selected = config.layer_map[input_layer].join(' + ') === ols_entry;
-			sel_node.add(opt);
-		});
-	}
-
-	/* data translation / mapping functions */
-	const role_transl = {
-		layer_in_color	: (n, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
-		layer_in_name	: (n, lname) => {n.textContent = lname; },
-		layers_out		: (n, lname) => {mk_output_layers(n, lname); },
-	};
-
-	function process_roles(node, lname) {
+	function process_roles(node, key, val) {
 		const roleNodes = node.querySelectorAll('[data-role]');
 		roleNodes.forEach(node => {
 			const role = node.dataset.role;
 			if(role_transl[role])
-				role_transl[role](node, lname);
+				role_transl[role](node, key, val);
 			else
 				console.log("process_roles / missing role mapping:", role);
 		});
 	}
 
-	Object.keys(config.layer_map).forEach(l => {
-		const tr = tr_template.cloneNode(true);
-		process_roles(tr, l);
-		tbody.appendChild(tr);
-	});
+	for (const [key, val] of Object.entries(entries)) {
+		const cloned = template.content.cloneNode(true);
+		process_roles(cloned, key, val);
+		dst_parent.append(cloned);
+	}
 }
 
+/* Called when user changed a preview color for the kicad preview */
+function kicad_preview_color_changed(evt) {
+	const node = evt.target;
+	const input_layer = node.name;
+	const color = node.dataset.color;
+	const cfg = config.kicad_preview.layer_map;
+
+	cfg[input_layer] = color;
+	//console.log(input_layer, color);
+
+	fpgen.kicad_output.SVG_gen?.update_layer(input_layer);
+
+	if (input_layer === 'F.Mask') {
+		/* Black silkscreen only makes sense for white soldermask. */
+		const silkscreen_color = (node.id.indexOf('_white') >= 0) ? '#000000' : '#ffffff';
+		if (silkscreen_color !== cfg['F.SilkS']) {
+			cfg['F.SilkS'] = silkscreen_color;
+			fpgen.kicad_output.SVG_gen?.update_layer('F.SilkS');
+
+			/* Update Silkscreen color */
+			document.getElementById('preview_silkscreen_color').style.backgroundColor = silkscreen_color;
+			document.getElementById('preview_silkscreen_cname').textContent =
+				(silkscreen_color === '#000000') ? 'black' : 'white';
+		}
+	}
+}
+
+/* Make the KiCad preview radio buttons for soldermask and surface finish.
+ * Call this only once when user chooses kicad output for the first time. */
+function mk_kicad_preview_radios() {
+	const mask_group   = document.getElementById('preview_soldermask_color');
+	const finish_group = document.getElementById('preview_finish_color');
+	const cfg = config.kicad_preview.layer_map;
+
+	let cfg_entry = 'F.Mask';
+
+	const role_transl = {
+		colorsel_input : (n, cname, col) => {
+			n.id   = `${cfg_entry}_col_${cname}`;
+			n.name = cfg_entry;
+			n.dataset.color = col;
+			n.checked = col === cfg[cfg_entry];
+		},
+		colorsel_label : (n, cname, col) => {
+			n.htmlFor = `${cfg_entry}_col_${cname}`;
+			n.appendChild(document.createTextNode(cname));
+		},
+		colorsel_color : (n, cname, col) => { n.style.backgroundColor = col; },
+	};
+
+	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, role_transl);
+	mask_group.addEventListener('change', kicad_preview_color_changed);
+
+	/* set initial silkscreen color */
+	document.getElementById('preview_silkscreen_color').style.backgroundColor = cfg.silkscreen_color;
+	document.getElementById('preview_silkscreen_cname').textContent =
+		(cfg.silkscreen_color === '#000000') ? 'black' : 'white';
+
+	cfg_entry = 'F.Cu';
+	adopt_template(finish_group, 'color_sel_radiobtn', surface_colors, role_transl);
+	finish_group.addEventListener('change', kicad_preview_color_changed);
+}
+
+/* Called when user changed an entry of the SVG layer map.
+ * Layer map: 1 KiCad input layer -> 1 SVG output color */
+function SVG_layermap_changed(evt) {
+	const node   = evt.target;
+	const layer_active = !node.disabled;
+	const input_layer  = node.dataset.input_layer;
+	const color = layer_active ? node.value : null;
+	const cfg = config.SVG_output;
+	cfg.layer_map[input_layer] = color; // update config
+
+	if (!fpgen.SVG_output.SVG_gen)
+		return;
+
+	/* Invoke SVG gen update method */
+	fpgen.SVG_output.SVG_gen.update_layer(input_layer);
+
+	/* Update knockout warning visibility */
+	document.getElementById('knockout_warning').hidden = !SVG_has_masks(fpgen.SVG_output.SVG);
+}
+
+/* Called when user changed an entry of the kicad -> kicad layer map.
+ * This map is different from the SVG layer map:
+ * 1 KiCad input layer -> N KiCad output layer(s) */
+function kicad_layermap_changed(evt) {
+	const node = evt.target;
+	const input_layer   = node.dataset.input_layer;
+	const output_layers = ((node.value === 'Unassigned') ? [] : node.value.split(' + '));
+	const cfg = config.kicad_output;
+	cfg.layer_map[input_layer] = output_layers;
+
+	if (!source_pcb)
+		return;
+
+	/* Clear old SVG first */
+	document.getElementById('svg_display').replaceChildren();
+
+	/* Invalidate old stuff first */
+	delete fpgen.kicad_output.SVG;
+	delete fpgen.kicad_output.SVG_gen;
+	delete fpgen.kicad_output.preview_fp;
+
+	update_preview('kicad');
+}
+
+/* Make layer map table for KiCad or SVG - depending on ttype */
+function mk_layermap_table(ttype) {
+	const tbody = document.getElementById('tb_layermap_'+ttype);
+	const kicad_mode = (ttype === 'kicad');
+	const svg_mode   = (ttype === 'SVG');
+
+	function mk_kicad_output_layers(sel_node, input_layer) {
+		/* only keep node when in KiCad -> KiCad mode */
+		if (!kicad_mode) {
+			sel_node.remove();
+			return;
+		}
+
+		/* create output layer options */
+		sel_node.dataset.input_layer = input_layer;
+		kicad_output_layers.forEach(ols_entry => {
+			const opt = document.createElement("option");
+			opt.value = ols_entry;
+			opt.text = ols_entry;
+			opt.selected = config.kicad_output.layer_map[input_layer].join(' + ') === ols_entry;
+			sel_node.add(opt);
+		});
+
+		/* attach change event handler */
+		sel_node.addEventListener('change', kicad_layermap_changed);
+	}
+
+	function mk_svg_output_selection(node, input_layer) {
+		/* only keep node when in KiCad -> SVG mode */
+		if (!svg_mode) {
+			node.remove();
+			return;
+		}
+
+		/* create output layer options */
+		node.dataset.input_layer = input_layer;
+		node.value = config.SVG_output.layer_map[input_layer] ?? "#000000";
+
+		/* attach change event handler */
+		node.addEventListener('change', SVG_layermap_changed);
+	}
+
+	/* data translation / mapping functions */
+	const role_transl = {
+		layer_in_color	 : (n, idx, lname) => {n.style.backgroundColor = kicad_layer_colors[lname] ?? "#ffffff"; },
+		layer_in_name	 : (n, idx, lname) => {n.textContent = lname; },
+		kicad_layers_out : (n, idx, lname) => {mk_kicad_output_layers(n, lname); },
+		svg_color_out	 : (n, idx, lname) => {mk_svg_output_selection(n, lname); },
+
+		svg_layer_enable : (n, idx, lname) => {
+			if (!svg_mode) return;
+			n.hidden = false;
+			n.addEventListener('change', (evt) => {
+				const en = evt.target.checked;
+				const cin = n.previousElementSibling?.firstElementChild;
+				cin.disabled = !en;
+				if (en)
+					cin.classList.remove('opacity-50');
+				else
+					cin.classList.add('opacity-50');
+				cin.dispatchEvent(new Event('change'));
+			});
+		}, // svg_layer_enable
+	};
+
+	adopt_template(tbody, 'tr_layermap', kicad_input_layers, role_transl);
+}
+
+/* Collects the (missing) config options from UI for a KiCad PCB export */
 function update_config() {
 	const role_funcs = {
-		layer_map		: n => {
-			const input_layer   = n.dataset.input_layer;
-			const output_layers = ((n.value === 'Unassigned') ? [] : n.value.split(' + '));
-			config.layer_map[input_layer] = output_layers;
-		},
-		keep_3d_models	: n => { config.keep_3d_models = n.checked; },
-		z_ofs			: n => { config.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
+		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
+		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
 	};
 
 	document.querySelectorAll('[data-config]').forEach( n => {
 		const cfg_id = n.dataset.config;
-		role_funcs[cfg_id](n);
+		const func = role_funcs[cfg_id];
+		if (typeof(func) === 'function')
+			func(n);
+		else
+			console.log("missing role_func in update_config: "+cfg_id);
 	});
 	//console.log("config:", config);
+}
+
+function update_preview(output_mode) {
+	output_mode ??= document.getElementById('output_fmt').value;
+
+	//console.log("update_preview " + output_mode);
+
+	if (!output_mode || !source_pcb)
+		return;
+
+	const kicad_output = (output_mode === 'kicad');
+	const svg_output   = (output_mode === 'SVG');
+	const output = fpgen[output_mode+'_output'];
+
+	const display_node = document.getElementById('svg_display');
+
+	/* If we do not have an SVG for the selected output yet, generate it now. */
+	if (!output.SVG) {
+		/* For KiCad preview we let the KiCad -> KiCad generator do the initial
+		 * layer remapping. After this we use the preview colors on the result. */
+		if (kicad_output)
+			output.preview_fp ??= make_PCB_frontpanel();
+		const input_pcb = kicad_output ? output.preview_fp : source_pcb.pcb;
+		const cfg     = svg_output ? config.SVG_output : config.kicad_preview;
+		const SVG_gen = new SVG_FP(cfg, display_node);
+		const SVG     = pcb_to_fp(input_pcb, SVG_gen);
+
+		output.SVG_gen = SVG_gen;
+		output.SVG     = SVG;
+
+		// zoom to fit
+		SVG.style.width  = '100%';
+		SVG.style.height = 'auto';
+		// SVG.removeAttribute('style'); // testing
+	}
+	else {
+		/* If we already had an SVG for the selected output, we replace
+		 * the SVG. This isn't needed when we just created a fresh SVG,
+		 * because the finalize method of SVG generator already did the replace. */
+		display_node.replaceChildren(output.SVG);
+	}
+
+	/* Update knockout warning visibility */
+	document.getElementById('knockout_warning').hidden = !(svg_output && SVG_has_masks(fpgen.SVG_output.SVG));
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
@@ -127,6 +326,12 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	let output_info = "No input file loaded yet.";
 	let version_unsupported = false;
 	let have_data = false;
+
+	fpgen_reset();
+
+	/* Clear old SVG first */
+	document.getElementById('svg_display').replaceChildren(
+		document.createTextNode('No data yet.'));
 
 	try {
 		source_pcb = {
@@ -137,6 +342,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	} catch(e) {}
 
 	document.getElementById('download_pcb').disabled = !have_data;
+	document.getElementById('download_SVG').disabled = !have_data;
 	if(have_data) {
 		/* get & check input file KiCad version */
 		const kicad_ver = source_pcb.pcb.find(e => e[0] === "generator_version")?.[1];
@@ -148,8 +354,10 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		 * If source_pcb.kicad_ver is undefined, the input file is probably <9.0
 		 * parseFloat will return NaN then and NaN >= 10.0 is false, so 9.0 output will be used.
 		 */
-		config.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
-		output_info = "Output KiCad version: " + config.output_kicad_version;
+		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
+		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
+
+		update_preview();
 	}
 	else {
 		const modalElement = document.getElementById('error-modal');
@@ -171,37 +379,146 @@ function fileReader(e, loader) {
 	reader.readAsText(file);
 }
 
+async function fp_download(fp, parms) {
+	const fname  = source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel"+parms.ext);
+	const blobby = new Blob([fp], {type: parms.type});
+
+	if (window.showSaveFilePicker != null) {
+		const fileHandle = await window.showSaveFilePicker({
+			startIn: 'desktop',
+			suggestedName: fname,
+			types: [{
+				description: parms.desc,
+				/* '_' in extension isn't allowed, so we cannot pass ".kicad_pcb" here.
+				 * Using emtpy extensions array instead and relying on suggestedName. */
+				accept: { [parms.type]: [] },
+			}],
+		});
+		const fileStream = await fileHandle.createWritable();
+		await fileStream.write(blobby);
+		await fileStream.close();
+	} else { // window.showSaveFilePicker not available
+		const    a = document.createElement("a");
+		a.href     = window.URL.createObjectURL(blobby);
+		a.download = fname;
+		a.click();
+		URL.revokeObjectURL(a.href);
+	}
+}
+
+async function SVG_download(ref_svg) {
+	ref_svg ??= document.getElementById('svg_display').firstElementChild;
+
+	/* Make a clone with the style attribute removed */
+	const svg = ref_svg.cloneNode(true);
+	svg.removeAttribute('style');
+
+	if (!svg.getAttribute('xmlns'))
+		svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+	if (!svg.getAttribute('xmlns:xlink'))
+		svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+	const serializer = new XMLSerializer();
+	let svg_str = serializer.serializeToString(svg);
+	if (!svg_str.startsWith('<?xml'))
+		svg_str = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + svg_str;
+
+	fp_download(svg_str, {
+		ext 	: ".svg",
+		type	: "image/svg+xml",
+		desc	: "SVG Vector Graphic",
+	});
+}
+
+function show_container(div, show) {
+	if (show)
+		document.getElementById(div).classList.remove('d-none');
+	else
+		document.getElementById(div).classList.add('d-none');
+}
+
+function output_fmt_changed(evt) {
+	const node = evt.target;
+	const output_mode  = node.value;
+	const kicad_output = (output_mode === 'kicad');
+	const svg_output   = (output_mode === 'SVG');
+	const output = fpgen[output_mode+'_output'];
+
+	/* Create config nodes for selected output if not yet done */
+	if(!output.ui_init_done) {
+		output.ui_init_done = true;
+		//console.log("ui_init", output_mode);
+		mk_layermap_table(output_mode);
+		if(kicad_output)
+			mk_kicad_preview_radios();
+	}
+
+	/* Config card */
+	show_container('output_info_no_fmt', false);
+	show_container('cfg_kicad', kicad_output);
+	show_container('cfg_SVG',   svg_output);
+
+	/* Preview card */
+	show_container('kicad_preview_cfg', kicad_output);
+	show_container('svg_preview_cfg',   svg_output);
+	update_preview(output_mode);
+
+	/* Download card */
+	show_container('cfg_empty', false);
+	show_container('kicad_output_info', kicad_output);
+	document.getElementById('download_pcb').hidden = !kicad_output;
+	document.getElementById('download_SVG').hidden = !svg_output;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 
-	/* clear value on click to allow reloading the same file */
+	/* Clear value on click to allow reloading the same file */
 	const file_upload = document.getElementById('kicad_file_upload');
 	file_upload.addEventListener('click', e => e.target.value="");
 	file_upload.addEventListener('change', e => fileReader(e,KicadLoader), false);
 
-	/* add click to drop note */
+	/* Add click to drop note */
 	document.getElementById('drop_note').addEventListener('click', () => { file_upload.click(); });
 
 	ui_dropzone_setup(file_upload);
 
-	/* Dowload FP */
-	const dl_btn = document.getElementById('download_pcb');
-	dl_btn.disabled = true;
-	dl_btn.addEventListener('click', () => {
+	/* Output format selection */
+	document.getElementById('output_fmt').addEventListener('input', output_fmt_changed);
+
+	/* Preview background selection */
+	document.getElementById('preview_bg').addEventListener('input', (evt) => {
+		const color = evt.target.value;
+		const disp  = document.getElementById('svg_display');
+		disp.style.backgroundColor = color;
+	});
+
+	/* Dowload PCB FP */
+	const pcb_dl_btn = document.getElementById('download_pcb');
+	pcb_dl_btn.disabled = true;
+	pcb_dl_btn.addEventListener('click', () => {
 		update_config();
-		make_frontpanel();
-		pcb_download();
+		const kicad_pcb = encode_sexpression(make_PCB_frontpanel());
+		fp_download(kicad_pcb, {
+			ext 	: ".kicad_pcb",
+			type	: "text/plain",
+			desc	: "KiCad PCB file",
+		});
+	});
+
+	/* Dowload SVG FP */
+	const svg_dl_btn = document.getElementById('download_SVG');
+	svg_dl_btn.addEventListener('click', () => {
+		SVG_download(fpgen.SVG_output.SVG);
 	});
 
 	/* setup theme switching */
 	ui_theme_setup();
 
-	/* make KiCad Layer mapping table */
-	mk_kc_layermap_table();
-
 	/* apply default settings from config & sanitize z_ofs input */
-	document.getElementById('cb_keep_3d').checked = config.keep_3d_models;
+	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models;
 	const zofs_input = document.getElementById('z_ofs');
-	zofs_input.value = config.models_offset_adjust[2];
+	zofs_input.value = config.kicad_output.models_offset_adjust[2];
 	zofs_input.addEventListener('input', (e) => {
 		const val = e.target.value;
 		e.target.value = val.replace(/[^0-9.-]/g, '');

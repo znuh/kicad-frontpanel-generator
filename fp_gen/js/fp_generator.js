@@ -1,21 +1,98 @@
 /* Copyright (c) 2025, 2026 Benedikt Heinz <zn000h AT gmail.com>
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
-let source_pcb = null;
-let frontpanel = null;
 
+/* Further ideas:
+ * - save config to / load from localStorage
+ * - read config from User.Comments text(s) in KiCad input board
+ * - UI: button + modal to generate & show User.Comments config entry for current config
+ * - UI: display warning when knockout text is used
+ * - UI: option to keep/convert/drop knockout text for SVG output (laser fps)
+ */
+
+/* Holds the input KiCad PCB */
+let source_pcb = null;
+
+/* All the config stuff goes into this object: */
 const config = {
-	keep_3d_models 			: true,
-	models_offset_adjust	: [0, 0, -8],
-	layer_map : {
-		'User.1'	:	["Edge.Cuts"],
-		//'User.2'	:	["B.SilkS"],
-		'User.2'	:	["B.Mask"],
-		'User.3'	:	["F.SilkS"],
-		'User.4'	:	["F.Cu", "F.Mask"],
-		//'F.CrtYd'	:	["B.CrtYd"],
+
+	kicad_output : {
+		keep_3d_models 			: true,
+		models_offset_adjust	: [0, 0, -8],
+		layer_map : {
+			'User.1'	:	["Edge.Cuts"],
+			'User.2'	:	["F.Mask"],
+			//'User.2'	:	["B.Mask"],
+			'User.3'	:	["F.SilkS"],
+			//'User.4'	:	["F.Cu", "F.Mask"],
+			'User.4'	:	["F.Cu"],
+		},
+	},
+
+	SVG_output : {
+		layer_map : {
+			'User.1' : '#c2c2c2',
+			'User.2' : '#5994dc',
+			'User.3' : '#b4dbd2',
+			'User.4' : '#d8c852',
+			/*
+			'User.1' : '#ff0000',
+			'User.2' : '#00ff00',
+			'User.3' : '#0000ff',
+			'User.4' : '#ff8000',
+			*/
+		},
+		padding 	 : 5,
+		scale_text 	 : 1.5,
+		font		 : "Arial, Helvetica, sans-serif",
+		//fill_opacity : 0.5,
+	},
+
+	kicad_preview : {
+		layer_map : {
+			'F.Cu'      : '#fbdf17',
+			'F.Mask'    : '#000000',
+			'F.SilkS'   : '#ffffff',
+			'Edge.Cuts' : '#808080',
+		},
+		background : FR4_color,
 	},
 };
+
+/* Big static object holding all our internal stuff. */
+const fpgen = {
+
+	/* ui_init_done: true if UI init done ;-)
+	 * SVG: SVG object which can be displayed in preview
+	 * SVG_gen: The SVG generator object
+	 *
+	 * These values are null/undefined if user never selected the
+	 * corresponding output format. */
+
+	SVG_output : {
+		//ui_init_done	: null,
+		//SVG			: null,
+		//SVG_gen		: null,
+	},
+
+	kicad_output : {
+		//ui_init_done	: null,
+		//preview_fp	: null, // generated frontpanel for preview
+		//SVG			: null,
+		//SVG_gen		: null,
+	},
+};
+
+function fpgen_reset() {
+	source_pcb = null;
+
+	delete fpgen.SVG_output.SVG;
+	delete fpgen.SVG_output.SVG_gen;
+
+	delete fpgen.kicad_output.preview_fp;
+	delete fpgen.kicad_output.SVG;
+	delete fpgen.kicad_output.SVG_gen;
+}
 
 function encode_sexpression(item, ind) {
 	if (!Array.isArray(item))
@@ -38,37 +115,36 @@ function encode_sexpression(item, ind) {
 	return buf + ")";
 }
 
-async function pcb_download() {
-	const fname  = source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel.kicad_pcb");
-	const blobby = new Blob([frontpanel.kicad_pcb], {type: "text/plain"});
-
-	if (window.showSaveFilePicker != null) {
-		const fileHandle = await window.showSaveFilePicker({
-			startIn: 'desktop',
-			suggestedName: fname,
-			types: [{
-				description: 'KiCad PCB file',
-				accept: { 'text/plain': ['.kicadpcb'] },
-			}],
-		});
-		const fileStream = await fileHandle.createWritable();
-		await fileStream.write(blobby);
-		await fileStream.close();
-	} else { // window.showSaveFilePicker not available
-		const    a = document.createElement("a");
-		a.href     = window.URL.createObjectURL(blobby);
-		a.download = fname;
-		a.click();
-		URL.revokeObjectURL(a.href);
+/* look up a token by following a given path from elem
+ * e.g. find_token(model, "offset", "xyz") */
+function find_token(elem, ...path) {
+	for (const tok of path) {
+		let found = false;
+		for (i=1; i<elem.length; i++) {
+			const ce = elem[i];
+			if (Array.isArray(ce) && (ce[0] == tok)) {
+				elem = ce;
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			return null;
 	}
+	return elem;
 }
 
-/* convert original PCB to frontpanel PCB (+ SVG) */
-function pcb_to_fp(pcb) {
-	const layer_map = config.layer_map;
+/* Convert original PCB to frontpanel
+ *
+ * pcb: source PCB (parsed KiCad file)
+ * gen: generator */
+function pcb_to_fp(input_pcb, gen) {
+	/* read + cache a few things from generator */
+	const layer_map    = gen.layer_map;
+	const output_kicad = gen.output_fmt === "kicad_pcb";
 
-	/* determines if a frontpanel layer (from the layer_map)
-	 * is used somewhere in the element - does a recursive search */
+	/* determines if a frontpanel layer from layer_map is used
+	 * somewhere in the element - does a recursive search */
 	function test_fp_layer(elem) {
 		if(!Array.isArray(elem))
 			return false;
@@ -78,97 +154,27 @@ function pcb_to_fp(pcb) {
 			return elem.some((e) => test_fp_layer(e));
 	}
 
-	/* look up a token by following a given path from elem
-	 * e.g. find_token(model, "offset", "xyz") */
-	function find_token(elem, ...path) {
-		for (const tok of path) {
-			let found = false;
-			for (i=1; i<elem.length; i++) {
-				const ce = elem[i];
-				if (Array.isArray(ce) && (ce[0] == tok)) {
-					elem = ce;
-					found = true;
-					break;
-				}
-			}
-			if (!found)
-				return null;
-		}
-		return elem;
-	}
-
-	/* convert a graphics element for frontpanel
-	 * (can be either gr_* or fp_*) */
-	function gr_conv(src) {
-		let src_layer_tok = find_token(src, "layer");
-		let src_layer = JSON.parse(src_layer_tok?.[1] ?? '""');
-		let dst_layers = layer_map[src_layer] ?? [];
-		let res = [];
-
-		/* copy & replace layer - create as many copies as target layers
-		 * (one input element can create multiple output elements (e.g. gr_text/etc. in Cu+Mask)) */
-		for (dst_layer of dst_layers) {
-			let clone = structuredClone(src);
-			let layer_tok = find_token(clone, "layer");
-			layer_tok[1] = '"' + dst_layer + '"';
-			res.push(clone);
-		}
-
-		return res;
-	}
-
-	/* footprint tokens we do not want to copy to the frontpanel */
-	const footprint_ignore = {
-		descr : true, tags : true, property : true, pad : true
-	}
-
-	/* convert footprint for frontpanel */
-	function footprint_conv(src) {
-		const new_name = src[1].replace(/\w+?:/,'frontpanel:');		/* replace library name with 'frontpanel' */
-		let res = ["footprint", new_name];							/* create footprint token */
-
-		/* walk through remaining elements */
-		for (let i=2; i<src.length; i++) {
-			const se = src[i];
-
-			/* pass graphic elements on to gr_conv */
-			if (se[0].startsWith("fp_"))
-				res.push(...gr_conv(se));
-
-			/* deal with 3D model */
-			else if ((se[0] == "model") && config.keep_3d_models) {
-				let model = structuredClone(se);
-				let ofs = find_token(model, "offset", "xyz");
-				for(let j=0; j<3; j++)
-					ofs[j+1] += config.models_offset_adjust[j];
-				res.push(model);
-			}
-
-			/* copy non-ignored sub-elements */
-			else if (!footprint_ignore[se[0]])
-				res.push(structuredClone(se));
-		}
-		return [res];
-	}
-
 	/* convert elements to frontpanel-elements */
-	function conv_element(res, elem) {
+	function conv_element(elem) {
 		const is_gr = elem[0].startsWith("gr_");
 		const is_footprint = (elem[0] == "footprint");
+
 		/* ignore/drop unneeded elements (only keep footprints and gr_* elements) */
 		if ((is_footprint || is_gr) && test_fp_layer(elem)) {
-			const new_elements = is_gr ? gr_conv(elem) : footprint_conv(elem);
-			res.push(...new_elements);
+			if (is_footprint)
+				gen.add_footprint(elem);
+			else
+				gen.add_gr(elem);
 		}
-		return res;
 	}
 
-	const fp_template = (config.output_kicad_version < 10.0) ? fp_template_kicad9 : fp_template_kicad10;
-	const fp_pcb = structuredClone(fp_template);	/* make a copy of empty PCB template */
-	return pcb.reduce(conv_element, fp_pcb);		/* populate empty PCB with frontpanel elements */
+	input_pcb.forEach(conv_element);	/* convert all elements */
+	return gen.finalize();
 }
 
-function make_frontpanel() {
-	frontpanel = { pcb : pcb_to_fp(source_pcb.pcb) };
-	frontpanel.kicad_pcb = encode_sexpression(frontpanel.pcb);
+function make_PCB_frontpanel() {
+	const fp_template = (config.kicad_output.output_kicad_version < 10.0) ? 
+		fp_template_kicad9 : fp_template_kicad10;
+	const gen_kicad = new Kicad_FP(config.kicad_output, fp_template);
+	return pcb_to_fp(source_pcb.pcb, gen_kicad);
 }
