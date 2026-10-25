@@ -7,6 +7,9 @@
  * - read config from User.Comments text(s) in KiCad input board
  * - UI: button + modal to generate & show User.Comments config entry for current config
  * - UI: option to keep/convert/drop knockout text for SVG output (laser fps)
+ *
+ * FIXME:
+ * - allow enabling a layer when input was loaded with layer disabled
  */
 
 /* Holds the input KiCad PCB */
