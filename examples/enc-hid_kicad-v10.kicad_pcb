@@ -27762,6 +27762,30 @@
 		(layer "User.3")
 		(uuid "0ce96532-2b6e-4195-8f7d-8f52e12a674b")
 	)
+	(gr_text "Frontpanel:\nTest1"
+		(at 153.4 65.1 0)
+		(layer "Cmts.User")
+		(uuid "6b771ede-4a59-4887-9a2f-55f15f236607")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "FrontpanelGenerator:\nTest2"
+		(at 153.4 69.8 0)
+		(layer "Cmts.User")
+		(uuid "746e23ce-4f89-406e-b79e-576c1ec3b608")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "enc-hid v1\nznu 2025"
 		(at 143.6 89.6 0)
 		(layer "B.SilkS")

@@ -320,6 +320,21 @@ function update_preview(output_mode) {
 	document.getElementById('knockout_warning').hidden = !(svg_output && SVG_has_masks(fpgen.SVG_output.SVG));
 }
 
+function import_config_pcb() {
+	/* Find config in gr_text elements with layer == Cmts.User
+	 * There can be multiple configs - e.g. one for KiCad output
+	 * and another one for SVG output. */
+	const cfgs = source_pcb.pcb.filter(e => {
+		if (!(e[0] === "gr_text" && e[1]?.toLowerCase().startsWith('"frontpanel')))
+			return false;
+		let layer = find_token(e, "layer")?.[1];
+		layer = (layer.charAt(0) === "\"") ? JSON.parse(layer) : layer;
+		return layer === "Cmts.User";
+	});
+	// TBD: parse & apply cfgs - change/update cfgs in UI if values changed
+	console.log(cfgs);
+}
+
 function KicadLoader(str, fname, server_path, mod_time) {
 	const supported_kicad_versions = {"9.0" : true, "10.0" : true};
 	let version_info = "No file loaded yet.";
@@ -356,6 +371,8 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		 */
 		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
 		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
+
+		import_config_pcb();
 
 		update_preview();
 	}
