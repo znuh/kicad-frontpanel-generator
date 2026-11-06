@@ -324,14 +324,16 @@ function import_config_pcb() {
 	/* Find config in gr_text elements with layer == Cmts.User
 	 * There can be multiple configs - e.g. one for KiCad output
 	 * and another one for SVG output. */
-	const cfgs = source_pcb.pcb.filter(e => {
+	const cfg_texts = source_pcb.pcb.filter(e => {
 		if (!(e[0] === "gr_text" && e[1]?.toLowerCase().startsWith('"frontpanel')))
 			return false;
 		let layer = find_token(e, "layer")?.[1];
 		layer = (layer.charAt(0) === "\"") ? JSON.parse(layer) : layer;
 		return layer === "Cmts.User";
 	});
+	if (!cfg_texts.length) return;
 	// TBD: parse & apply cfgs - change/update cfgs in UI if values changed
+	const cfgs = cfg_texts.map(te => import_text(te));
 	console.log(cfgs);
 }
 

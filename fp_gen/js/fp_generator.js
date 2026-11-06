@@ -117,6 +117,31 @@ function encode_sexpression(item, ind) {
 	return buf + ")";
 }
 
+/* Import/convert/sanitize text from kicad fp_text or gr_text element.
+ * Returns array of text lines. */
+function import_text(se) {
+	/* Text examples:
+	 *  fp_text value 20k
+	 *  fp_text user "foobar"
+	 *  gr_text bot
+	 *  gr_text "AP3513E"
+	 * => use se[2] for fp_text, se[1] otherwise
+	 * => pass through JSON.parse if first char is a double quote */
+	let actual_text = ((se[0] === "fp_text") ? se[2] : se[1]);
+
+	/* Text in KiCad can include at least 'tab' as unescaped 0x09 bytes.
+	 * So we need to sanitize the input before throwing it into JSON.parse. */
+	actual_text = actual_text.replace(/[\x00-\x1f]/g, '');
+
+	if (actual_text.charAt(0) === "\"")
+		actual_text = JSON.parse(actual_text);
+
+	/* KiCad encodes '"' in text as '{dblquote}', so we have to replace these. */
+	actual_text = actual_text.replaceAll('{dblquote}','"');
+
+	return actual_text.split("\n");
+}
+
 /* look up a token by following a given path from elem
  * e.g. find_token(model, "offset", "xyz") */
 function find_token(elem, ...path) {
