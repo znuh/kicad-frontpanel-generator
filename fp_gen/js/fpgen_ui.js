@@ -535,9 +535,9 @@ document.addEventListener("DOMContentLoaded", function() {
 	ui_theme_setup();
 
 	/* apply default settings from config & sanitize z_ofs input */
-	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models;
+	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
 	const zofs_input = document.getElementById('z_ofs');
-	zofs_input.value = config.kicad_output.models_offset_adjust[2];
+	zofs_input.value = config.kicad_output?.models_offset_adjust?.[2] ?? 8;
 	zofs_input.addEventListener('input', (e) => {
 		const val = e.target.value;
 		e.target.value = val.replace(/[^0-9.-]/g, '');
