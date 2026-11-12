@@ -362,7 +362,7 @@ function import_config_pcb() {
 				const is_color = tl.startsWith('#');
 				console.log("assign "+tl, is_layer, is_color);
 				if (!is_color && !is_layer)
-					throw new Error('Config syntax error - invalid layer assignment: '+tl);
+					throw new Error('Config syntax error - invalid layer assignment: '+tl+'\nLine: '+line);
 				// TBD: assign target layers
 			});
 		}
@@ -373,11 +373,11 @@ function import_config_pcb() {
 					break;
 				case 'z_ofs':
 					if (isNaN(vals[0]))
-						throw new Error('Config syntax error - invalid value for z_ofs: '+vals[0]);
+						throw new Error('Config syntax error - invalid value for z_ofs: '+vals[0]+'\nLine: '+line);
 					// TBD
 					break;
 				default:
-					throw new Error('Config syntax error - unknown option: '+key);
+					throw new Error('Config syntax error - unknown option: '+key+'\nLine: '+line);
 			}
 		}
 	});
@@ -390,7 +390,7 @@ function error_message(parms) {
 	if (parms.html)
 		txt_el.innerHTML = parms.html;
 	else
-		txt_el.textContent = parms.text;
+		txt_el.innerText = parms.text;
 
 	const modalElement = document.getElementById('error-modal');
 	bootstrap.Modal.getOrCreateInstance(modalElement).show();
@@ -433,15 +433,24 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
 		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
 
-		import_config_pcb();
+		/* See if we find a Frontpanel Configuration Text in the PCB */
+		try {
+			import_config_pcb();
+		} catch(e) {
+			error_message({
+				title : 'Error Parsing Frontpanel Configuration',
+				text  : e,
+			});
+		}
 
 		update_preview();
 	}
-	else
+	else {
 		error_message({
 			title : 'Loading input file failed',
 			html  : '<b>Could not load input file.</b><br>Make sure you are using a <code>.kicad_pcb</code> file for a recent KiCad version.'
 		});
+	}
 
 	document.getElementById('kicad_version_info').textContent = version_info;
 	document.querySelectorAll('[data-role="version_warning"]').forEach(
