@@ -383,6 +383,19 @@ function import_config_pcb() {
 	});
 }
 
+function error_message(parms) {
+	document.getElementById('error-modal-title').textContent = parms.title;
+
+	const txt_el = document.getElementById('error-modal-text');
+	if (parms.html)
+		txt_el.innerHTML = parms.html;
+	else
+		txt_el.textContent = parms.text;
+
+	const modalElement = document.getElementById('error-modal');
+	bootstrap.Modal.getOrCreateInstance(modalElement).show();
+}
+
 function KicadLoader(str, fname, server_path, mod_time) {
 	const supported_kicad_versions = {"9.0" : true, "10.0" : true};
 	let version_info = "No file loaded yet.";
@@ -424,10 +437,11 @@ function KicadLoader(str, fname, server_path, mod_time) {
 
 		update_preview();
 	}
-	else {
-		const modalElement = document.getElementById('error-modal');
-		bootstrap.Modal.getOrCreateInstance(modalElement).show();
-	}
+	else
+		error_message({
+			title : 'Loading input file failed',
+			html  : '<b>Could not load input file.</b><br>Make sure you are using a <code>.kicad_pcb</code> file for a recent KiCad version.'
+		});
 
 	document.getElementById('kicad_version_info').textContent = version_info;
 	document.querySelectorAll('[data-role="version_warning"]').forEach(
