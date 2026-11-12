@@ -332,9 +332,19 @@ function import_config_pcb() {
 		return layer === "Cmts.User";
 	});
 	if (!cfg_texts.length) return;
-	// TBD: parse & apply cfgs - change/update cfgs in UI if values changed
-	const cfgs = cfg_texts.map(te => import_text(te));
-	console.log(cfgs);
+	//const cfgs = cfg_texts.map(te => import_text(te));
+	//console.log(cfgs);
+
+	/* cfg_texts[0] contains 1st Frontpanel: text block,
+	 * cfg_texts[1] the second - if there is one - and so on.
+	 * - import_text converts the text string to a string array with one line == one element.
+	 * - slice(1) drops the initial "Frontpanel:" marker line.
+	 * - flat() is used to make a single array from all config lines spanning all config texts
+	 */
+	cfg_texts.map(te => import_text(te).slice(1)).flat().forEach(line => {
+		// TBD: parse & apply cfgs - change/update cfgs in UI if values changed
+		console.log(line);
+	});
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
