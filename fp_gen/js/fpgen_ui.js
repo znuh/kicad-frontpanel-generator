@@ -331,19 +331,55 @@ function import_config_pcb() {
 		layer = (layer.charAt(0) === "\"") ? JSON.parse(layer) : layer;
 		return layer === "Cmts.User";
 	});
+
 	if (!cfg_texts.length) return;
-	//const cfgs = cfg_texts.map(te => import_text(te));
-	//console.log(cfgs);
+
+	// Regexp for matching KiCad PCB layers
+	const pcb_layer_re = /^\w+\.\w+$/;
+	const is_pcb_layer = s => !!s.match(pcb_layer_re);
+
+	/* Regexp for matching:
+	 * 1) numbers - e.g. (-)3.453 (used for z_ofs value)
+	 * 2) hex rgb colors (e.g. #0033ff)
+	 * 3) KiCad layers (e.g. Cmts.User) and config keys (e.g. z_ofs, no_3d_models)
+	 * Group 3) is quite liberal. No strict sanity checking for valid KiCad layers. */
+	const cfg_re = /(-?\d+(\.\d+))|(#[\da-fA-F]{6})|([\w\.]+)/g;
 
 	/* cfg_texts[0] contains 1st Frontpanel: text block,
 	 * cfg_texts[1] the second - if there is one - and so on.
 	 * - import_text converts the text string to a string array with one line == one element.
 	 * - slice(1) drops the initial "Frontpanel:" marker line.
-	 * - flat() is used to make a single array from all config lines spanning all config texts
-	 */
+	 * - flat() is used to make a single array from all config lines spanning all config texts */
 	cfg_texts.map(te => import_text(te).slice(1)).flat().forEach(line => {
-		// TBD: parse & apply cfgs - change/update cfgs in UI if values changed
-		console.log(line);
+		const vals = [...line.matchAll(cfg_re)].map(cap => !isNaN(cap[0]) ? +cap[0] : cap[0]);
+		const key = vals.shift();
+		const key_is_layer = is_pcb_layer(key);
+		console.log(key, key_is_layer, vals);
+
+		if (key_is_layer) {
+			vals.forEach(tl => {
+				const is_layer = is_pcb_layer(tl);
+				const is_color = tl.startsWith('#');
+				console.log("assign "+tl, is_layer, is_color);
+				if (!is_color && !is_layer)
+					throw new Error('Config syntax error - invalid layer assignment: '+tl);
+				// TBD: assign target layers
+			});
+		}
+		else { // non-layer config options
+			switch(key) {
+				case 'no_3d_models':
+					// TBD
+					break;
+				case 'z_ofs':
+					if (isNaN(vals[0]))
+						throw new Error('Config syntax error - invalid value for z_ofs: '+vals[0]);
+					// TBD
+					break;
+				default:
+					throw new Error('Config syntax error - unknown option: '+key);
+			}
+		}
 	});
 }
 
