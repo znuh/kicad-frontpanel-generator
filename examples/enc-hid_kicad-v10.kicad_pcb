@@ -27762,7 +27762,7 @@
 		(layer "User.3")
 		(uuid "0ce96532-2b6e-4195-8f7d-8f52e12a674b")
 	)
-	(gr_text "Frontpanel:\nTest1"
+	(gr_text "Frontpanel:\nUser.1 -> Edge.Cuts #ff0000\n User.2: B.Mask, #00ff00\nUser.3 / F.SilkS\nUser.4 F.Cu + F.Mask / #0000ff\nUser.4 F.Cu+F.Mask / #0000ff"
 		(at 153.4 65.1 0)
 		(layer "Cmts.User")
 		(uuid "6b771ede-4a59-4887-9a2f-55f15f236607")
@@ -27774,8 +27774,8 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "FrontpanelGenerator:\nTest2"
-		(at 153.4 69.8 0)
+	(gr_text "FrontpanelGenerator:\nUser.1 -> #0000ff\n User.2: #ff0000\nUser.3 : #00ff00\n User.4 -> #FF00FF\n no_3d_models\nz_ofs: -7.999"
+		(at 153.8 80.5 0)
 		(layer "Cmts.User")
 		(uuid "746e23ce-4f89-406e-b79e-576c1ec3b608")
 		(effects
