@@ -258,6 +258,18 @@ function mk_layermap_table(ttype) {
 	adopt_template(tbody, 'tr_layermap', kicad_input_layers, role_transl);
 }
 
+function apply_kicad_cfg(kc_cfg) {
+	config.kicad_output = kc_cfg;
+	// TBD: update UI
+	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
+	document.getElementById('z_ofs').value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
+}
+
+function apply_SVG_cfg(SVG_cfg) {
+	config.SVG_output = SVG_cfg;
+	// TBD: update UI
+}
+
 /* Collects the (missing) config options from UI for a KiCad PCB export */
 function update_config() {
 	const role_funcs = {
@@ -332,7 +344,34 @@ function import_config_pcb() {
 		return layer === "Cmts.User";
 	});
 
-	if (!cfg_texts.length) return;
+	if (!cfg_texts.length) return [null, null];
+
+	let kicad_output_cfg = null, SVG_output_cfg = null;
+
+	/* Sane base configs with all layers disabled */
+	function kc_cfg() {
+		kicad_output_cfg ??= {
+			keep_3d_models 			: true,
+			models_offset_adjust	: [0, 0, -8],
+			layer_map : {
+				'User.1' : [],
+				'User.2' : [],
+				'User.3' : [],
+				'User.4' : [],
+			},
+		};
+		return kicad_output_cfg;
+	}
+
+	function SVG_cfg() {
+		SVG_output_cfg ??= {
+			padding		: 5,
+			scale_text	: 1.5,
+			font		: "Arial, Helvetica, sans-serif",
+			layer_map 	: {},
+		};
+		return SVG_output_cfg;
+	}
 
 	// Regexp for matching KiCad PCB layers
 	const pcb_layer_re = /^\w+\.\w+$/;
@@ -361,26 +400,37 @@ function import_config_pcb() {
 				const is_layer = is_pcb_layer(tl);
 				const is_color = tl.startsWith('#');
 				console.log("assign "+tl, is_layer, is_color);
+
 				if (!is_color && !is_layer)
 					throw new Error('Config syntax error - invalid layer assignment: '+tl+'\nLine: '+line);
-				// TBD: assign target layers
+
+				// assign target layer to map
+				if (is_color)
+					SVG_cfg().layer_map[key] = tl;
+				else {
+					const target_layers = kc_cfg().layer_map[key];
+					if (!target_layers.includes(tl))
+						target_layers.push(tl);
+				}
 			});
 		}
 		else { // non-layer config options
 			switch(key) {
 				case 'no_3d_models':
-					// TBD
+					kc_cfg().keep_3d_models = false;
 					break;
 				case 'z_ofs':
 					if (isNaN(vals[0]))
 						throw new Error('Config syntax error - invalid value for z_ofs: '+vals[0]+'\nLine: '+line);
-					// TBD
+					kc_cfg().models_offset_adjust = [0, 0, vals[0]];
 					break;
 				default:
 					throw new Error('Config syntax error - unknown option: '+key+'\nLine: '+line);
 			}
 		}
 	});
+
+	return [kicad_output_cfg, SVG_output_cfg];
 }
 
 function error_message(parms) {
@@ -435,7 +485,11 @@ function KicadLoader(str, fname, server_path, mod_time) {
 
 		/* See if we find a Frontpanel Configuration Text in the PCB */
 		try {
-			import_config_pcb();
+			const [kc_cfg, SVG_cfg] = import_config_pcb();
+			if (kc_cfg)
+				apply_kicad_cfg(kc_cfg);
+			if (SVG_cfg)
+				apply_SVG_cfg(SVG_cfg);
 		} catch(e) {
 			error_message({
 				title : 'Error Parsing Frontpanel Configuration',
@@ -606,7 +660,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* apply default settings from config & sanitize z_ofs input */
 	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
 	const zofs_input = document.getElementById('z_ofs');
-	zofs_input.value = config.kicad_output?.models_offset_adjust?.[2] ?? 8;
+	zofs_input.value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
 	zofs_input.addEventListener('input', (e) => {
 		const val = e.target.value;
 		e.target.value = val.replace(/[^0-9.-]/g, '');
