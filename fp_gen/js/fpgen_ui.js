@@ -45,6 +45,24 @@ function SVG_has_masks(SVG) {
 	});
 }
 
+/* base_id: 'error-modal' for error modal ;)
+ *          or 'notify-toast' for a smol notification toast. */
+function ui_message(base_id, parms) {
+	document.getElementById(base_id+'-title').textContent = parms.title;
+
+	const txt_el = document.getElementById(base_id+'-text');
+	if (parms.html)
+		txt_el.innerHTML = parms.html;
+	else
+		txt_el.innerText = parms.text;
+
+	const element  = document.getElementById(base_id);
+	const instance = base_id.includes('toast') ?
+		bootstrap.Toast.getOrCreateInstance(element) :
+		bootstrap.Modal.getOrCreateInstance(element);
+	instance.show();
+}
+
 /* Setup file drop zone for .kicad_pcb files */
 function ui_dropzone_setup(finput) {
 	/* Do not open kicad files directly in browser */
@@ -433,19 +451,6 @@ function import_config_pcb() {
 	return [kicad_output_cfg, SVG_output_cfg];
 }
 
-function error_message(parms) {
-	document.getElementById('error-modal-title').textContent = parms.title;
-
-	const txt_el = document.getElementById('error-modal-text');
-	if (parms.html)
-		txt_el.innerHTML = parms.html;
-	else
-		txt_el.innerText = parms.text;
-
-	const modalElement = document.getElementById('error-modal');
-	bootstrap.Modal.getOrCreateInstance(modalElement).show();
-}
-
 function KicadLoader(str, fname, server_path, mod_time) {
 	const supported_kicad_versions = {"9.0" : true, "10.0" : true};
 	let version_info = "No file loaded yet.";
@@ -490,8 +495,14 @@ function KicadLoader(str, fname, server_path, mod_time) {
 				apply_kicad_cfg(kc_cfg);
 			if (SVG_cfg)
 				apply_SVG_cfg(SVG_cfg);
+			if (kc_cfg || SVG_cfg) {
+				ui_message('notify-toast', {
+					title : '🛈 Note',
+					text  : 'Layer map imported from Cmts.User text.',
+				});
+			}
 		} catch(e) {
-			error_message({
+			ui_message('error-modal', {
 				title : 'Error Parsing Frontpanel Configuration',
 				text  : e,
 			});
@@ -500,7 +511,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		update_preview();
 	}
 	else {
-		error_message({
+		ui_message('error-modal', {
 			title : 'Loading input file failed',
 			html  : '<b>Could not load input file.</b><br>Make sure you are using a <code>.kicad_pcb</code> file for a recent KiCad version.'
 		});
