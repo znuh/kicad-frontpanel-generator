@@ -101,6 +101,11 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 	}
 }
 
+function config_changed() {
+	// TBD: save to localStorage
+	console.log("TBD", config);
+}
+
 /* Called when user changed a preview color for the kicad preview */
 function kicad_preview_color_changed(evt) {
 	const node = evt.target;
@@ -286,24 +291,6 @@ function apply_kicad_cfg(kc_cfg) {
 function apply_SVG_cfg(SVG_cfg) {
 	config.SVG_output = SVG_cfg;
 	// TBD: update UI
-}
-
-/* Collects the (missing) config options from UI for a KiCad PCB export */
-function update_config() {
-	const role_funcs = {
-		keep_3d_models	: n => { config.kicad_output.keep_3d_models = n.checked; },
-		z_ofs			: n => { config.kicad_output.models_offset_adjust[2] = (parseFloat(n.value) || 0); },
-	};
-
-	document.querySelectorAll('[data-config]').forEach( n => {
-		const cfg_id = n.dataset.config;
-		const func = role_funcs[cfg_id];
-		if (typeof(func) === 'function')
-			func(n);
-		else
-			console.log("missing role_func in update_config: "+cfg_id);
-	});
-	//console.log("config:", config);
 }
 
 function update_preview(output_mode) {
@@ -650,7 +637,6 @@ document.addEventListener("DOMContentLoaded", function() {
 	const pcb_dl_btn = document.getElementById('download_pcb');
 	pcb_dl_btn.disabled = true;
 	pcb_dl_btn.addEventListener('click', () => {
-		update_config();
 		const kicad_pcb = encode_sexpression(make_PCB_frontpanel());
 		fp_download(kicad_pcb, {
 			ext 	: ".kicad_pcb",
@@ -668,13 +654,26 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* setup theme switching */
 	ui_theme_setup();
 
-	/* apply default settings from config & sanitize z_ofs input */
-	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
+	/* setup toggle for keep 3D models */
+	const keep_3d = document.getElementById('cb_keep_3d');
+	keep_3d.checked = config.kicad_output.keep_3d_models != false;
+	keep_3d.addEventListener('change', (e) => {
+		config.kicad_output.keep_3d_models = e.target.checked;
+		config_changed();
+	});
+
+	/* z_ofs default val & input sanitizer */
 	const zofs_input = document.getElementById('z_ofs');
 	zofs_input.value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
 	zofs_input.addEventListener('input', (e) => {
 		const val = e.target.value;
 		e.target.value = val.replace(/[^0-9.-]/g, '');
+	});
+
+	/* add z_ofs event handler */
+	zofs_input.addEventListener('change', (e) => {
+		config.kicad_output.models_offset_adjust = [0, 0, (parseFloat(e.target.value) || 0)];
+		config_changed();
 	});
 
 });
