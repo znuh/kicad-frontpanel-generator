@@ -101,9 +101,10 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 	}
 }
 
-function config_changed() {
-	// TBD: save to localStorage
-	console.log("TBD", config);
+function save_config_ls() {
+	const fname = source_pcb?.fname ?? 'no_file';
+	// save to localStorage
+	localStorage.setItem(fname, JSON.stringify(config));
 }
 
 /* Called when user changed a preview color for the kicad preview */
@@ -131,6 +132,7 @@ function kicad_preview_color_changed(evt) {
 				(silkscreen_color === '#000000') ? 'black' : 'white';
 		}
 	}
+	save_config_ls();
 }
 
 /* Make the KiCad preview radio buttons for soldermask and surface finish.
@@ -178,6 +180,7 @@ function SVG_layermap_changed(evt) {
 	const color = layer_active ? node.value : null;
 	const cfg = config.SVG_output;
 	cfg.layer_map[input_layer] = color; // update config
+	save_config_ls();
 
 	if (!fpgen.SVG_output.SVG_gen)
 		return;
@@ -198,6 +201,7 @@ function kicad_layermap_changed(evt) {
 	const output_layers = ((node.value === 'Unassigned') ? [] : node.value.split(' + '));
 	const cfg = config.kicad_output;
 	cfg.layer_map[input_layer] = output_layers;
+	save_config_ls();
 
 	if (!source_pcb)
 		return;
@@ -283,6 +287,7 @@ function mk_layermap_table(ttype) {
 
 function apply_kicad_cfg(kc_cfg) {
 	config.kicad_output = kc_cfg;
+	config.output_mode = 'kicad';
 	// TBD: update UI
 	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
 	document.getElementById('z_ofs').value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
@@ -290,6 +295,7 @@ function apply_kicad_cfg(kc_cfg) {
 
 function apply_SVG_cfg(SVG_cfg) {
 	config.SVG_output = SVG_cfg;
+	config.output_mode = 'SVG';
 	// TBD: update UI
 }
 
@@ -444,6 +450,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 	let output_info = "No input file loaded yet.";
 	let version_unsupported = false;
 	let have_data = false;
+	let config_imported = false;
 
 	fpgen_reset();
 
@@ -478,11 +485,12 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		/* See if we find a Frontpanel Configuration Text in the PCB */
 		try {
 			const [kc_cfg, SVG_cfg] = import_config_pcb();
+			config_imported = kc_cfg || SVG_cfg;
 			if (kc_cfg)
 				apply_kicad_cfg(kc_cfg);
 			if (SVG_cfg)
 				apply_SVG_cfg(SVG_cfg);
-			if (kc_cfg || SVG_cfg) {
+			if (config_imported) {
 				ui_message('notify-toast', {
 					title : '🛈 Note',
 					text  : 'Layer map imported from Cmts.User text.',
@@ -494,6 +502,17 @@ function KicadLoader(str, fname, server_path, mod_time) {
 				text  : e,
 			});
 		}
+
+		// TODO: overwrite config.output_mode with ls value - if exists
+		//const previous_config = JSON.parse(localStorage.getItem(source_pcb.fname));
+		//config.output_mode = ...
+
+		if (config_imported)
+			save_config_ls();
+
+		// TODO: apply previous cfg if present and no config imported
+
+		localStorage.setItem('last_file', source_pcb.fname);
 
 		update_preview();
 	}
@@ -609,6 +628,9 @@ function output_fmt_changed(evt) {
 	show_container('kicad_output_info', kicad_output);
 	document.getElementById('download_pcb').hidden = !kicad_output;
 	document.getElementById('download_SVG').hidden = !svg_output;
+
+	config.output_mode = output_mode;
+	save_config_ls();
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -659,7 +681,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	keep_3d.checked = config.kicad_output.keep_3d_models != false;
 	keep_3d.addEventListener('change', (e) => {
 		config.kicad_output.keep_3d_models = e.target.checked;
-		config_changed();
+		save_config_ls();
 	});
 
 	/* z_ofs default val & input sanitizer */
@@ -673,7 +695,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* add z_ofs event handler */
 	zofs_input.addEventListener('change', (e) => {
 		config.kicad_output.models_offset_adjust = [0, 0, (parseFloat(e.target.value) || 0)];
-		config_changed();
+		save_config_ls();
 	});
 
 });
