@@ -393,13 +393,13 @@ function import_config_pcb() {
 		const vals = [...line.matchAll(cfg_re)].map(cap => !isNaN(cap[0]) ? +cap[0] : cap[0]);
 		const key = vals.shift();
 		const key_is_layer = is_pcb_layer(key);
-		console.log(key, key_is_layer, vals);
+		//console.log(key, key_is_layer, vals);
 
 		if (key_is_layer) {
 			vals.forEach(tl => {
 				const is_layer = is_pcb_layer(tl);
 				const is_color = tl.startsWith('#');
-				console.log("assign "+tl, is_layer, is_color);
+				//console.log("assign "+tl, is_layer, is_color);
 
 				if (!is_color && !is_layer)
 					throw new Error('Config syntax error - invalid layer assignment: '+tl+'\nLine: '+line);
