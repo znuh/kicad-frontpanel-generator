@@ -2,6 +2,14 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
+/* TODOs for persistent-config:
+ * - UI: add buttons for Cmts.User export & JSON ex-/import
+ * - apply_kicad_cfg/apply_SVG_cfg: update UI to new config values
+ * - KicadLoader: handle different cases with config from PCB import and localStorage
+ * - DOMContentLoaded: apply last config from localStorage
+ * - verify handling of config.output_mode
+ */
+
 function ui_theme_setup() {
 
 	function apply_theme() {
@@ -363,15 +371,20 @@ function copy_clipboard(evt) {
 	}).catch(e => { console.error("copy to clipboard failed: ", e);	});
 }
 
-// TBD
 function export_config_pcb() {
 	const output_mode = document.getElementById('output_fmt').value;
 	let txt = 'Frontpanel:\n';
 	if (output_mode === 'SVG') {
-		// TBD
+		for (const [input_layer, color] of Object.entries(config.SVG_output.layer_map))
+			txt += ' ' + input_layer + ' -> ' + color + '\n';
 	}
-	else {
-		// TBD
+	else { // KiCad output
+		for (const [input_layer, output_layers] of Object.entries(config.kicad_output.layer_map))
+			txt += ' ' + input_layer + ' -> ' + output_layers.join(', ') + '\n';
+		if (config.kicad_output.keep_3d_models === false)
+			txt += ' no_3d_models\n';
+		else
+			txt += ' z_ofs: ' + config.kicad_output.models_offset_adjust[2] + '\n';
 	}
 	ui_message('config-modal', {
 		title : 'Cmts.User Text for Frontpanel Config',
