@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KiCad Frontpanel Generator</title>
   <link rel="stylesheet" href="bootstrap-5.3.8/bootstrap.min.css">
+  <link href="bootstrap-icons-1.13.2/bootstrap-icons.min.css" rel="stylesheet" >
   <script src="js/theme_init.js"></script>
   <style>
 	.color-rect-sm {
@@ -274,6 +275,30 @@
 		  </div>
 		  <div class="toast-body" id="notify-toast-text">Henlo</div>
 		</div>
+	</div>
+
+	<!-- Config -> KiCad Cmts.User export modal -->
+	<div class="modal" tabindex="-1" id="config-modal">
+	  <div class="modal-dialog modal-lg"> <!-- modal-xl needed? -->
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="config-modal-title">Cmts.User Text for Frontpanel Config</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body">
+			<div>Insert the following text in the <strong>Cmts.User</strong> layer of the PCB:</div>
+			<pre class="text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-3 p-2 m-2 font-monospace overflow-auto" id="config-modal-text"
+				 style="max-height: 500px; font-size: 0.875rem; line-height: 1.4;"></pre>
+			<button class="btn btn-primary m-2 mt-1" data-clipboard="config-modal-text">
+				<i class="bi bi-clipboard"></i>
+				Copy to Clipboard
+			</button>
+		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		  </div>
+		</div>
+	  </div>
 	</div>
 
 	<!-- scripts -->

@@ -343,6 +343,42 @@ function update_preview(output_mode) {
 	document.getElementById('knockout_warning').hidden = !(svg_output && SVG_has_masks(fpgen.SVG_output.SVG));
 }
 
+// used in config-modal
+function copy_clipboard(evt) {
+	const btn = evt.target.closest('button');
+	const txt = document.getElementById(btn.dataset.clipboard).innerText;
+	const icon = btn.querySelector("i");
+
+	// copy to clipboard
+	navigator.clipboard.writeText(txt).then(() => {
+		// toggle icon for visual feedback
+		icon.classList.replace("bi-clipboard", "bi-check-lg");
+		btn.classList.add("btn-success");
+
+		// revert back after a bit
+		setTimeout(() => {
+			icon.classList.replace("bi-check-lg", "bi-clipboard");
+			btn.classList.remove("btn-success");
+		}, 500);
+	}).catch(e => { console.error("copy to clipboard failed: ", e);	});
+}
+
+// TBD
+function export_config_pcb() {
+	const output_mode = document.getElementById('output_fmt').value;
+	let txt = 'Frontpanel:\n';
+	if (output_mode === 'SVG') {
+		// TBD
+	}
+	else {
+		// TBD
+	}
+	ui_message('config-modal', {
+		title : 'Cmts.User Text for Frontpanel Config',
+		text  : txt,
+	});
+}
+
 function import_config_pcb() {
 	/* Find config in gr_text elements with layer == Cmts.User
 	 * There can be multiple configs - e.g. one for KiCad output
@@ -634,6 +670,11 @@ function output_fmt_changed(evt) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
+
+	/* Setup copy to clipboard btn in config-modal */
+	document.querySelectorAll('[data-clipboard]').forEach( n => {
+		n.addEventListener('click', copy_clipboard);
+	});
 
 	/* Clear value on click to allow reloading the same file */
 	const file_upload = document.getElementById('kicad_file_upload');
