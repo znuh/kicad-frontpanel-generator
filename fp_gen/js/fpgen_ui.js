@@ -296,7 +296,24 @@ function mk_layermap_table(ttype) {
 function apply_kicad_cfg(kc_cfg) {
 	config.kicad_output = kc_cfg;
 	config.output_mode = 'kicad';
-	// TBD: update UI
+	// nothing to do if kicad config not yet in DOM
+	if (!fpgen.kicad_output.ui_init_done) return;
+	// update layer map
+	document.querySelectorAll('[data-role="kicad_layers_out"]').forEach( n => {
+		const input_layer = n.dataset.input_layer;
+		const output_layers = config.kicad_output.layer_map[input_layer] ?? [];
+		const val = output_layers.length ? output_layers.join(' + ') : 'Unassigned';
+		let option = n.querySelector(`option[value="${CSS.escape(val)}"]`);
+		/* TBD: handle case when Option for F.Cu + F.Mask exists,
+		 *      but user wrote F.Mask + F.Cu.
+		 *      Also: do this & handling of "new" layer combos in mk_layermap_table */
+		// add option if not yet in list
+		if (!option) {
+			option = new Option(val, val);
+			n.add(option);
+		}
+		n.value = val;
+	});
 	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
 	document.getElementById('z_ofs').value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
 }
@@ -304,7 +321,9 @@ function apply_kicad_cfg(kc_cfg) {
 function apply_SVG_cfg(SVG_cfg) {
 	config.SVG_output = SVG_cfg;
 	config.output_mode = 'SVG';
-	// TBD: update UI
+	// nothing to do if SVG config not yet in DOM
+	if (!fpgen.SVG_output.ui_init_done) return;
+	// TBD: update layer map
 }
 
 function update_preview(output_mode) {
@@ -468,6 +487,7 @@ function import_config_pcb() {
 				if (is_color)
 					SVG_cfg().layer_map[key] = tl;
 				else {
+					kc_cfg().layer_map[key] ??= [];
 					const target_layers = kc_cfg().layer_map[key];
 					if (!target_layers.includes(tl))
 						target_layers.push(tl);
