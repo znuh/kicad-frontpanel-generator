@@ -238,13 +238,23 @@ function mk_layermap_table(ttype) {
 			return;
 		}
 
-		/* create output layer options */
+		/* we store the input layer in data-input_layer */
 		sel_node.dataset.input_layer = input_layer;
-		kicad_output_layers.forEach(ols_entry => {
+
+		/* create value/text from list of output layers */
+		const output_layers_txt = config.kicad_output.layer_map[input_layer].join(' + ') || 'Unassigned';
+
+		/* Check if this is a known option in kicad_output_layers.
+		 * If it isn't - make a copy of kicad_output_layers and append the new option. */
+		const output_options = kicad_output_layers.includes(output_layers_txt) ?
+			kicad_output_layers : [...kicad_output_layers, output_layers_txt];
+
+		/* add all options */
+		output_options.forEach(ols_entry => {
 			const opt = document.createElement("option");
 			opt.value = ols_entry;
 			opt.text = ols_entry;
-			opt.selected = config.kicad_output.layer_map[input_layer].join(' + ') === ols_entry;
+			opt.selected = output_layers_txt === ols_entry;
 			sel_node.add(opt);
 		});
 
@@ -302,16 +312,10 @@ function apply_kicad_cfg(kc_cfg) {
 	document.querySelectorAll('[data-role="kicad_layers_out"]').forEach( n => {
 		const input_layer = n.dataset.input_layer;
 		const output_layers = config.kicad_output.layer_map[input_layer] ?? [];
-		const val = output_layers.length ? output_layers.join(' + ') : 'Unassigned';
-		let option = n.querySelector(`option[value="${CSS.escape(val)}"]`);
-		/* TBD: handle case when Option for F.Cu + F.Mask exists,
-		 *      but user wrote F.Mask + F.Cu.
-		 *      Also: do this & handling of "new" layer combos in mk_layermap_table */
-		// add option if not yet in list
-		if (!option) {
-			option = new Option(val, val);
-			n.add(option);
-		}
+		const val = output_layers.join(' + ') || 'Unassigned';
+		// add val as a new option if not yet in list
+		if (!n.querySelector(`option[value="${CSS.escape(val)}"]`))
+			n.add(new Option(val, val));
 		n.value = val;
 	});
 	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
@@ -489,8 +493,12 @@ function import_config_pcb() {
 				else {
 					kc_cfg().layer_map[key] ??= [];
 					const target_layers = kc_cfg().layer_map[key];
-					if (!target_layers.includes(tl))
+					if (!target_layers.includes(tl)) {
 						target_layers.push(tl);
+						/* Simple trick: sort layers in case user wrote
+						 * F.Mask, F.Cu instead of other way around */
+						target_layers.sort();
+					}
 				}
 			});
 		}
