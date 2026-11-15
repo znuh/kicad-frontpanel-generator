@@ -4,7 +4,6 @@
 
 /* TODOs for persistent-config:
  * - UI: add buttons for Cmts.User export & JSON ex-/import
- * - apply_kicad_cfg/apply_SVG_cfg: update UI to new config values
  * - KicadLoader: handle different cases with config from PCB import and localStorage
  * - DOMContentLoaded: apply last config from localStorage
  * - verify handling of config.output_mode
@@ -231,6 +230,7 @@ function mk_layermap_table(ttype) {
 	const kicad_mode = (ttype === 'kicad');
 	const svg_mode   = (ttype === 'SVG');
 
+	/* KiCad output row */
 	function mk_kicad_output_layers(sel_node, input_layer) {
 		/* only keep node when in KiCad -> KiCad mode */
 		if (!kicad_mode) {
@@ -262,6 +262,7 @@ function mk_layermap_table(ttype) {
 		sel_node.addEventListener('change', kicad_layermap_changed);
 	}
 
+	/* SVG output row */
 	function mk_svg_output_selection(node, input_layer) {
 		/* only keep node when in KiCad -> SVG mode */
 		if (!svg_mode) {
@@ -272,6 +273,14 @@ function mk_layermap_table(ttype) {
 		/* create output layer options */
 		node.dataset.input_layer = input_layer;
 		node.value = config.SVG_output.layer_map[input_layer] ?? "#000000";
+
+		/* set en-/disabled state */
+		const en = !!config.SVG_output.layer_map[input_layer];
+		node.disabled = !en;
+		if (en)
+			node.classList.remove('opacity-50');
+		else
+			node.classList.add('opacity-50');
 
 		/* attach change event handler */
 		node.addEventListener('change', SVG_layermap_changed);
@@ -287,6 +296,7 @@ function mk_layermap_table(ttype) {
 		svg_layer_enable : (n, idx, lname) => {
 			if (!svg_mode) return;
 			n.hidden = false;
+			n.firstElementChild.checked = !!config.SVG_output.layer_map[lname]; // set checkbox enable
 			n.addEventListener('change', (evt) => {
 				const en = evt.target.checked;
 				const cin = n.previousElementSibling?.firstElementChild;
@@ -306,8 +316,10 @@ function mk_layermap_table(ttype) {
 function apply_kicad_cfg(kc_cfg) {
 	config.kicad_output = kc_cfg;
 	config.output_mode = 'kicad';
+
 	// nothing to do if kicad config not yet in DOM
 	if (!fpgen.kicad_output.ui_init_done) return;
+
 	// update layer map
 	document.querySelectorAll('[data-role="kicad_layers_out"]').forEach( n => {
 		const input_layer = n.dataset.input_layer;
@@ -318,6 +330,7 @@ function apply_kicad_cfg(kc_cfg) {
 			n.add(new Option(val, val));
 		n.value = val;
 	});
+
 	document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
 	document.getElementById('z_ofs').value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
 }
@@ -325,9 +338,28 @@ function apply_kicad_cfg(kc_cfg) {
 function apply_SVG_cfg(SVG_cfg) {
 	config.SVG_output = SVG_cfg;
 	config.output_mode = 'SVG';
+
 	// nothing to do if SVG config not yet in DOM
 	if (!fpgen.SVG_output.ui_init_done) return;
-	// TBD: update layer map
+
+	// update layer map
+	document.querySelectorAll('[data-role="svg_color_out"]').forEach( n => {
+		const input_layer = n.dataset.input_layer;
+		const en = !!config.SVG_output.layer_map[input_layer];
+		const output_color = config.SVG_output.layer_map[input_layer] ?? '#000000';
+
+		// lookup enable checkbox
+		const en_cb = n.closest('td').nextElementSibling.querySelector('input[type="checkbox"]');
+
+		// set color & enable status
+		n.disabled = !en;
+		n.value = output_color;
+		if (en)
+			n.classList.remove('opacity-50');
+		else
+			n.classList.add('opacity-50');
+		en_cb.checked = en;
+	});
 }
 
 function update_preview(output_mode) {
