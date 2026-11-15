@@ -647,19 +647,18 @@ function fileReader(e, loader) {
 	reader.readAsText(file);
 }
 
-async function fp_download(fp, parms) {
-	const fname  = source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel"+parms.ext);
-	const blobby = new Blob([fp], {type: parms.type});
+async function file_download(din, parms) {
+	const blobby = new Blob([din], {type: parms.type});
 
 	if (window.showSaveFilePicker != null) {
 		const fileHandle = await window.showSaveFilePicker({
 			startIn: 'desktop',
-			suggestedName: fname,
+			suggestedName: parms.fname,
 			types: [{
 				description: parms.desc,
 				/* '_' in extension isn't allowed, so we cannot pass ".kicad_pcb" here.
 				 * Using emtpy extensions array instead and relying on suggestedName. */
-				accept: { [parms.type]: [] },
+				accept: { [parms.type]: parms.ext ? [parms.ext] : [] },
 			}],
 		});
 		const fileStream = await fileHandle.createWritable();
@@ -668,7 +667,7 @@ async function fp_download(fp, parms) {
 	} else { // window.showSaveFilePicker not available
 		const    a = document.createElement("a");
 		a.href     = window.URL.createObjectURL(blobby);
-		a.download = fname;
+		a.download = parms.fname;
 		a.click();
 		URL.revokeObjectURL(a.href);
 	}
@@ -692,7 +691,8 @@ async function SVG_download(ref_svg) {
 	if (!svg_str.startsWith('<?xml'))
 		svg_str = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + svg_str;
 
-	fp_download(svg_str, {
+	file_download(svg_str, {
+		fname	: source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel.svg"),
 		ext 	: ".svg",
 		type	: "image/svg+xml",
 		desc	: "SVG Vector Graphic",
@@ -793,8 +793,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	pcb_dl_btn.disabled = true;
 	pcb_dl_btn.addEventListener('click', () => {
 		const kicad_pcb = encode_sexpression(make_PCB_frontpanel());
-		fp_download(kicad_pcb, {
-			ext 	: ".kicad_pcb",
+		file_download(kicad_pcb, {
+			fname	: source_pcb.fname.replaceAll(".kicad_pcb","-frontpanel.kicad_pcb"),
+			/* '_' in extension isn't allowed, so we cannot pass ".kicad_pcb" here. So we do not set ext. */
+			//ext 	: ".kicad_pcb",
 			type	: "text/plain",
 			desc	: "KiCad PCB file",
 		});
