@@ -3,7 +3,7 @@
  */
 
 /* TODOs for persistent-config:
- * - UI: add buttons for Cmts.User export & JSON ex-/import
+ * - cfg_import_export: JSON config ex-/import
  * - KicadLoader: handle different cases with config from PCB import and localStorage
  * - DOMContentLoaded: apply last config from localStorage
  * - verify handling of config.output_mode
@@ -738,8 +738,27 @@ function output_fmt_changed(evt) {
 	document.getElementById('download_pcb').hidden = !kicad_output;
 	document.getElementById('download_SVG').hidden = !svg_output;
 
+	/* Show cfg save/load buttons - if not already shown */
+	show_container('cfg_load_save', true);
+
 	config.output_mode = output_mode;
 	save_config_ls();
+}
+
+function cfg_import_export(evt) {
+	const item = evt.target.closest('.dropdown-item');
+	if(!item) return; // ul instead of il clicked
+	const op = item.textContent;
+	if (op.startsWith('Import')) {
+		// TBD: JSON import
+		console.log("TBD: JSON cfg import");
+	}
+	else if(op.includes('JSON')) {
+		// TBD: JSON export
+		console.log("TBD: JSON cfg export");
+	}
+	else // Export as KiCad Cmts.User text
+		export_config_pcb();
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -812,4 +831,6 @@ document.addEventListener("DOMContentLoaded", function() {
 		save_config_ls();
 	});
 
+	/* add config load/save event handler */
+	document.getElementById('cfg_load_save_ul').addEventListener('click', cfg_import_export);
 });
