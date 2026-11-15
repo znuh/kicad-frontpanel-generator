@@ -3,7 +3,7 @@
  */
 
 /* TODOs for persistent-config:
- * - cfg_import_export: JSON config ex-/import
+ * - cfg_import_export: JSON config import
  * - KicadLoader: handle different cases with config from PCB import and localStorage
  * - DOMContentLoaded: apply last config from localStorage
  * - verify handling of config.output_mode
@@ -720,8 +720,12 @@ function cfg_import_export(evt) {
 		console.log("TBD: JSON cfg import");
 	}
 	else if(op.includes('JSON')) {
-		// TBD: JSON export
-		console.log("TBD: JSON cfg export");
+		file_download(JSON.stringify(config, null, 1), {
+			fname	: source_pcb?.fname?.replaceAll(".kicad_pcb","-frontpanel.json") ?? "frontpanel.json",
+			ext 	: ".json",
+			type	: "application/json",
+			desc	: "JSON file",
+		});
 	}
 	else // Export as KiCad Cmts.User text
 		export_config_pcb();
