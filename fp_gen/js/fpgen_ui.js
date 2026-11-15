@@ -3,7 +3,7 @@
  */
 
 /* TODOs for persistent-config:
- * - cfg_import_export: JSON config import
+ * - JSON_CfgLoader: apply imported JSON config
  * - KicadLoader: handle different cases with config from PCB import and localStorage
  * - DOMContentLoaded: apply last config from localStorage
  * - verify handling of config.output_mode
@@ -553,6 +553,20 @@ function import_config_pcb() {
 	return [kicad_output_cfg, SVG_output_cfg];
 }
 
+function JSON_CfgLoader(str, fname, server_path, mod_time) {
+	try {
+		const cfg = JSON.parse(str);
+		if (!cfg?.kicad_output?.layer_map || !cfg?.SVG_output?.layer_map)
+			throw new Error("Configuration data invalid.");
+		// TBD: apply config
+	} catch(e) {
+		ui_message('error-modal', {
+			title : 'Error Parsing Frontpanel Configuration',
+			text  : e,
+		});
+	}
+}
+
 function KicadLoader(str, fname, server_path, mod_time) {
 	const supported_kicad_versions = {"9.0" : true, "10.0" : true};
 	let version_info = "No file loaded yet.";
@@ -715,10 +729,8 @@ function cfg_import_export(evt) {
 	const item = evt.target.closest('.dropdown-item');
 	if(!item) return; // ul instead of il clicked
 	const op = item.textContent;
-	if (op.startsWith('Import')) {
-		// TBD: JSON import
-		console.log("TBD: JSON cfg import");
-	}
+	if (op.startsWith('Import'))
+		document.getElementById('cfg_json_finput').click(); // invoke file input
 	else if(op.includes('JSON')) {
 		file_download(JSON.stringify(config, null, 1), {
 			fname	: source_pcb?.fname?.replaceAll(".kicad_pcb","-frontpanel.json") ?? "frontpanel.json",
@@ -741,7 +753,12 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* Clear value on click to allow reloading the same file */
 	const file_upload = document.getElementById('kicad_file_upload');
 	file_upload.addEventListener('click', e => e.target.value="");
-	file_upload.addEventListener('change', e => fileReader(e,KicadLoader), false);
+	file_upload.addEventListener('change', e => fileReader(e, KicadLoader), false);
+
+	/* Do the same for JSON config file input */
+	const cfg_file_upload = document.getElementById('cfg_json_finput');
+	cfg_file_upload.addEventListener('click', e => e.target.value="");
+	cfg_file_upload.addEventListener('change', e => fileReader(e, JSON_CfgLoader), false);
 
 	/* Add click to drop note */
 	document.getElementById('drop_note').addEventListener('click', () => { file_upload.click(); });
