@@ -673,21 +673,16 @@ async function SVG_download(ref_svg) {
 	});
 }
 
-function show_container(div, show) {
-	if (show)
-		document.getElementById(div).classList.remove('d-none');
-	else
-		document.getElementById(div).classList.add('d-none');
-}
-
 function set_output_fmt(output_mode) {
 	const kicad_output = (output_mode === 'kicad');
 	const svg_output   = (output_mode === 'SVG');
-	const output = fpgen[output_mode+'_output'];
 
-	/* Create config nodes for selected output if not yet done */
-	if(!ui_output_cfg_exists(output_mode)) {
-		//console.log("ui_init", output_mode);
+	/* Nothing to do if output_mode already active */
+	if (!container_hidden('cfg_'+output_mode))
+		return;
+	else if(!ui_output_cfg_exists(output_mode)) {
+		/* Create config nodes for selected output if not yet done */
+		//console.log("UI cfg init", output_mode);
 		mk_layermap_table(output_mode);
 		if(kicad_output) {
 			// apply 3D model settings from config as well

@@ -45,3 +45,12 @@ function SVG_has_masks(SVG) {
 		return active && !!g.querySelector('rect[mask]');
 	});
 }
+
+function show_container(div, show) {
+	if (show)
+		document.getElementById(div).classList.remove('d-none');
+	else
+		document.getElementById(div).classList.add('d-none');
+}
+
+const container_hidden = (div) => document.getElementById(div).classList.contains('d-none');
