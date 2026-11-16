@@ -5,7 +5,6 @@
 /* TODOs for persistent-config:
  * - JSON_CfgLoader: apply imported JSON config
  * - KicadLoader: handle different cases with config from PCB import and localStorage
- * - DOMContentLoaded: apply last config from localStorage
  * - verify handling of config.output_mode
  */
 
@@ -566,12 +565,13 @@ function import_config_pcb() {
 	return [kicad_output_cfg, SVG_output_cfg];
 }
 
-function JSON_CfgLoader(str, fname, server_path, mod_time) {
+function JSON_CfgLoader(str) {
 	try {
 		const cfg = JSON.parse(str);
 		if (!cfg?.kicad_output?.layer_map || !cfg?.SVG_output?.layer_map)
 			throw new Error("Configuration data invalid.");
 		// TBD: apply config
+		console.log("TBD: apply JSON cfg", cfg);
 	} catch(e) {
 		ui_message('error-modal', {
 			title : 'Error Parsing Frontpanel Configuration',
@@ -832,4 +832,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	/* add config load/save event handler */
 	document.getElementById('cfg_load_save_ul').addEventListener('click', cfg_import_export);
+
+	/* load config from last session - if one exists */
+	const last_file = localStorage.getItem('last_file') ?? 'no_file';
+	if (last_file) {
+		const last_config = localStorage.getItem(last_file);
+		if (last_config)
+			JSON_CfgLoader(last_config);
+	}
 });
