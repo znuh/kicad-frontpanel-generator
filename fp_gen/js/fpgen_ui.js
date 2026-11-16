@@ -40,10 +40,6 @@ function ui_theme_setup() {
 	});
 }
 
-/* Check if output config UI elements for output_mode (kicad/SVG) have been added to DOM already */
-const ui_output_cfg_exists = (output_mode) =>
-	!!document.getElementById('tb_layermap_'+output_mode).firstElementChild;
-
 /* base_id: 'error-modal' for error modal ;)
  *          or 'notify-toast' for a smol notification toast. */
 function ui_message(base_id, parms) {
@@ -76,6 +72,30 @@ function ui_dropzone_setup(finput) {
         finput.dispatchEvent(new Event('change'));
 	});
 }
+
+// used in config-modal
+function copy_clipboard(evt) {
+	const btn = evt.target.closest('button');
+	const txt = document.getElementById(btn.dataset.clipboard).innerText;
+	const icon = btn.querySelector("i");
+
+	// copy to clipboard
+	navigator.clipboard.writeText(txt).then(() => {
+		// toggle icon for visual feedback
+		icon.classList.replace("bi-clipboard", "bi-check-lg");
+		btn.classList.add("btn-success");
+
+		// revert back after a bit
+		setTimeout(() => {
+			icon.classList.replace("bi-check-lg", "bi-clipboard");
+			btn.classList.remove("btn-success");
+		}, 500);
+	}).catch(e => { console.error("copy to clipboard failed: ", e);	});
+}
+
+/* Check if output config UI elements for output_mode (kicad/SVG) have been added to DOM already */
+const ui_output_cfg_exists = (output_mode) =>
+	!!document.getElementById('tb_layermap_'+output_mode).firstElementChild;
 
 /* create dst_parent child nodes from template_id for each entry of entries
  * using the role_transl functions applied to data-role attributes */
@@ -354,6 +374,55 @@ function mk_layermap_table(ttype) {
 	adopt_template(tbody, 'tr_layermap', kicad_input_layers, role_transl);
 }
 
+function set_output_fmt(output_mode) {
+	const kicad_output = (output_mode === 'kicad');
+	const svg_output   = (output_mode === 'SVG');
+
+	/* Nothing to do if output_mode already active */
+	if (!container_hidden('cfg_'+output_mode))
+		return;
+	else if(!ui_output_cfg_exists(output_mode)) {
+		/* Create config nodes for selected output if not yet done */
+		//console.log("UI cfg init", output_mode);
+		mk_layermap_table(output_mode);
+		if(kicad_output) {
+			// apply 3D model settings from config as well
+			document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
+			document.getElementById('z_ofs').value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
+			// make silkscreen selection, etc. for SVG preview
+			mk_kicad_preview_radios();
+		}
+	}
+
+	/* If we're called from outside the output_fmt event handler,
+	 * we have to change the output_fmt value manually. */
+	const sel_node = document.getElementById('output_fmt');
+	if (sel_node.value !== output_mode)
+		sel_node.value = output_mode;
+
+	/* Config card */
+	show_container('output_info_no_fmt', false);
+	show_container('cfg_kicad', kicad_output);
+	show_container('cfg_SVG',   svg_output);
+
+	/* Preview card */
+	show_container('kicad_preview_cfg', kicad_output);
+	show_container('svg_preview_cfg',   svg_output);
+	update_preview(output_mode);
+
+	/* Download card */
+	show_container('cfg_empty', false);
+	show_container('kicad_output_info', kicad_output);
+	document.getElementById('download_pcb').hidden = !kicad_output;
+	document.getElementById('download_SVG').hidden = !svg_output;
+
+	/* Show cfg save/load buttons - if not already shown */
+	show_container('cfg_load_save', true);
+
+	config.output_mode = output_mode;
+	save_config_ls();
+}
+
 function apply_kicad_preview_cfg(preview_cfg) {
 	config.kicad_preview = preview_cfg;
 
@@ -431,26 +500,6 @@ function apply_SVG_cfg(SVG_cfg) {
 			n.classList.add('opacity-50');
 		en_cb.checked = en;
 	});
-}
-
-// used in config-modal
-function copy_clipboard(evt) {
-	const btn = evt.target.closest('button');
-	const txt = document.getElementById(btn.dataset.clipboard).innerText;
-	const icon = btn.querySelector("i");
-
-	// copy to clipboard
-	navigator.clipboard.writeText(txt).then(() => {
-		// toggle icon for visual feedback
-		icon.classList.replace("bi-clipboard", "bi-check-lg");
-		btn.classList.add("btn-success");
-
-		// revert back after a bit
-		setTimeout(() => {
-			icon.classList.replace("bi-check-lg", "bi-clipboard");
-			btn.classList.remove("btn-success");
-		}, 500);
-	}).catch(e => { console.error("copy to clipboard failed: ", e);	});
 }
 
 function export_config_pcb() {
@@ -723,55 +772,6 @@ async function SVG_download(ref_svg) {
 		type	: "image/svg+xml",
 		desc	: "SVG Vector Graphic",
 	});
-}
-
-function set_output_fmt(output_mode) {
-	const kicad_output = (output_mode === 'kicad');
-	const svg_output   = (output_mode === 'SVG');
-
-	/* Nothing to do if output_mode already active */
-	if (!container_hidden('cfg_'+output_mode))
-		return;
-	else if(!ui_output_cfg_exists(output_mode)) {
-		/* Create config nodes for selected output if not yet done */
-		//console.log("UI cfg init", output_mode);
-		mk_layermap_table(output_mode);
-		if(kicad_output) {
-			// apply 3D model settings from config as well
-			document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
-			document.getElementById('z_ofs').value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
-			// make silkscreen selection, etc. for SVG preview
-			mk_kicad_preview_radios();
-		}
-	}
-
-	/* If we're called from outside the output_fmt event handler,
-	 * we have to change the output_fmt value manually. */
-	const sel_node = document.getElementById('output_fmt');
-	if (sel_node.value !== output_mode)
-		sel_node.value = output_mode;
-
-	/* Config card */
-	show_container('output_info_no_fmt', false);
-	show_container('cfg_kicad', kicad_output);
-	show_container('cfg_SVG',   svg_output);
-
-	/* Preview card */
-	show_container('kicad_preview_cfg', kicad_output);
-	show_container('svg_preview_cfg',   svg_output);
-	update_preview(output_mode);
-
-	/* Download card */
-	show_container('cfg_empty', false);
-	show_container('kicad_output_info', kicad_output);
-	document.getElementById('download_pcb').hidden = !kicad_output;
-	document.getElementById('download_SVG').hidden = !svg_output;
-
-	/* Show cfg save/load buttons - if not already shown */
-	show_container('cfg_load_save', true);
-
-	config.output_mode = output_mode;
-	save_config_ls();
 }
 
 function cfg_import_export(evt) {
