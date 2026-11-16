@@ -686,9 +686,7 @@ function show_container(div, show) {
 		document.getElementById(div).classList.add('d-none');
 }
 
-function output_fmt_changed(evt) {
-	const node = evt.target;
-	const output_mode  = node.value;
+function set_output_fmt(output_mode) {
 	const kicad_output = (output_mode === 'kicad');
 	const svg_output   = (output_mode === 'SVG');
 	const output = fpgen[output_mode+'_output'];
@@ -766,7 +764,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	ui_dropzone_setup(file_upload);
 
 	/* Output format selection */
-	document.getElementById('output_fmt').addEventListener('input', output_fmt_changed);
+	document.getElementById('output_fmt').addEventListener('input', (evt) => set_output_fmt(evt.target.value));
 
 	/* Preview background selection */
 	document.getElementById('preview_bg').addEventListener('input', (evt) => {
