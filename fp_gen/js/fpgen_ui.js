@@ -689,8 +689,13 @@ function set_output_fmt(output_mode) {
 	if(!ui_output_cfg_exists(output_mode)) {
 		//console.log("ui_init", output_mode);
 		mk_layermap_table(output_mode);
-		if(kicad_output)
+		if(kicad_output) {
+			// apply 3D model settings from config as well
+			document.getElementById('cb_keep_3d').checked = config.kicad_output.keep_3d_models != false;
+			document.getElementById('z_ofs').value = config.kicad_output?.models_offset_adjust?.[2] ?? -8;
+			// make silkscreen selection, etc. for SVG preview
 			mk_kicad_preview_radios();
+		}
 	}
 
 	/* Config card */
