@@ -834,10 +834,8 @@ document.addEventListener("DOMContentLoaded", function() {
 	document.getElementById('cfg_load_save_ul').addEventListener('click', cfg_import_export);
 
 	/* load config from last session - if one exists */
-	const last_file = localStorage.getItem('last_file') ?? 'no_file';
-	if (last_file) {
-		const last_config = localStorage.getItem(last_file);
-		if (last_config)
-			JSON_CfgLoader(last_config);
-	}
+	const last_file   = localStorage.getItem('last_file') ?? 'no_file';
+	const last_config = localStorage.getItem(last_file);
+	if (last_config)
+		JSON_CfgLoader(last_config);
 });
