@@ -102,6 +102,9 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 }
 
 function save_config_ls() {
+	if (fpgen.ls_saving_disabled)
+		return;
+
 	const fname = source_pcb?.fname ?? 'no_file';
 	// save to localStorage
 	localStorage.setItem(fname, JSON.stringify(config));
@@ -566,6 +569,7 @@ function import_config_pcb() {
 }
 
 function JSON_CfgLoader(str) {
+	fpgen.ls_saving_disabled = true; // disable saving to ls while applying config
 	try {
 		const cfg = JSON.parse(str);
 		if (!cfg?.kicad_output?.layer_map || !cfg?.SVG_output?.layer_map)
@@ -583,6 +587,7 @@ function JSON_CfgLoader(str) {
 			text  : e,
 		});
 	}
+	delete(fpgen.ls_saving_disabled);
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
