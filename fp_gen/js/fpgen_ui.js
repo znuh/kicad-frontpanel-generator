@@ -112,6 +112,50 @@ function save_config_ls() {
 	//console.log("save", fname);
 }
 
+function update_preview(output_mode) {
+	output_mode ??= document.getElementById('output_fmt').value;
+
+	//console.log("update_preview " + output_mode);
+
+	if (!output_mode || !source_pcb)
+		return;
+
+	const kicad_output = (output_mode === 'kicad');
+	const svg_output   = (output_mode === 'SVG');
+	const output = fpgen[output_mode+'_output'];
+
+	const display_node = document.getElementById('svg_display');
+
+	/* If we do not have an SVG for the selected output yet, generate it now. */
+	if (!output.SVG) {
+		/* For KiCad preview we let the KiCad -> KiCad generator do the initial
+		 * layer remapping. After this we use the preview colors on the result. */
+		if (kicad_output)
+			output.preview_fp ??= make_PCB_frontpanel();
+		const input_pcb = kicad_output ? output.preview_fp : source_pcb.pcb;
+		const cfg     = svg_output ? config.SVG_output : config.kicad_preview;
+		const SVG_gen = new SVG_FP(cfg, display_node);
+		const SVG     = pcb_to_fp(input_pcb, SVG_gen);
+
+		output.SVG_gen = SVG_gen;
+		output.SVG     = SVG;
+
+		// zoom to fit
+		SVG.style.width  = '100%';
+		SVG.style.height = 'auto';
+		// SVG.removeAttribute('style'); // testing
+	}
+	else {
+		/* If we already had an SVG for the selected output, we replace
+		 * the SVG. This isn't needed when we just created a fresh SVG,
+		 * because the finalize method of SVG generator already did the replace. */
+		display_node.replaceChildren(output.SVG);
+	}
+
+	/* Update knockout warning visibility */
+	document.getElementById('knockout_warning').hidden = !(svg_output && SVG_has_masks(fpgen.SVG_output.SVG));
+}
+
 /* Called when user changed a preview color for the kicad preview */
 function kicad_preview_color_changed(evt) {
 	const node = evt.target;
@@ -138,42 +182,6 @@ function kicad_preview_color_changed(evt) {
 		}
 	}
 	save_config_ls();
-}
-
-/* Make the KiCad preview radio buttons for soldermask and surface finish.
- * Call this only once when user chooses kicad output for the first time. */
-function mk_kicad_preview_radios() {
-	const mask_group   = document.getElementById('preview_soldermask_color');
-	const finish_group = document.getElementById('preview_finish_color');
-	const cfg = config.kicad_preview.layer_map;
-
-	let cfg_entry = 'F.Mask';
-
-	const role_transl = {
-		colorsel_input : (n, cname, col) => {
-			n.id   = `${cfg_entry}_col_${cname}`;
-			n.name = cfg_entry;
-			n.dataset.color = col;
-			n.checked = col === cfg[cfg_entry];
-		},
-		colorsel_label : (n, cname, col) => {
-			n.htmlFor = `${cfg_entry}_col_${cname}`;
-			n.appendChild(document.createTextNode(cname));
-		},
-		colorsel_color : (n, cname, col) => { n.style.backgroundColor = col; },
-	};
-
-	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, role_transl);
-	mask_group.addEventListener('change', kicad_preview_color_changed);
-
-	/* set initial silkscreen color */
-	document.getElementById('preview_silkscreen_color').style.backgroundColor = cfg.silkscreen_color;
-	document.getElementById('preview_silkscreen_cname').textContent =
-		(cfg.silkscreen_color === '#000000') ? 'black' : 'white';
-
-	cfg_entry = 'F.Cu';
-	adopt_template(finish_group, 'color_sel_radiobtn', surface_colors, role_transl);
-	finish_group.addEventListener('change', kicad_preview_color_changed);
 }
 
 /* Called when user changed an entry of the SVG layer map.
@@ -220,6 +228,42 @@ function kicad_layermap_changed(evt) {
 	delete fpgen.kicad_output.preview_fp;
 
 	update_preview('kicad');
+}
+
+/* Make the KiCad preview radio buttons for soldermask and surface finish.
+ * Call this only once when user chooses kicad output for the first time. */
+function mk_kicad_preview_radios() {
+	const mask_group   = document.getElementById('preview_soldermask_color');
+	const finish_group = document.getElementById('preview_finish_color');
+	const cfg = config.kicad_preview.layer_map;
+
+	let cfg_entry = 'F.Mask';
+
+	const role_transl = {
+		colorsel_input : (n, cname, col) => {
+			n.id   = `${cfg_entry}_col_${cname}`;
+			n.name = cfg_entry;
+			n.dataset.color = col;
+			n.checked = col === cfg[cfg_entry];
+		},
+		colorsel_label : (n, cname, col) => {
+			n.htmlFor = `${cfg_entry}_col_${cname}`;
+			n.appendChild(document.createTextNode(cname));
+		},
+		colorsel_color : (n, cname, col) => { n.style.backgroundColor = col; },
+	};
+
+	adopt_template(mask_group, 'color_sel_radiobtn', soldermask_colors, role_transl);
+	mask_group.addEventListener('change', kicad_preview_color_changed);
+
+	/* set initial silkscreen color */
+	document.getElementById('preview_silkscreen_color').style.backgroundColor = cfg.silkscreen_color;
+	document.getElementById('preview_silkscreen_cname').textContent =
+		(cfg.silkscreen_color === '#000000') ? 'black' : 'white';
+
+	cfg_entry = 'F.Cu';
+	adopt_template(finish_group, 'color_sel_radiobtn', surface_colors, role_transl);
+	finish_group.addEventListener('change', kicad_preview_color_changed);
 }
 
 /* Make layer map table for KiCad or SVG - depending on ttype */
@@ -375,50 +419,6 @@ function apply_SVG_cfg(SVG_cfg) {
 			n.classList.add('opacity-50');
 		en_cb.checked = en;
 	});
-}
-
-function update_preview(output_mode) {
-	output_mode ??= document.getElementById('output_fmt').value;
-
-	//console.log("update_preview " + output_mode);
-
-	if (!output_mode || !source_pcb)
-		return;
-
-	const kicad_output = (output_mode === 'kicad');
-	const svg_output   = (output_mode === 'SVG');
-	const output = fpgen[output_mode+'_output'];
-
-	const display_node = document.getElementById('svg_display');
-
-	/* If we do not have an SVG for the selected output yet, generate it now. */
-	if (!output.SVG) {
-		/* For KiCad preview we let the KiCad -> KiCad generator do the initial
-		 * layer remapping. After this we use the preview colors on the result. */
-		if (kicad_output)
-			output.preview_fp ??= make_PCB_frontpanel();
-		const input_pcb = kicad_output ? output.preview_fp : source_pcb.pcb;
-		const cfg     = svg_output ? config.SVG_output : config.kicad_preview;
-		const SVG_gen = new SVG_FP(cfg, display_node);
-		const SVG     = pcb_to_fp(input_pcb, SVG_gen);
-
-		output.SVG_gen = SVG_gen;
-		output.SVG     = SVG;
-
-		// zoom to fit
-		SVG.style.width  = '100%';
-		SVG.style.height = 'auto';
-		// SVG.removeAttribute('style'); // testing
-	}
-	else {
-		/* If we already had an SVG for the selected output, we replace
-		 * the SVG. This isn't needed when we just created a fresh SVG,
-		 * because the finalize method of SVG generator already did the replace. */
-		display_node.replaceChildren(output.SVG);
-	}
-
-	/* Update knockout warning visibility */
-	document.getElementById('knockout_warning').hidden = !(svg_output && SVG_has_masks(fpgen.SVG_output.SVG));
 }
 
 // used in config-modal
