@@ -64,21 +64,18 @@ const config = {
 /* Big static object holding all our internal stuff. */
 const fpgen = {
 
-	/* ui_init_done: true if UI init done ;-)
-	 * SVG: SVG object which can be displayed in preview
+	/* SVG: SVG object which can be displayed in preview
 	 * SVG_gen: The SVG generator object
 	 *
 	 * These values are null/undefined if user never selected the
 	 * corresponding output format. */
 
 	SVG_output : {
-		//ui_init_done	: null,
 		//SVG			: null,
 		//SVG_gen		: null,
 	},
 
 	kicad_output : {
-		//ui_init_done	: null,
 		//preview_fp	: null, // generated frontpanel for preview
 		//SVG			: null,
 		//SVG_gen		: null,

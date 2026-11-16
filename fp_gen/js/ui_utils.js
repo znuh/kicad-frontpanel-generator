@@ -35,3 +35,13 @@ async function file_download(din, parms) {
 		URL.revokeObjectURL(a.href);
 	}
 }
+
+function SVG_has_masks(SVG) {
+	/* We simply look for a group which is a direct child of the SVG that's
+	 * active (display!=none) and has a rect child with a mask set. */
+	const groups = SVG.querySelectorAll(':scope > g');
+	return Array.from(groups).some( g => {
+		const active = g.getAttribute('display') !== 'none';
+		return active && !!g.querySelector('rect[mask]');
+	});
+}

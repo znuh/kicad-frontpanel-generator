@@ -42,15 +42,9 @@ function ui_theme_setup() {
 	});
 }
 
-function SVG_has_masks(SVG) {
-	/* We simply look for a group which is a direct child of the SVG that's
-	 * active (display!=none) and has a rect child with a mask set. */
-	const groups = SVG.querySelectorAll(':scope > g');
-	return Array.from(groups).some( g => {
-		const active = g.getAttribute('display') !== 'none';
-		return active && !!g.querySelector('rect[mask]');
-	});
-}
+/* Check if output config UI elements for output_mode (kicad/SVG) have been added to DOM already */
+const ui_output_cfg_exists = (output_mode) =>
+	!!document.getElementById('tb_layermap_'+output_mode).firstElementChild;
 
 /* base_id: 'error-modal' for error modal ;)
  *          or 'notify-toast' for a smol notification toast. */
@@ -315,10 +309,10 @@ function mk_layermap_table(ttype) {
 
 function apply_kicad_cfg(kc_cfg) {
 	config.kicad_output = kc_cfg;
-	config.output_mode = 'kicad';
+	//config.output_mode = 'kicad';
 
 	// nothing to do if kicad config not yet in DOM
-	if (!fpgen.kicad_output.ui_init_done) return;
+	if (!ui_output_cfg_exists('kicad')) return;
 
 	// update layer map
 	document.querySelectorAll('[data-role="kicad_layers_out"]').forEach( n => {
@@ -337,10 +331,10 @@ function apply_kicad_cfg(kc_cfg) {
 
 function apply_SVG_cfg(SVG_cfg) {
 	config.SVG_output = SVG_cfg;
-	config.output_mode = 'SVG';
+	//config.output_mode = 'SVG';
 
 	// nothing to do if SVG config not yet in DOM
-	if (!fpgen.SVG_output.ui_init_done) return;
+	if (!ui_output_cfg_exists('SVG')) return;
 
 	// update layer map
 	document.querySelectorAll('[data-role="svg_color_out"]').forEach( n => {
@@ -692,8 +686,7 @@ function set_output_fmt(output_mode) {
 	const output = fpgen[output_mode+'_output'];
 
 	/* Create config nodes for selected output if not yet done */
-	if(!output.ui_init_done) {
-		output.ui_init_done = true;
+	if(!ui_output_cfg_exists(output_mode)) {
 		//console.log("ui_init", output_mode);
 		mk_layermap_table(output_mode);
 		if(kicad_output)
