@@ -3,7 +3,7 @@
  */
 
 /* TODOs for persistent-config:
- * - JSON_CfgLoader: apply imported JSON config
+ * - FIXME: update SVG after importing JSON config
  * - KicadLoader: handle different cases with config from PCB import and localStorage
  * - verify handling of config.output_mode
  */
@@ -105,6 +105,8 @@ function save_config_ls() {
 	const fname = source_pcb?.fname ?? 'no_file';
 	// save to localStorage
 	localStorage.setItem(fname, JSON.stringify(config));
+	localStorage.setItem('last_file', fname);
+	//console.log("save", fname);
 }
 
 /* Called when user changed a preview color for the kicad preview */
@@ -327,7 +329,6 @@ function apply_kicad_preview_cfg(preview_cfg) {
 
 function apply_kicad_cfg(kc_cfg) {
 	config.kicad_output = kc_cfg;
-	//config.output_mode = 'kicad';
 
 	// nothing to do if kicad config not yet in DOM
 	if (!ui_output_cfg_exists('kicad')) return;
@@ -349,7 +350,6 @@ function apply_kicad_cfg(kc_cfg) {
 
 function apply_SVG_cfg(SVG_cfg) {
 	config.SVG_output = SVG_cfg;
-	//config.output_mode = 'SVG';
 
 	// nothing to do if SVG config not yet in DOM
 	if (!ui_output_cfg_exists('SVG')) return;
@@ -570,8 +570,13 @@ function JSON_CfgLoader(str) {
 		const cfg = JSON.parse(str);
 		if (!cfg?.kicad_output?.layer_map || !cfg?.SVG_output?.layer_map)
 			throw new Error("Configuration data invalid.");
-		// TBD: apply config
-		console.log("TBD: apply JSON cfg", cfg);
+		/* apply configuration */
+		apply_kicad_cfg(cfg.kicad_output);
+		apply_SVG_cfg(cfg.SVG_output);
+		if (cfg.kicad_preview)
+			apply_kicad_preview_cfg(cfg.kicad_preview);
+		if (cfg.output_mode)
+			set_output_fmt(cfg.output_mode);
 	} catch(e) {
 		ui_message('error-modal', {
 			title : 'Error Parsing Frontpanel Configuration',
@@ -648,7 +653,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 
 		// TODO: apply previous cfg if present and no config imported
 
-		localStorage.setItem('last_file', source_pcb.fname);
+//		localStorage.setItem('last_file', source_pcb.fname);
 
 		update_preview();
 	}
@@ -711,6 +716,12 @@ function set_output_fmt(output_mode) {
 			mk_kicad_preview_radios();
 		}
 	}
+
+	/* If we're called from outside the output_fmt event handler,
+	 * we have to change the output_fmt value manually. */
+	const sel_node = document.getElementById('output_fmt');
+	if (sel_node.value !== output_mode)
+		sel_node.value = output_mode;
 
 	/* Config card */
 	show_container('output_info_no_fmt', false);
