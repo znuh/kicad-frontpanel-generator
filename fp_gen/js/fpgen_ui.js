@@ -3,7 +3,6 @@
  */
 
 /* TODOs for persistent-config:
- * - FIXME: update SVG after importing JSON config
  * - KicadLoader: handle different cases with config from PCB import and localStorage
  * - verify handling of config.output_mode
  */
@@ -375,6 +374,13 @@ function apply_kicad_preview_cfg(preview_cfg) {
 }
 
 function apply_kicad_cfg(kc_cfg) {
+
+	/* Invalidate preview - if one exists.
+	 * update_preview() must be called later to make a fresh preview. */
+	delete fpgen.kicad_output.preview_fp;
+	delete fpgen.kicad_output.SVG;
+	delete fpgen.kicad_output.SVG_gen;
+
 	config.kicad_output = kc_cfg;
 
 	// nothing to do if kicad config not yet in DOM
@@ -396,6 +402,12 @@ function apply_kicad_cfg(kc_cfg) {
 }
 
 function apply_SVG_cfg(SVG_cfg) {
+
+	/* Invalidate existing SVG - if any.
+	 * update_preview() must be called later to make a fresh SVG. */
+	delete fpgen.SVG_output.SVG;
+	delete fpgen.SVG_output.SVG_gen;
+
 	config.SVG_output = SVG_cfg;
 
 	// nothing to do if SVG config not yet in DOM
@@ -570,23 +582,34 @@ function import_config_pcb() {
 
 function JSON_CfgLoader(str) {
 	fpgen.ls_saving_disabled = true; // disable saving to ls while applying config
+
 	try {
 		const cfg = JSON.parse(str);
 		if (!cfg?.kicad_output?.layer_map || !cfg?.SVG_output?.layer_map)
 			throw new Error("Configuration data invalid.");
+
 		/* apply configuration */
 		apply_kicad_cfg(cfg.kicad_output);
 		apply_SVG_cfg(cfg.SVG_output);
+
 		if (cfg.kicad_preview)
 			apply_kicad_preview_cfg(cfg.kicad_preview);
+
 		if (cfg.output_mode)
 			set_output_fmt(cfg.output_mode);
+
+		/* We must call update_preview() to generate a fresh SVG.
+		 * Might have been done by set_output_fmt() already -
+		 * in that case calling update_preview() again does no harm. */
+		update_preview();
+
 	} catch(e) {
 		ui_message('error-modal', {
 			title : 'Error Parsing Frontpanel Configuration',
 			text  : e,
 		});
 	}
+
 	delete(fpgen.ls_saving_disabled);
 }
 
