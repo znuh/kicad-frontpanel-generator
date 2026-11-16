@@ -307,6 +307,24 @@ function mk_layermap_table(ttype) {
 	adopt_template(tbody, 'tr_layermap', kicad_input_layers, role_transl);
 }
 
+function apply_kicad_preview_cfg(preview_cfg) {
+	config.kicad_preview = preview_cfg;
+
+	// nothing to do if kicad preview config not yet in DOM
+	if (!document.querySelectorAll('[name="F.Mask"]').length)
+		return;
+
+	// we just click the existing buttons here
+
+	const mask_color = config.kicad_preview.layer_map['F.Mask'];
+	const mask_sel = document.querySelector('[name="F.Mask"][data-color="'+mask_color+'"]');
+	mask_sel?.click();
+
+	const finish_color = config.kicad_preview.layer_map['F.Cu'];
+	const finish_sel = document.querySelector('[name="F.Cu"][data-color="'+finish_color+'"]');
+	finish_sel?.click();
+}
+
 function apply_kicad_cfg(kc_cfg) {
 	config.kicad_output = kc_cfg;
 	//config.output_mode = 'kicad';
