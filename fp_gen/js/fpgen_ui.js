@@ -314,7 +314,8 @@ function apply_kicad_preview_cfg(preview_cfg) {
 	if (!document.querySelectorAll('[name="F.Mask"]').length)
 		return;
 
-	// we just click the existing buttons here
+	/* We just click the existing buttons here.
+	 * The event handler (kicad_preview_color_changed()) then updates SVG layers as needed. */
 
 	const mask_color = config.kicad_preview.layer_map['F.Mask'];
 	const mask_sel = document.querySelector('[name="F.Mask"][data-color="'+mask_color+'"]');
