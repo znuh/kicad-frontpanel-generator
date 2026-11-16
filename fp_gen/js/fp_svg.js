@@ -183,12 +183,19 @@ let SVG_FP = function() {
 
 			/* Make one group per input layer */
 			const g = mk_elem("g", {
-				fill				: color,
-				stroke				: color,
+				fill				: color ?? '#000000',
+				stroke				: color ?? '#000000',
 				"stroke-linecap"	: "round",
 			});
+
+			/* We draw unused layers in black but set display: none,
+			 * so we can enable them later (by removing the display attribute). */
+			if (!color)
+				g.setAttribute("display", "none");
+
 			if (cfg.fill_opacity)
 				g.setAttribute("fill_opacity", cfg.fill_opacity);
+
 			layer_groups[input_layer] = g;
 			svg.appendChild(g);
 		}

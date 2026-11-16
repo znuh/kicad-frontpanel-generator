@@ -7,9 +7,6 @@
  * - read config from User.Comments text(s) in KiCad input board
  * - UI: button + modal to generate & show User.Comments config entry for current config
  * - UI: option to keep/convert/drop knockout text for SVG output (laser fps)
- *
- * FIXME:
- * - allow enabling a layer when input was loaded with layer disabled
  */
 
 /* Holds the input KiCad PCB */
@@ -172,7 +169,7 @@ function pcb_to_fp(input_pcb, gen) {
 	function test_fp_layer(elem) {
 		if(!Array.isArray(elem))
 			return false;
-		else if((elem[0] == "layer") && (layer_map[JSON.parse(elem[1])]))
+		else if((elem[0] == "layer") && (JSON.parse(elem[1]) in layer_map))
 			return true;
 		else
 			return elem.some((e) => test_fp_layer(e));
