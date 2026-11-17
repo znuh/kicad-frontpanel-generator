@@ -581,6 +581,7 @@ function import_config_pcb() {
 	 * - slice(1) drops the initial "Frontpanel:" marker line.
 	 * - flat() is used to make a single array from all config lines spanning all config texts */
 	cfg_texts.map(te => import_text(te).slice(1)).flat().forEach(line => {
+		if (!line) return; // skip empty/undefined lines
 		const vals = [...line.matchAll(cfg_re)].map(cap => !isNaN(cap[0]) ? +cap[0] : cap[0]);
 		const key = vals.shift();
 		const key_is_layer = is_pcb_layer(key);
