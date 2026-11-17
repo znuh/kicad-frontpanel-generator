@@ -794,6 +794,9 @@ function cfg_import_export(evt) {
 
 document.addEventListener("DOMContentLoaded", function() {
 
+	// initialize config with default values
+	config = structuredClone(default_config);
+
 	/* Setup copy to clipboard btn in config-modal */
 	document.querySelectorAll('[data-clipboard]').forEach( n => {
 		n.addEventListener('click', copy_clipboard);

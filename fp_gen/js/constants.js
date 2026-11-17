@@ -46,3 +46,48 @@ const surface_colors = {
 
 const FR4_color = '#dfd6c4';
 const Cu_color  = '#cd7b5b';
+
+const default_config = {
+
+	kicad_output : {
+		keep_3d_models 			: true,
+		models_offset_adjust	: [0, 0, -8],
+		layer_map : {
+			'User.1'	:	["Edge.Cuts"],
+			//'User.2'	:	["F.Mask"],
+			'User.2'	:	["B.Mask"],
+			'User.3'	:	["F.SilkS"],
+			'User.4'	:	["F.Cu", "F.Mask"],
+			//'User.4'	:	["F.Cu"],
+		},
+	},
+
+	SVG_output : {
+		layer_map : {
+			/*
+			'User.1' : '#c2c2c2',
+			'User.2' : '#5994dc',
+			'User.3' : '#b4dbd2',
+			'User.4' : '#d8c852',
+			*/
+			'User.1' : '#ff0000',
+			'User.2' : '#00ff00',
+			'User.3' : '#0000ff',
+			'User.4' : '#ff8000',
+		},
+		padding 	 : 5,
+		scale_text 	 : 1.5,
+		font		 : "Arial, Helvetica, sans-serif",
+		//fill_opacity : 0.5,
+	},
+
+	kicad_preview : {
+		layer_map : {
+			'F.Cu'      : '#fbdf17',
+			'F.Mask'    : '#000000',
+			'F.SilkS'   : '#ffffff',
+			'Edge.Cuts' : '#808080',
+		},
+		background : FR4_color,
+	},
+};
