@@ -120,7 +120,7 @@ function adopt_template(dst_parent, template_id, entries, role_transl) {
 	}
 }
 
-function save_config_ls() {
+function ls_save_config() {
 	if (fpgen.ls_saving_disabled)
 		return;
 
@@ -128,7 +128,7 @@ function save_config_ls() {
 	// save to localStorage
 	localStorage.setItem(fname, JSON.stringify(config));
 	localStorage.setItem('last_file', fname);
-	//console.log("save", fname);
+	console.log("ls_save_config", fname);
 }
 
 function update_preview(output_mode) {
@@ -200,7 +200,7 @@ function kicad_preview_color_changed(evt) {
 				(silkscreen_color === '#000000') ? 'black' : 'white';
 		}
 	}
-	save_config_ls();
+	ls_save_config();
 }
 
 /* Called when user changed an entry of the SVG layer map.
@@ -212,7 +212,7 @@ function SVG_layermap_changed(evt) {
 	const color = layer_active ? node.value : null;
 	const cfg = config.SVG_output;
 	cfg.layer_map[input_layer] = color; // update config
-	save_config_ls();
+	ls_save_config();
 
 	if (!fpgen.SVG_output.SVG_gen)
 		return;
@@ -233,7 +233,7 @@ function kicad_layermap_changed(evt) {
 	const output_layers = ((node.value === 'Unassigned') ? [] : node.value.split(' + '));
 	const cfg = config.kicad_output;
 	cfg.layer_map[input_layer] = output_layers;
-	save_config_ls();
+	ls_save_config();
 
 	if (!source_pcb)
 		return;
@@ -420,7 +420,7 @@ function set_output_fmt(output_mode) {
 	show_container('cfg_load_save', true);
 
 	config.output_mode = output_mode;
-	save_config_ls();
+	ls_save_config();
 }
 
 function apply_kicad_preview_cfg(preview_cfg) {
@@ -631,37 +631,84 @@ function import_config_pcb() {
 	return [kicad_output_cfg, SVG_output_cfg];
 }
 
-function JSON_CfgLoader(str) {
+function apply_config(cfg) {
+
+	/* apply configuration */
+	apply_kicad_cfg(cfg.kicad_output);
+	apply_SVG_cfg(cfg.SVG_output);
+
+	if (cfg.kicad_preview)
+		apply_kicad_preview_cfg(cfg.kicad_preview);
+
+	if (cfg.output_mode)
+		set_output_fmt(cfg.output_mode);
+
+	/* We must call update_preview() to generate a fresh SVG.
+	 * Might have been done by set_output_fmt() already -
+	 * in that case calling update_preview() again does no harm. */
+	update_preview();
+
+}
+
+function JSON_CfgLoader(str, fname) {
+	/* fname is defined when called via fileReader (user imported a JSON file)
+	 * and undefined when called to load a config from localStorage.
+	 * In the latter case we don't want to show an error message. */
+	const show_errors = !!fname;
+	let rollback_config = null;
+	let success = false;
+
+	//console.log("load config", fname, str);
+
 	fpgen.ls_saving_disabled = true; // disable saving to ls while applying config
 
 	try {
-		const cfg = JSON.parse(str);
-		if (!cfg?.kicad_output?.layer_map || !cfg?.SVG_output?.layer_map)
+		const new_cfg = JSON.parse(str);
+		if (!new_cfg?.kicad_output?.layer_map || !new_cfg?.SVG_output?.layer_map)
 			throw new Error("Configuration data invalid.");
 
-		/* apply configuration */
-		apply_kicad_cfg(cfg.kicad_output);
-		apply_SVG_cfg(cfg.SVG_output);
+		/* Before applying a new config we make a copy of the current config,
+		 * so we can roll back if applying the new config somehow fails. */
+		rollback_config = structuredClone(config);
 
-		if (cfg.kicad_preview)
-			apply_kicad_preview_cfg(cfg.kicad_preview);
+		apply_config(new_cfg);
 
-		if (cfg.output_mode)
-			set_output_fmt(cfg.output_mode);
-
-		/* We must call update_preview() to generate a fresh SVG.
-		 * Might have been done by set_output_fmt() already -
-		 * in that case calling update_preview() again does no harm. */
-		update_preview();
+		rollback_config = null; // no longer needed
+		success = true;
 
 	} catch(e) {
-		ui_message('error-modal', {
-			title : 'Error Parsing Frontpanel Configuration',
-			text  : e,
-		});
+		if (show_errors) {
+			ui_message('error-modal', {
+				title : 'Error Parsing Frontpanel Configuration',
+				text  : e,
+			});
+		}
+		else
+			console.log("JSON_CfgLoader Error:", e);
 	}
 
+	if (rollback_config)
+		apply_config(rollback_config);
+
 	delete(fpgen.ls_saving_disabled);
+
+	/* Save config from imported JSON file to localStorage */
+	if (success && fname)
+		ls_save_config();
+
+	return success;
+}
+
+function ls_load_config(fname) {
+	if (!fname) return;
+	const json_cfg = localStorage.getItem(fname);
+	if (!json_cfg) return;
+	if (!JSON_CfgLoader(json_cfg)) {
+		/* If the config is broken, JSON_CfgLoader already did a rollback.
+		 * But we delete the broken config from ls here. */
+		console.log("removing broken config for "+fname);
+		localStorage.removeItem(fname);
+	}
 }
 
 function KicadLoader(str, fname, server_path, mod_time) {
@@ -728,7 +775,7 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		//config.output_mode = ...
 
 		if (config_imported)
-			save_config_ls();
+			ls_save_config();
 
 		// TODO: apply previous cfg if present and no config imported
 
@@ -796,7 +843,7 @@ function cfg_import_export(evt) {
 
 document.addEventListener("DOMContentLoaded", function() {
 
-	// initialize config with default values
+	/* Initialize config with sane default values */
 	config = structuredClone(default_config);
 
 	/* Setup copy to clipboard btn in config-modal */
@@ -857,7 +904,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	keep_3d.checked = config.kicad_output.keep_3d_models != false;
 	keep_3d.addEventListener('change', (e) => {
 		config.kicad_output.keep_3d_models = e.target.checked;
-		save_config_ls();
+		ls_save_config();
 	});
 
 	/* z_ofs default val & input sanitizer */
@@ -871,15 +918,12 @@ document.addEventListener("DOMContentLoaded", function() {
 	/* add z_ofs event handler */
 	zofs_input.addEventListener('change', (e) => {
 		config.kicad_output.models_offset_adjust = [0, 0, (parseFloat(e.target.value) || 0)];
-		save_config_ls();
+		ls_save_config();
 	});
 
 	/* add config load/save event handler */
 	document.getElementById('cfg_load_save_ul').addEventListener('click', cfg_import_export);
 
 	/* load config from last session - if one exists */
-	const last_file   = localStorage.getItem('last_file') ?? 'no_file';
-	const last_config = localStorage.getItem(last_file);
-	if (last_config)
-		JSON_CfgLoader(last_config);
+	ls_load_config(localStorage.getItem('last_file') ?? 'no_file');
 });
