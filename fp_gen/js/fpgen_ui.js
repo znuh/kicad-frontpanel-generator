@@ -574,9 +574,9 @@ function import_config_pcb() {
 
 	function SVG_cfg() {
 		SVG_output_cfg ??= {
-			padding		: 5,
-			scale_text	: 1.5,
-			font		: "Arial, Helvetica, sans-serif",
+			//padding		: 5,	// default in SVG_FP.update_extents
+			//scale_text	: 1.5,	// default in SVG_FP.update_texts
+			//font		: "Arial, Helvetica, sans-serif",	// default in SVG_FP.update_texts
 			layer_map 	: {},
 		};
 		return SVG_output_cfg;
