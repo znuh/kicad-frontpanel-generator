@@ -128,7 +128,7 @@ function ls_save_config() {
 	// save to localStorage
 	localStorage.setItem(fname, JSON.stringify(config));
 	localStorage.setItem('last_file', fname);
-	console.log("ls_save_config", fname);
+	//console.log("ls_save_config", fname);
 }
 
 function update_preview(output_mode) {
@@ -647,7 +647,6 @@ function apply_config(cfg) {
 	 * Might have been done by set_output_fmt() already -
 	 * in that case calling update_preview() again does no harm. */
 	update_preview();
-
 }
 
 function JSON_CfgLoader(str, fname) {
