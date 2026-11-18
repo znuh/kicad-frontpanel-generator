@@ -502,6 +502,24 @@ function apply_SVG_cfg(SVG_cfg) {
 	});
 }
 
+function apply_config(cfg) {
+
+	/* apply configuration */
+	apply_kicad_cfg(cfg.kicad_output);
+	apply_SVG_cfg(cfg.SVG_output);
+
+	if (cfg.kicad_preview)
+		apply_kicad_preview_cfg(cfg.kicad_preview);
+
+	if (cfg.output_mode)
+		set_output_fmt(cfg.output_mode);
+
+	/* We must call update_preview() to generate a fresh SVG.
+	 * Might have been done by set_output_fmt() already -
+	 * in that case calling update_preview() again does no harm. */
+	update_preview();
+}
+
 function export_config_pcb() {
 	const output_mode = document.getElementById('output_fmt').value;
 	let txt = 'Frontpanel:\n';
@@ -631,24 +649,6 @@ function import_config_pcb() {
 	return [kicad_output_cfg, SVG_output_cfg];
 }
 
-function apply_config(cfg) {
-
-	/* apply configuration */
-	apply_kicad_cfg(cfg.kicad_output);
-	apply_SVG_cfg(cfg.SVG_output);
-
-	if (cfg.kicad_preview)
-		apply_kicad_preview_cfg(cfg.kicad_preview);
-
-	if (cfg.output_mode)
-		set_output_fmt(cfg.output_mode);
-
-	/* We must call update_preview() to generate a fresh SVG.
-	 * Might have been done by set_output_fmt() already -
-	 * in that case calling update_preview() again does no harm. */
-	update_preview();
-}
-
 function JSON_CfgLoader(str, fname) {
 	/* fname is defined when called via fileReader (user imported a JSON file)
 	 * and undefined when called to load a config from localStorage.
@@ -773,12 +773,12 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		//const previous_config = JSON.parse(localStorage.getItem(source_pcb.fname));
 		//config.output_mode = ...
 
+		/* Save config to ls if imported from PCB.
+		 * Otherwise try to load config for this file from ls. */
 		if (config_imported)
 			ls_save_config();
-
-		// TODO: apply previous cfg if present and no config imported
-
-//		localStorage.setItem('last_file', source_pcb.fname);
+		else
+			ls_load_config(fname);
 
 		update_preview();
 	}
