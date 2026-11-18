@@ -748,6 +748,9 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		config.kicad_output.output_kicad_version = (parseFloat(source_pcb.kicad_ver) >= 10.0) ? 10.0 : 9.0;
 		output_info = "Output KiCad version: " + config.kicad_output.output_kicad_version;
 
+		/* Try to load config for this filename from localStorage */
+		ls_load_config(fname);
+
 		/* See if we find a Frontpanel Configuration Text in the PCB */
 		try {
 			const [kc_cfg, SVG_cfg] = import_config_pcb();
@@ -777,8 +780,6 @@ function KicadLoader(str, fname, server_path, mod_time) {
 		 * Otherwise try to load config for this file from ls. */
 		if (config_imported)
 			ls_save_config();
-		else
-			ls_load_config(fname);
 
 		update_preview();
 	}
