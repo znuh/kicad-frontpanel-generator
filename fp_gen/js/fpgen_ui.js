@@ -710,7 +710,7 @@ function ls_load_config(fname) {
 	}
 }
 
-function KicadLoader(str, fname, server_path, mod_time) {
+function KicadLoader(str, fname) {
 	const supported_kicad_versions = {"9.0" : true, "10.0" : true};
 	let version_info = "No file loaded yet.";
 	let output_info = "No input file loaded yet.";
