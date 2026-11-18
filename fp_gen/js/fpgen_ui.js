@@ -3,8 +3,8 @@
  */
 
 /* TODOs for persistent-config:
- * - KicadLoader: handle different cases with config from PCB import and localStorage
- * - verify handling of config.output_mode
+ * - don't store full kicad_preview settings in config?
+ * - verify config saving/loading with ls/JSON/PCB_txt
  */
 
 function ui_theme_setup() {
@@ -751,20 +751,24 @@ function KicadLoader(str, fname) {
 		/* Try to load config for this filename from localStorage */
 		ls_load_config(fname);
 
-		/* See if we find a Frontpanel Configuration Text in the PCB */
+		let output_mode = config.output_mode;
+
+		/* See if we find a Frontpanel Configuration Text in the PCB.
+		 * Disable saving to localStorage until we're done. */
+
+		fpgen.ls_saving_disabled = true;
+
 		try {
 			const [kc_cfg, SVG_cfg] = import_config_pcb();
-			config_imported = kc_cfg || SVG_cfg;
-			if (kc_cfg)
+			if (kc_cfg) {
 				apply_kicad_cfg(kc_cfg);
-			if (SVG_cfg)
-				apply_SVG_cfg(SVG_cfg);
-			if (config_imported) {
-				ui_message('notify-toast', {
-					title : '🛈 Note',
-					text  : 'Layer map imported from Cmts.User text.',
-				});
+				output_mode ??= 'kicad';
 			}
+			if (SVG_cfg) {
+				apply_SVG_cfg(SVG_cfg);
+				output_mode ??= 'SVG';
+			}
+			config_imported = kc_cfg || SVG_cfg;
 		} catch(e) {
 			ui_message('error-modal', {
 				title : 'Error Parsing Frontpanel Configuration',
@@ -772,15 +776,17 @@ function KicadLoader(str, fname) {
 			});
 		}
 
-		// TODO: overwrite config.output_mode with ls value - if exists
-		//const previous_config = JSON.parse(localStorage.getItem(source_pcb.fname));
-		//config.output_mode = ...
+		delete(fpgen.ls_saving_disabled);
 
-		/* Save config to ls if imported from PCB.
-		 * Otherwise try to load config for this file from ls. */
-		if (config_imported)
+		if (config_imported) {
+			if (output_mode != config.output_mode)
+				set_output_fmt(output_mode);
 			ls_save_config();
-
+			ui_message('notify-toast', {
+				title : '🛈 Note',
+				text  : 'Layer map imported from Cmts.User text.',
+			});
+		}
 		update_preview();
 	}
 	else {
