@@ -584,6 +584,7 @@ function import_config_pcb() {
 		if (!line) return; // skip empty/undefined lines
 		const vals = [...line.matchAll(cfg_re)].map(cap => !isNaN(cap[0]) ? +cap[0] : cap[0]);
 		const key = vals.shift();
+		if (!key) return;
 		const key_is_layer = is_pcb_layer(key);
 		//console.log(key, key_is_layer, vals);
 
