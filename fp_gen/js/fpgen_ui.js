@@ -2,11 +2,6 @@
  * Licensed under MIT (https://github.com/znuh/kicad-frontpanel-generator/blob/main/LICENSE)
  */
 
-/* TODOs for persistent-config:
- * - don't store full kicad_preview settings in config?
- * - verify config saving/loading with ls/JSON/PCB_txt
- */
-
 function ui_theme_setup() {
 
 	function apply_theme() {
