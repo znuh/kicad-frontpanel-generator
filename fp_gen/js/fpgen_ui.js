@@ -591,7 +591,7 @@ function import_config_pcb() {
 	 * 2) hex rgb colors (e.g. #0033ff)
 	 * 3) KiCad layers (e.g. Cmts.User) and config keys (e.g. z_ofs, no_3d_models)
 	 * Group 3) is quite liberal. No strict sanity checking for valid KiCad layers. */
-	const cfg_re = /(-?\d+(\.\d+))|(#[\da-fA-F]{6})|([\w\.]+)/g;
+	const cfg_re = /(-?\d+(\.\d+)?)|(#[\da-fA-F]{6})|([\w\.]+)/g;
 
 	/* cfg_texts[0] contains 1st Frontpanel: text block,
 	 * cfg_texts[1] the second - if there is one - and so on.
@@ -604,7 +604,7 @@ function import_config_pcb() {
 		const key = vals.shift();
 		if (!key) return;
 		const key_is_layer = is_pcb_layer(key);
-		//console.log(key, key_is_layer, vals);
+		//console.log(line, key, key_is_layer, vals);
 
 		if (key_is_layer) {
 			vals.forEach(tl => {
