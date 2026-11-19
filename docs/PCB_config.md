@@ -1,4 +1,4 @@
-The frontpanel configuration can be specified directly in the KiCad PCB file by adding a simple text in the **Cmts.User** layer.  
+The frontpanel configuration can be specified directly in the KiCad PCB file by adding a simple text in the **User.Comments** layer.  
 The first line of this text must be: `Frontpanel:` After this you can define the layer map.
 
 ### Example (KiCad output) ###

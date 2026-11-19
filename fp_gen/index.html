@@ -177,7 +177,7 @@
 		  <ul class="dropdown-menu" id="cfg_load_save_ul">
 			<li><button class="dropdown-item" type="button">Import JSON file</button></li>
 			<li><button class="dropdown-item" type="button">Export JSON file</button></li>
-			<li><button class="dropdown-item" type="button">Export as KiCad Cmts.User Text</button></li>
+			<li><button class="dropdown-item" type="button">Export as KiCad User.Comments Text</button></li>
 		  </ul>
 		</div>
       </div> <!-- card body -->
@@ -295,16 +295,16 @@
 		</div>
 	</div>
 
-	<!-- Config -> KiCad Cmts.User export modal -->
+	<!-- Config -> KiCad User.Comments export modal -->
 	<div class="modal" tabindex="-1" id="config-modal">
 	  <div class="modal-dialog"> <!-- default width looks good for now. modal-lg atm not necessary. -->
 		<div class="modal-content">
 		  <div class="modal-header">
-			<h5 class="modal-title" id="config-modal-title">Cmts.User Text for Frontpanel Config</h5>
+			<h5 class="modal-title" id="config-modal-title">User.Comments Text for Frontpanel Config</h5>
 			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		  </div>
 		  <div class="modal-body">
-			<div>Insert the following text in the <strong>Cmts.User</strong> layer of the PCB:</div>
+			<div>Insert the following text in the <strong>User.Comments</strong> layer of the PCB:</div>
 			<pre class="text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-3 p-2 m-2 font-monospace overflow-auto" id="config-modal-text"
 				 style="max-height: 500px; font-size: 0.875rem; line-height: 1.4;"></pre>
 			<button class="btn btn-primary m-2 mt-1" data-clipboard="config-modal-text">

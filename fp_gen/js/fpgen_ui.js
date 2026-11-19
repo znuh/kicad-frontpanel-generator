@@ -531,7 +531,7 @@ function export_config_pcb() {
 			txt += ' z_ofs: ' + config.kicad_output.models_offset_adjust[2] + '\n';
 	}
 	ui_message('config-modal', {
-		title : 'Cmts.User Text for Frontpanel Config',
+		title : 'User.Comments Text for Frontpanel Config',
 		text  : txt,
 	});
 }
@@ -779,7 +779,7 @@ function KicadLoader(str, fname) {
 			ls_save_config();
 			ui_message('notify-toast', {
 				title : '🛈 Note',
-				text  : 'Layer map imported from Cmts.User text.',
+				text  : 'Layer map imported from User.Comments text.',
 			});
 		}
 		update_preview();
