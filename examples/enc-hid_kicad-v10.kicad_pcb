@@ -27762,6 +27762,18 @@
 		(layer "User.3")
 		(uuid "0ce96532-2b6e-4195-8f7d-8f52e12a674b")
 	)
+	(gr_text "Frontpanel:\n User.1 -> Edge.Cuts / #0000ff\n User.2 -> B.SilkS / #ff0000\n User.3 -> F.SilkS / #00ff00\n User.4 -> F.Cu, F.Mask / #ff00ff\n z_ofs: -8\n"
+		(at 153.4 65.1 0)
+		(layer "Cmts.User")
+		(uuid "6b771ede-4a59-4887-9a2f-55f15f236607")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "enc-hid v1\nznu 2025"
 		(at 143.6 89.6 0)
 		(layer "B.SilkS")

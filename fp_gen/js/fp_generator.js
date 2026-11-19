@@ -3,82 +3,30 @@
  */
 
 /* Further ideas:
- * - save config to / load from localStorage
- * - read config from User.Comments text(s) in KiCad input board
- * - UI: button + modal to generate & show User.Comments config entry for current config
  * - UI: option to keep/convert/drop knockout text for SVG output (laser fps)
- *
- * FIXME:
- * - allow enabling a layer when input was loaded with layer disabled
  */
 
 /* Holds the input KiCad PCB */
 let source_pcb = null;
 
-/* All the config stuff goes into this object: */
-const config = {
-
-	kicad_output : {
-		keep_3d_models 			: true,
-		models_offset_adjust	: [0, 0, -8],
-		layer_map : {
-			'User.1'	:	["Edge.Cuts"],
-			//'User.2'	:	["F.Mask"],
-			'User.2'	:	["B.Mask"],
-			'User.3'	:	["F.SilkS"],
-			'User.4'	:	["F.Cu", "F.Mask"],
-			//'User.4'	:	["F.Cu"],
-		},
-	},
-
-	SVG_output : {
-		layer_map : {
-			'User.1' : '#c2c2c2',
-			'User.2' : '#5994dc',
-			'User.3' : '#b4dbd2',
-			'User.4' : '#d8c852',
-			/*
-			'User.1' : '#ff0000',
-			'User.2' : '#00ff00',
-			'User.3' : '#0000ff',
-			'User.4' : '#ff8000',
-			*/
-		},
-		padding 	 : 5,
-		scale_text 	 : 1.5,
-		font		 : "Arial, Helvetica, sans-serif",
-		//fill_opacity : 0.5,
-	},
-
-	kicad_preview : {
-		layer_map : {
-			'F.Cu'      : '#fbdf17',
-			'F.Mask'    : '#000000',
-			'F.SilkS'   : '#ffffff',
-			'Edge.Cuts' : '#808080',
-		},
-		background : FR4_color,
-	},
-};
+/* All the config stuff goes into this object. See default_config in constants.js. */
+let config = null;
 
 /* Big static object holding all our internal stuff. */
 const fpgen = {
 
-	/* ui_init_done: true if UI init done ;-)
-	 * SVG: SVG object which can be displayed in preview
+	/* SVG: SVG object which can be displayed in preview
 	 * SVG_gen: The SVG generator object
 	 *
 	 * These values are null/undefined if user never selected the
 	 * corresponding output format. */
 
 	SVG_output : {
-		//ui_init_done	: null,
 		//SVG			: null,
 		//SVG_gen		: null,
 	},
 
 	kicad_output : {
-		//ui_init_done	: null,
 		//preview_fp	: null, // generated frontpanel for preview
 		//SVG			: null,
 		//SVG_gen		: null,
@@ -117,6 +65,31 @@ function encode_sexpression(item, ind) {
 	return buf + ")";
 }
 
+/* Import/convert/sanitize text from kicad fp_text or gr_text element.
+ * Returns array of text lines. */
+function import_text(se) {
+	/* Text examples:
+	 *  fp_text value 20k
+	 *  fp_text user "foobar"
+	 *  gr_text bot
+	 *  gr_text "AP3513E"
+	 * => use se[2] for fp_text, se[1] otherwise
+	 * => pass through JSON.parse if first char is a double quote */
+	let actual_text = ((se[0] === "fp_text") ? se[2] : se[1]);
+
+	/* Text in KiCad can include at least 'tab' as unescaped 0x09 bytes.
+	 * So we need to sanitize the input before throwing it into JSON.parse. */
+	actual_text = actual_text.replace(/[\x00-\x1f]/g, '');
+
+	if (actual_text.charAt(0) === "\"")
+		actual_text = JSON.parse(actual_text);
+
+	/* KiCad encodes '"' in text as '{dblquote}', so we have to replace these. */
+	actual_text = actual_text.replaceAll('{dblquote}','"');
+
+	return actual_text.split("\n");
+}
+
 /* look up a token by following a given path from elem
  * e.g. find_token(model, "offset", "xyz") */
 function find_token(elem, ...path) {
@@ -150,7 +123,7 @@ function pcb_to_fp(input_pcb, gen) {
 	function test_fp_layer(elem) {
 		if(!Array.isArray(elem))
 			return false;
-		else if((elem[0] == "layer") && (layer_map[JSON.parse(elem[1])]))
+		else if((elem[0] == "layer") && (JSON.parse(elem[1]) in layer_map))
 			return true;
 		else
 			return elem.some((e) => test_fp_layer(e));

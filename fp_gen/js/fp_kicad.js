@@ -43,6 +43,7 @@ let Kicad_FP = function() {
 
 		/* Convert & add a footprint */
 		this.add_footprint = function(src) {
+			const model_ofs_adjust = config.kicad_output.models_offset_adjust ?? [0, 0, -8];
 
 			const new_name = src[1].replace(/\w+?:/,'frontpanel:');		/* replace library name with 'frontpanel' */
 			let res = ["footprint", new_name];							/* create footprint token */
@@ -57,11 +58,12 @@ let Kicad_FP = function() {
 
 				/* deal with 3D model */
 				else if (se[0] == "model") {
-					if (config.kicad_output.keep_3d_models) {
+					/* Keep 3D models by default unless user explicitly does not want them. */
+					if (config.kicad_output.keep_3d_models != false) {
 						let model = structuredClone(se);
 						let ofs = find_token(model, "offset", "xyz");
 						for(let j=0; j<3; j++)
-							ofs[j+1] += config.kicad_output.models_offset_adjust[j];
+							ofs[j+1] += model_ofs_adjust[j];
 						res.push(model);
 					}
 				}

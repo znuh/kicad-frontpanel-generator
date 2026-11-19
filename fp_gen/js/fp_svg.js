@@ -183,12 +183,19 @@ let SVG_FP = function() {
 
 			/* Make one group per input layer */
 			const g = mk_elem("g", {
-				fill				: color,
-				stroke				: color,
+				fill				: color ?? '#000000',
+				stroke				: color ?? '#000000',
 				"stroke-linecap"	: "round",
 			});
+
+			/* We draw unused layers in black but set display: none,
+			 * so we can enable them later (by removing the display attribute). */
+			if (!color)
+				g.setAttribute("display", "none");
+
 			if (cfg.fill_opacity)
 				g.setAttribute("fill_opacity", cfg.fill_opacity);
+
 			layer_groups[input_layer] = g;
 			svg.appendChild(g);
 		}
@@ -320,26 +327,7 @@ let SVG_FP = function() {
 				}
 			}
 
-			/* Text examples:
-			 *  fp_text value 20k
-			 *  fp_text user "foobar"
-			 *  gr_text bot
-			 *  gr_text "AP3513E"
-			 * => use se[2] for fp_text, se[1] otherwise
-			 * => pass through JSON.parse if first char is a double quote */
-			let actual_text = ((se[0] === "fp_text") ? se[2] : se[1]);
-
-			/* Text in KiCad can include at least 'tab' as unescaped 0x09 bytes.
-			 * So we need to sanitize the input before throwing it into JSON.parse. */
-			actual_text = actual_text.replace(/[\x00-\x1f]/g, '');
-
-			if (actual_text.charAt(0) === "\"")
-				actual_text = JSON.parse(actual_text);
-
-			/* KiCad encodes '"' in text as '{dblquote}', so we have to replace these. */
-			actual_text = actual_text.replaceAll('{dblquote}','"');
-
-			const lines = actual_text.split("\n");
+			const lines = import_text(se);
 			const tspans = [];
 			for(i=0;i<lines.length;i++) {
 				const ts = mk_elem("tspan");

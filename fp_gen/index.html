@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KiCad Frontpanel Generator</title>
   <link rel="stylesheet" href="bootstrap-5.3.8/bootstrap.min.css">
+  <link href="bootstrap-icons-1.13.2/bootstrap-icons.min.css" rel="stylesheet" >
   <script src="js/theme_init.js"></script>
   <style>
 	.color-rect-sm {
@@ -62,7 +63,7 @@
   <!-- Root container -->
   <div class="container my-2">
     <h1>KiCad Frontpanel Generator</h1>
-    Version: 2026-10-05; Source: <a href="https://github.com/znuh/kicad-frontpanel-generator">Git Repository</a>
+    Version: dev; Source: <a href="https://github.com/znuh/kicad-frontpanel-generator">Git Repository</a>
 
     <!-- File Input -->
     <div class="card mx-auto mt-3">
@@ -135,13 +136,13 @@
 
 		<div class="input-group" style="max-width: 450px;">
 		  <div class="input-group-text">
-			<input class="form-check-input mt-0" id="cb_keep_3d" type="checkbox" value="" aria-label="Checkbox for following text input" data-config="keep_3d_models">
+			<input class="form-check-input mt-0" id="cb_keep_3d" type="checkbox" value="" aria-label="Checkbox to keep 3D models in output">
 			<label class="form-check-label ms-2" for="cb_keep_3d">Keep 3D Models</label>
 		  </div>
 		  <div class="input-group-text">
 			<label for="z_ofs" class="form-text-label">Z-axis offset:</label>
 		  </div>
-		  <input type="text" inputmode="numeric" class="form-control" aria-label="z_ofs" id="z_ofs" value="-8.0" data-config="z_ofs">
+		  <input type="text" inputmode="numeric" class="form-control" aria-label="z_ofs" id="z_ofs" value="-8.0">
 		  <div class="input-group-text">
 			<label class="form-text-label">mm</label>
 		  </div>
@@ -166,6 +167,21 @@
 		</table>
 
       </div> <!-- card body -->
+
+      <!-- save/load config -->
+      <div class="card-body d-none" id="cfg_load_save">
+		<div class="dropdown">
+		  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+			Import/Export Configuration
+		  </button>
+		  <ul class="dropdown-menu" id="cfg_load_save_ul">
+			<li><button class="dropdown-item" type="button">Import JSON file</button></li>
+			<li><button class="dropdown-item" type="button">Export JSON file</button></li>
+			<li><button class="dropdown-item" type="button">Export as KiCad Cmts.User Text</button></li>
+		  </ul>
+		</div>
+      </div> <!-- card body -->
+
       <div class="card-body" id="cfg_empty">
 		  Select output format first.
       </div> <!-- card body -->
@@ -242,6 +258,9 @@
       </div>
     </div> <!-- card -->
 
+  <!-- hidden file input for JSON config -->
+  <input type="file" id="cfg_json_finput" style="display: none;" accept=".json, application/json">
+
   </div> <!-- root container -->
 
 	<!-- error message modal -->
@@ -249,11 +268,49 @@
 	  <div class="modal-dialog">
 		<div class="modal-content">
 		  <div class="modal-header">
-			<h5 class="modal-title">Loading input file failed</h5>
+			<h5 class="modal-title" id="error-modal-title"></h5>
 			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		  </div>
 		  <div class="modal-body">
-			<p id="error-modal-text"><b>Could not load input file.</b><br>Make sure you are using a <code>.kicad_pcb</code> file for a recent KiCad version.</p>
+			<p id="error-modal-text"></p>
+		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+
+	<!-- notify toast message -->
+	<div class="toast-container position-fixed bottom-0 end-0 p-3">
+		<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="notify-toast">
+		  <div class="toast-header">
+			<!-- <img src="..." class="rounded me-2" alt="..."> -->
+			<!-- <strong class="me-2">🛈</strong> -->
+			<strong class="me-auto" id="notify-toast-title">Henlo</strong>
+			<!-- <small>11 mins ago</small> -->
+			<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+		  </div>
+		  <div class="toast-body" id="notify-toast-text">Henlo</div>
+		</div>
+	</div>
+
+	<!-- Config -> KiCad Cmts.User export modal -->
+	<div class="modal" tabindex="-1" id="config-modal">
+	  <div class="modal-dialog"> <!-- default width looks good for now. modal-lg atm not necessary. -->
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="config-modal-title">Cmts.User Text for Frontpanel Config</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body">
+			<div>Insert the following text in the <strong>Cmts.User</strong> layer of the PCB:</div>
+			<pre class="text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-3 p-2 m-2 font-monospace overflow-auto" id="config-modal-text"
+				 style="max-height: 500px; font-size: 0.875rem; line-height: 1.4;"></pre>
+			<button class="btn btn-primary m-2 mt-1" data-clipboard="config-modal-text">
+				<i class="bi bi-clipboard"></i>
+				Copy to Clipboard
+			</button>
 		  </div>
 		  <div class="modal-footer">
 			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -270,6 +327,7 @@
 	<script src="js/fp_kicad.js"></script>
 	<script src="js/fp_svg.js"></script>
 	<script src="js/fp_generator.js"></script>
+	<script src="js/ui_utils.js"></script>
 	<script src="js/fpgen_ui.js"></script>
 </body>
 </html>

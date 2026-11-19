@@ -156,5 +156,17 @@
 			(justify left bottom)
 		)
 	)
+	(gr_text "Frontpanel:\n User.1 -> Edge.Cuts\n User.2 -> F.Mask\n User.3 -> F.Silks\n User.4 -> F.Cu"
+		(at 108.5 83.4 0)
+		(layer "Cmts.User")
+		(uuid "d83f9041-460b-4905-91d9-a2c33b0c82e6")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(embedded_fonts no)
 )
